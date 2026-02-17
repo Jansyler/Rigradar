@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Signal Lost | RigRadar AI</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
+        body { background-color: #050505; color: white; font-family: 'Inter', sans-serif; }
+        .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen text-center p-6 relative overflow-hidden">
+    
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/20 blur-[100px] rounded-full pointer-events-none"></div>
+
+    <div class="relative z-10 glass-panel p-12 rounded-3xl max-w-lg w-full border border-white/10">
+        <h1 class="text-8xl font-black text-white mb-2 tracking-tighter">404</h1>
+        <div class="text-blue-500 font-mono text-sm uppercase tracking-[0.3em] mb-6 animate-pulse">Signal Lost</div>
+        
+        <p class="text-gray-400 mb-8 text-lg">
+            We scanned the entire market, but we couldn't find the page you're looking for.
+        </p>
+
+        <a href="https://rigradarai.com" class="inline-block w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-900/20 uppercase tracking-widest text-sm">
+            Return to Base
+        </a>
+    </div>
+
+</body>
+</html>

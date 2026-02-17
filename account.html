@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account - RigRadar AI</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        body { 
+            background-color: #050505; 
+            color: white; 
+            font-family: 'Inter', sans-serif; 
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <div id="header-placeholder"></div>
+
+    <main class="flex-grow flex items-center justify-center p-6 mt-16">
+        
+        <div class="glass-panel w-full max-w-lg rounded-[30px] p-8 md:p-12 relative overflow-hidden">
+            
+            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 blur-[80px] rounded-full pointer-events-none"></div>
+
+            <div class="relative z-10 flex flex-col items-center text-center">
+                
+                <div class="relative mb-6">
+                    <img id="acc-avatar" src="" alt="Profile" class="w-24 h-24 rounded-full border-2 border-white/10 shadow-2xl">
+                    <div id="acc-badge" class="absolute bottom-0 right-0 bg-gray-600 text-[10px] font-bold px-2 py-1 rounded-full border border-black uppercase tracking-wider">
+                        Free
+                    </div>
+                </div>
+
+                <h1 id="acc-name" class="text-2xl font-black tracking-tight mb-1">---</h1>
+                <p id="acc-email" class="text-gray-500 font-mono text-xs mb-8">---</p>
+
+                <div class="w-full space-y-3">
+                    
+                    <button onclick="manageSubscription()" id="btn-manage" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2 group">
+                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                        Manage Subscription
+                    </button>
+
+                    <a href="/index.html" class="w-full bg-white/5 hover:bg-white/10 text-gray-300 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
+                        ← Back to Scanner
+                    </a>
+                    <a href="history.html" class="w-full bg-white/5 hover:bg-white/10 text-white font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 group border border-white/5">
+    <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    My Archive & History
+</a>
+
+                    <button onclick="logout()" class="w-full text-red-500/80 hover:text-red-500 text-xs font-bold py-4 transition-colors uppercase tracking-widest mt-4">
+                        Log Out
+                    </button>
+                </div>
+
+                <p id="status-msg" class="mt-4 text-xs text-gray-500 h-4"></p>
+
+            </div>
+        </div>
+    </main>
+
+<script src="auth.js"></script>
+    <script>
+        // JEDINÝ sjednocený spouštěč pro account stránku
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. Nejdříve načteme layout (header/footer) přes auth.js
+            await loadLayout();
+
+            // 2. Poté načteme data pro tuhle konkrétní kartu účtu
+            const email = localStorage.getItem('rr_user_email');
+            const pic = localStorage.getItem('rr_user_pic');
+            const isPremium = localStorage.getItem('rr_premium') === 'true';
+
+            // Pokud není přihlášen, pošleme ho na domovskou stránku
+            if (!email) {
+                window.location.href = '/';
+                return;
+            }
+
+            // Vyplnění prvků na stránce
+            const avatarImg = document.getElementById('acc-avatar');
+            const nameEl = document.getElementById('acc-name');
+            const emailEl = document.getElementById('acc-email');
+            const badge = document.getElementById('acc-badge');
+
+            if (avatarImg) avatarImg.src = pic;
+            if (nameEl) nameEl.innerText = email.split('@')[0];
+            if (emailEl) emailEl.innerText = email;
+
+            if (isPremium && badge) {
+                badge.innerText = "PREMIUM";
+                badge.className = "absolute bottom-0 right-0 bg-yellow-500 text-black text-[10px] font-bold px-2 py-1 rounded-full border border-yellow-300 uppercase tracking-wider shadow-[0_0_15px_rgba(234,179,8,0.5)]";
+            }
+        });
+
+        // Funkce pro otevření Stripe portálu (Zůstává stejná)
+        async function manageSubscription() {
+            const btn = document.getElementById('btn-manage');
+            const msg = document.getElementById('status-msg');
+            const token = localStorage.getItem('rr_auth_token');
+
+            if (!token) return;
+
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/create-portal-session', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await res.json();
+
+                if (res.status === 404) {
+                    msg.innerText = "You don't have an active subscription yet.";
+                    msg.classList.add("text-yellow-500");
+                } else if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    throw new Error("Unknown error");
+                }
+            } catch (e) {
+                console.error(e);
+                msg.innerText = "Connection failed. Try again.";
+                msg.classList.add("text-red-500");
+            } finally {
+                if (!window.location.href.includes('stripe.com')) {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+</body>
+</html>
