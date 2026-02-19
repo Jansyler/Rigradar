@@ -15,29 +15,29 @@ export default async function handler(req, res) {
     try {
         const savedKey = `saved_scans:${email}`;
         
-        // 1. Načteme všechny uložené scany
+        // 1. Načteme všechny uložené scany (Upstash je většinou už vrátí jako objekty)
         const currentSaved = await redis.lrange(savedKey, 0, -1);
         
-        // 2. Vyfiltrujeme ten, který chceme smazat (podle ID)
-        // Musíme parsovat JSON, abychom zkontrolovali ID
+        // 2. Vyfiltrujeme ten, který chceme smazat
         const newSavedList = currentSaved.filter(item => {
             try {
-                const parsed = JSON.parse(item);
-                return parsed.id !== dealId; // Necháme vše, co NENÍ mazaný deal
-            } catch { return false; }
+                // Pokud už je to objekt, rovnou ho použijeme. Pokud je to text, parsujeme ho.
+                const parsed = typeof item === 'string' ? JSON.parse(item) : item;
+                
+                // Převedeme na stringy pro jistotu, kdyby se typy neshodovaly (číslo vs string)
+                return String(parsed.id) !== String(dealId); 
+            } catch (e) { 
+                console.error("Parse error for item:", e);
+                // Když nastane chyba, položku v seznamu RADĚJI PONECHÁME, abychom nesmazali vše
+                return true; 
+            }
         });
 
         // 3. Přepíšeme seznam v Redisu
         await redis.del(savedKey); // Smažeme starý
         
         if (newSavedList.length > 0) {
-            // Redis push bere pole argumentů, ale upstash někdy zlobí s polem,
-            // tak to tam pošleme po jednom nebo spreadnem, pokud to knihovna podporuje.
-            // Pro jistotu (a zachování pořadí) to tam nasypeme znova zprava (rpush)
-            // Protože filter zachoval pořadí, musíme je tam dát tak, aby nejnovější byl vlevo (lpush) nebo zachovat order.
-            
-            // Jednodušší: Pushneme je tam zpátky. Protože redis lrange vrací 0..-1 (zleva doprava),
-            // musíme je tam vrátit ve správném pořadí. rpush zachová pořadí pole.
+            // Pushneme ty zbývající zpátky. Upstash si je zase automaticky stringifikuje.
             await redis.rpush(savedKey, ...newSavedList);
         }
         
