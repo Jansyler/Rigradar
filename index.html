@@ -544,43 +544,60 @@ async function saveScanFromIndex(event, dealDataEscaped, btn) {
             }
         }
 
-        async function requestScan() {
-            if ("Notification" in window && Notification.permission === "default") {
-                Notification.requestPermission();
-            }
-            const query = document.getElementById('scanQuery').value;
-            const customStore = document.getElementById('custom-store').value.trim();
-            const statusEl = document.getElementById('scanStatus');
-            const btn = document.getElementById('scan-btn');
-            const userEmail = localStorage.getItem('rr_user_email'); 
-            if(!query) { statusEl.innerText = "⚠️ Enter product name"; return; }
-            
-            statusEl.innerText = "📡 Sending to satellite...";
-            statusEl.className = "text-center text-xs font-mono h-5 text-yellow-500 animate-pulse";
-            btn.disabled = true;
+async function requestScan() {
+    if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+    }
 
-            let stores = [];
-            if (customStore) stores = [customStore];
-            else if (document.getElementById('check-ebay').checked) stores = ['ebay'];
-            else stores = ['ebay'];
-            
-            try {
-                await fetch('/api/request_scan', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        query: query, 
-                        stores: stores,
-                        ownerEmail: userEmail || 'system' 
-                        })
-                });
-                statusEl.innerText = `✅ Request for ${stores[0]} received!`;
-                statusEl.className = "text-center text-xs font-mono h-5 text-green-500";
-                document.getElementById('scanQuery').value = "";
-                document.getElementById('custom-store').value = "";
-            } catch (e) { statusEl.innerText = "❌ Connection error"; } 
-            finally { setTimeout(() => { btn.disabled = false; statusEl.innerText = ""; }, 3000); }
+    const query = document.getElementById('scanQuery').value;
+    const customStore = document.getElementById('custom-store').value.trim();
+    const statusEl = document.getElementById('scanStatus');
+    const btn = document.getElementById('scan-btn');
+    const userEmail = localStorage.getItem('rr_user_email'); 
+
+    if(!query) { statusEl.innerText = "⚠️ Enter product name"; return; }
+    
+    statusEl.innerText = "📡 Sending to satellite...";
+    statusEl.className = "text-center text-xs font-mono h-5 text-yellow-500 animate-pulse";
+    btn.disabled = true;
+
+    let stores = [];
+    if (customStore) stores = [customStore];
+    else if (document.getElementById('check-ebay').checked) stores = ['ebay'];
+    else stores = ['ebay'];
+    
+    try {
+        const response = await fetch('/api/request_scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                query: query, 
+                stores: stores,
+                ownerEmail: userEmail || 'system' 
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            statusEl.innerText = `✅ Request received! Scanning ${stores[0]}...`;
+            statusEl.className = "text-center text-xs font-mono h-5 text-green-500";
+            document.getElementById('scanQuery').value = "";
+            document.getElementById('custom-store').value = "";
+        } else {
+            statusEl.innerText = `⚠️ ${data.error || 'Limit reached'}`;
+            statusEl.className = "text-center text-xs font-mono h-5 text-red-400";
         }
+    } catch (e) { 
+        statusEl.innerText = "❌ Connection error"; 
+        statusEl.className = "text-center text-xs font-mono h-5 text-red-500";
+    } finally { 
+        setTimeout(() => { 
+            btn.disabled = false; 
+            statusEl.innerText = ""; 
+        }, 3000); 
+    }
+}
 
         document.addEventListener('DOMContentLoaded', async () => {
             await loadLayout(); 
