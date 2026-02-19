@@ -26,14 +26,16 @@ export default async function handler(req, res) {
       return res.status(429).json({ error: 'Wait 15s before next scan!' });
   }
 
-  try {
-    // 2. Příprava payloadu pro Python
-    const payload = JSON.stringify({
+try {
+    const { query, stores, ownerEmail } = req.body; // Přijmeme ownerEmail
+
+    // Příprava dat pro Redis frontu (scan_queue)
+    const task = JSON.stringify({
       query: query,
-      // Pokud frontend pošle stores, použijeme je. Jinak defaultně eBay.
-      stores: stores && stores.length > 0 ? stores : ['ebay'], 
+      stores: stores && stores.length > 0 ? stores : ['ebay'],
+      ownerEmail: ownerEmail || 'system', // Předáme email do Pythonu
       timestamp: Date.now(),
-      priority: true, 
+      priority: true,
       source: 'user_request'
     });
 
