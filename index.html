@@ -572,6 +572,7 @@ async function saveScanFromIndex(event, dealDataEscaped, btn) {
                         query: query, 
                         stores: stores,
                         ownerEmail: userEmail || 'system' 
+                        })
                 });
                 statusEl.innerText = `✅ Request for ${stores[0]} received!`;
                 statusEl.className = "text-center text-xs font-mono h-5 text-green-500";
