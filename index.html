@@ -156,7 +156,7 @@
                     </a>
                 </div>
         </div>
-
+</div>
         <div id="support-widget" class="fixed bottom-6 right-6 z-[200] w-14 h-14 bg-blue-600 rounded-full shadow-2xl overflow-hidden flex flex-col hover:scale-105">
             <div onclick="toggleSupport()" class="w-full h-14 flex items-center justify-center cursor-pointer bg-blue-600 hover:bg-blue-500 transition-colors absolute top-0 left-0 z-20">
                 <span id="supp-icon-open" class="text-2xl">💬</span>
@@ -363,6 +363,28 @@ function checkNotifications(deal) {
             modalContent.classList.add('scale-95');
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
+    function shareDeal() {
+    const title = document.getElementById('modal-title').innerText;
+    const price = document.getElementById('modal-price').innerText;
+    const store = document.getElementById('modal-badge').innerText;
+    
+    // Vygenerujeme text pro sdílení
+    const shareText = `📡 RigRadar Found a Deal!\n\n🔥 ${title}\n💰 Price: ${price}\n🛒 Store: ${store}\n\nCheck it out on: https://rigradarai.com`;
+    
+    navigator.clipboard.writeText(shareText).then(() => {
+        const shareBtn = document.getElementById('modal-share');
+        const originalHtml = shareBtn.innerHTML;
+        
+        // Vizuální potvrzení na tlačítku
+        shareBtn.innerHTML = `<span class="text-green-400 font-bold text-xs uppercase tracking-tighter">COPIED</span>`;
+        shareBtn.classList.add('border-green-500/50', 'bg-green-500/10');
+        
+        setTimeout(() => {
+            shareBtn.innerHTML = originalHtml;
+            shareBtn.classList.remove('border-green-500/50', 'bg-green-500/10');
+        }, 2000);
+    });
+}
 
         // --- CHART LOGIC ---
         let priceChartInstance = null;
