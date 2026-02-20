@@ -560,10 +560,6 @@ if(!res.ok) {
             }
         }
 
-async function requestScan() {
-    if ("Notification" in window && Notification.permission === "default") {
-        Notification.requestPermission();
-    }
 
     const query = document.getElementById('scanQuery').value;
     const customStore = document.getElementById('custom-store').value.trim();
