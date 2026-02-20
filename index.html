@@ -249,7 +249,7 @@
             }
         }
 
-async function sendSupportMsg() {
+        async function sendSupportMsg() {
             const input = document.getElementById('supp-input');
             const msg = input.value.trim();
             if (!msg) return;
@@ -257,11 +257,6 @@ async function sendSupportMsg() {
             const chat = document.getElementById('supp-messages');
             chat.innerHTML += `<div class="msg-supp-user p-3 text-white self-end ml-auto max-w-[85%]">${msg}</div>`;
             input.value = '';
-            chat.scrollTop = chat.scrollHeight;
-
-            // Zobrazíme "AI is typing..." indikátor
-            const typingId = "typing-" + Date.now();
-            chat.innerHTML += `<div id="${typingId}" class="msg-supp-ai p-3 text-blue-400 glass-panel rounded-lg animate-pulse">AI is thinking...</div>`;
             chat.scrollTop = chat.scrollHeight;
 
             supportHistory.push({ role: 'user', text: msg });
@@ -274,22 +269,10 @@ async function sendSupportMsg() {
                 });
                 const data = await res.json();
                 
-                // Odstraníme indikátor psaní
-                document.getElementById(typingId).remove();
-                
-                // Přidáme zprávu a TLAČÍTKO pro skener
-                chat.innerHTML += `
-                    <div class="msg-supp-ai p-3 text-gray-300 glass-panel rounded-lg flex flex-col gap-2">
-                        <span>${data.text}</span>
-                        <button onclick="fillScannerFromChat('${msg}')" class="bg-blue-600/20 hover:bg-blue-600/50 text-blue-400 border border-blue-500/30 rounded py-1 px-2 text-[10px] font-bold uppercase tracking-widest transition-colors mt-1 self-start">
-                            🔎 Auto-Scan Last Request
-                        </button>
-                    </div>`;
-                
+                chat.innerHTML += `<div class="msg-supp-ai p-3 text-gray-300 max-w-[85%]">${data.text}</div>`;
                 supportHistory.push({ role: 'ai', text: data.text });
                 chat.scrollTop = chat.scrollHeight;
             } catch (e) {
-                document.getElementById(typingId).remove();
                 chat.innerHTML += `<div class="msg-supp-ai p-3 text-red-400">Connection failed.</div>`;
             }
         }
