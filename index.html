@@ -173,7 +173,42 @@
                 </div>
             </div>
         </div>
+<button onclick="openGuide()" class="fixed bottom-6 left-6 w-14 h-14 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded-full border border-blue-500/50 flex items-center justify-center text-2xl font-black backdrop-blur-md transition-all z-[90] shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:scale-110">
+            ?
+        </button>
 
+        <div id="guide-modal" class="fixed inset-0 z-[400] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-all opacity-0">
+            <div class="glass-panel w-full max-w-lg rounded-[32px] p-8 relative border border-blue-500/30 shadow-[0_0_50px_rgba(59,130,246,0.2)] transform scale-95 transition-all duration-300">
+                <button onclick="closeGuide()" class="absolute top-6 right-6 text-gray-500 hover:text-white text-2xl">✕</button>
+                
+                <div class="inline-block px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] uppercase font-bold mb-4 tracking-widest">
+                    Quick Start Guide
+                </div>
+                
+                <h2 class="text-2xl font-black text-white leading-tight mb-4">How to use RigRadar 📡</h2>
+                
+                <p class="text-gray-300 text-sm font-light leading-relaxed mb-6">
+                    Simply type the hardware you want (e.g. <span class="text-blue-400 font-mono">RTX 4070</span>), specify a store, and our satellite will autonomously hunt down the absolute best deals in real-time.
+                </p>
+
+                <div class="bg-blue-900/20 border border-blue-500/30 p-4 rounded-2xl mb-6 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[40px] rounded-full pointer-events-none"></div>
+                    <div class="flex items-start gap-3 relative z-10">
+                        <span class="text-2xl">💡</span>
+                        <div>
+                            <h4 class="text-blue-400 font-bold text-sm uppercase tracking-wider mb-1">Pro-Tip: Ask AI First!</h4>
+                            <p class="text-xs text-gray-400 leading-relaxed">
+                                Don't know what to build? Open the <b class="text-white">Support Chat</b> (bottom right). Our AI will recommend the best PC build for your budget and tell you exactly which stores to scan!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="closeGuide()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl text-center uppercase text-sm tracking-wider transition-all shadow-lg shadow-blue-900/20">
+                    GOT IT, LET'S SCAN 🚀
+                </button>
+            </div>
+        </div>
     </main>
     <div id="footer-placeholder"></div>
 
@@ -637,6 +672,25 @@ function checkNotifications(deal) {
             await fetchLatestDeal();
             setInterval(fetchLatestDeal, 10000); 
         });
+    function openGuide() {
+            const modal = document.getElementById('guide-modal');
+            const modalContent = modal.querySelector('div');
+            modal.classList.remove('hidden');
+            setTimeout(() => { 
+                modal.classList.remove('opacity-0'); 
+                modalContent.classList.remove('scale-95'); 
+                modalContent.classList.add('scale-100'); 
+            }, 10);
+        }
+
+        function closeGuide() {
+            const modal = document.getElementById('guide-modal');
+            const modalContent = modal.querySelector('div');
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
     </script>
 </body>
 </html>
