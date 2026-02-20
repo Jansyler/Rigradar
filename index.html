@@ -226,6 +226,8 @@
 
         // --- NOTIFICATIONS & CHART LOGIC ---
         let lastNotifiedId = null;
+        let isFirstLoad = true;
+        let isWaitingForScan = false;
 
         function showRigNotification(title, price, link, deal) {
             const container = document.getElementById('notification-container');
@@ -265,12 +267,25 @@
             }, 6000);
         }
 
-        function checkNotifications(deal) {
+function checkNotifications(deal) {
             if (!deal || !deal.id) return;
-            // Pokud je to nový deal, ukážeme popup a uložíme si jeho ID
+            
+            // 1. Když uživatel teprve načte web, nic neukazujeme, jen si uložíme ID posledního dealu
+            if (isFirstLoad) {
+                lastNotifiedId = deal.id;
+                isFirstLoad = false;
+                return;
+            }
+
+            // 2. Když na pozadí přistane úplně nový deal
             if (lastNotifiedId !== deal.id) {
                 lastNotifiedId = deal.id;
-                showRigNotification(deal.title, deal.price, deal.url, deal);
+                
+                // 3. Ukážeme popup POUZE pokud si uživatel sám před chvílí vyžádal scan!
+                if (isWaitingForScan) {
+                    showRigNotification(deal.title, deal.price, deal.url, deal);
+                    isWaitingForScan = false; // Popup vyskočil, takže vypneme "čekání"
+                }
             }
         }
 
