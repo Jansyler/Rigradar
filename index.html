@@ -231,7 +231,7 @@
             }
         }
 
-        async function sendSupportMsg() {
+async function sendSupportMsg() {
             const input = document.getElementById('supp-input');
             const msg = input.value.trim();
             if (!msg) return;
@@ -239,6 +239,11 @@
             const chat = document.getElementById('supp-messages');
             chat.innerHTML += `<div class="msg-supp-user p-3 text-white self-end ml-auto max-w-[85%]">${msg}</div>`;
             input.value = '';
+            chat.scrollTop = chat.scrollHeight;
+
+            // Zobrazíme "AI is typing..." indikátor
+            const typingId = "typing-" + Date.now();
+            chat.innerHTML += `<div id="${typingId}" class="msg-supp-ai p-3 text-blue-400 glass-panel rounded-lg animate-pulse">AI is thinking...</div>`;
             chat.scrollTop = chat.scrollHeight;
 
             supportHistory.push({ role: 'user', text: msg });
@@ -251,12 +256,39 @@
                 });
                 const data = await res.json();
                 
-                chat.innerHTML += `<div class="msg-supp-ai p-3 text-gray-300 max-w-[85%]">${data.text}</div>`;
+                // Odstraníme indikátor psaní
+                document.getElementById(typingId).remove();
+                
+                // Přidáme zprávu a TLAČÍTKO pro skener
+                chat.innerHTML += `
+                    <div class="msg-supp-ai p-3 text-gray-300 glass-panel rounded-lg flex flex-col gap-2">
+                        <span>${data.text}</span>
+                        <button onclick="fillScannerFromChat('${msg}')" class="bg-blue-600/20 hover:bg-blue-600/50 text-blue-400 border border-blue-500/30 rounded py-1 px-2 text-[10px] font-bold uppercase tracking-widest transition-colors mt-1 self-start">
+                            🔎 Auto-Scan Last Request
+                        </button>
+                    </div>`;
+                
                 supportHistory.push({ role: 'ai', text: data.text });
                 chat.scrollTop = chat.scrollHeight;
             } catch (e) {
+                document.getElementById(typingId).remove();
                 chat.innerHTML += `<div class="msg-supp-ai p-3 text-red-400">Connection failed.</div>`;
             }
+        }
+
+        // --- POMOCNÁ FUNKCE PRO MOST (Bridge) ---
+        function fillScannerFromChat(userMsg) {
+            // Zavře chat
+            toggleSupport();
+            
+            // Vyplní pole pro skenování tím, na co se uživatel ptal (AI už mu poradilo)
+            const scanInput = document.getElementById('scanQuery');
+            scanInput.value = userMsg;
+            
+            // Efektně na pole zaostří (scrollne a problikne)
+            scanInput.scrollIntoView({ behavior: "smooth", block: "center" });
+            scanInput.parentElement.classList.add('ring-2', 'ring-blue-500');
+            setTimeout(() => { scanInput.parentElement.classList.remove('ring-2', 'ring-blue-500'); }, 1000);
         }
 
         // --- NOTIFICATIONS & CHART LOGIC ---
@@ -607,7 +639,7 @@ function checkNotifications(deal) {
             }
         }
 
-        async function requestScan() {
+async function requestScan() {
             const query = document.getElementById('scanQuery').value;
             const customStore = document.getElementById('custom-store').value.trim();
             const statusEl = document.getElementById('scanStatus');
@@ -619,9 +651,27 @@ function checkNotifications(deal) {
             isWaitingForScan = true; 
             setTimeout(() => { isWaitingForScan = false; }, 60000);
             
-            statusEl.innerText = "📡 Sending to satellite...";
-            statusEl.className = "text-center text-xs font-mono h-5 text-yellow-500 animate-pulse";
+            // --- SCANNER MOOD START ---
             btn.disabled = true;
+            statusEl.className = "text-center text-xs font-mono h-5 text-blue-400 animate-pulse";
+            
+            const moodMessages = [
+                "> Establishing secure uplink...",
+                "> Bypassing store bot-protection...",
+                "> Analyzing market data...",
+                "> AI evaluating deal quality...",
+                "> Extracting best price..."
+            ];
+            let moodIndex = 0;
+            statusEl.innerText = moodMessages[0];
+            
+            const moodInterval = setInterval(() => {
+                moodIndex++;
+                if (moodIndex < moodMessages.length) {
+                    statusEl.innerText = moodMessages[moodIndex];
+                }
+            }, 1800); // Mění text každých 1.8 vteřiny
+            // --- SCANNER MOOD END ---
 
             let stores = [];
             if (customStore) stores = [customStore];
@@ -629,6 +679,7 @@ function checkNotifications(deal) {
             else stores = ['ebay'];
             
             try {
+                // ... (tady zůstává tvůj původní fetch('/api/request_scan'... kód) ...
                 const response = await fetch('/api/request_scan', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -640,9 +691,11 @@ function checkNotifications(deal) {
                 });
 
                 const data = await response.json();
+                
+                clearInterval(moodInterval); // Zastavíme rotování textů
 
                 if (response.ok) {
-                    statusEl.innerText = `✅ Request received! Scanning ${stores[0]}...`;
+                    statusEl.innerText = `✅ Request received! Satellites scanning ${stores[0]}...`;
                     statusEl.className = "text-center text-xs font-mono h-5 text-green-500";
                     document.getElementById('scanQuery').value = "";
                     document.getElementById('custom-store').value = "";
@@ -651,13 +704,14 @@ function checkNotifications(deal) {
                     statusEl.className = "text-center text-xs font-mono h-5 text-red-400";
                 }
             } catch (e) { 
+                clearInterval(moodInterval); // Zastavíme i při chybě
                 statusEl.innerText = "❌ Connection error"; 
                 statusEl.className = "text-center text-xs font-mono h-5 text-red-500";
             } finally { 
                 setTimeout(() => { 
                     btn.disabled = false; 
                     statusEl.innerText = ""; 
-                }, 3000); 
+                }, 4000); 
             }
         }
 
