@@ -581,6 +581,9 @@ function checkNotifications(deal) {
 
             if(!query) { statusEl.innerText = "⚠️ Enter product name"; return; }
             
+            isWaitingForScan = true; 
+            setTimeout(() => { isWaitingForScan = false; }, 60000);
+            
             statusEl.innerText = "📡 Sending to satellite...";
             statusEl.className = "text-center text-xs font-mono h-5 text-yellow-500 animate-pulse";
             btn.disabled = true;
