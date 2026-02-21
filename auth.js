@@ -1,31 +1,4 @@
-// 1. Helper function to decode Google JWT token
-function parseJwt(token) {
-    try {
-        var base64Url = token.split('.')[1];
-        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        return JSON.parse(window.atob(base64));
-    } catch (e) {
-        console.error("Error decoding token:", e);
-        return null;
-    }
-}
-
-// 2. Callback for successful Google Login
-async function handleCredentialResponse(response) {
-    const payload = parseJwt(response.credential);
-    if (payload) {
-        localStorage.setItem('rr_user_email', payload.email);
-        localStorage.setItem('rr_user_pic', payload.picture);
-        localStorage.setItem('rr_auth_token', response.credential);
-        
-        // IHNED po přihlášení zkontrolujeme Premium status
-        await syncPremiumStatus(response.credential);
-        
-        location.reload(); 
-    }
-}
-
-// 3. NOVÁ FUNKCE: Synchronizace Premium statusu se serverem
+// 1. Synchronizace Premium statusu se serverem
 async function syncPremiumStatus(token) {
     if (!token) token = localStorage.getItem('rr_auth_token');
     if (!token) return;
@@ -43,7 +16,7 @@ async function syncPremiumStatus(token) {
             // Aktualizujeme UI, kdyby se něco změnilo
             updateAuthUI();
         } else if (res.status === 401) {
-            // Token vypršel -> odhlásit uživatele
+            // Token vypršel nebo je neplatný -> odhlásit uživatele
             logout(); 
         }
     } catch (e) {
@@ -51,20 +24,25 @@ async function syncPremiumStatus(token) {
     }
 }
 
-// 4. User Logout
+// 2. User Logout
 function logout() {
     localStorage.removeItem('rr_user_email');
     localStorage.removeItem('rr_user_pic');
     localStorage.removeItem('rr_premium');
-    localStorage.removeItem('rr_auth_token'); // Smažeme i token
+    localStorage.removeItem('rr_auth_token'); // Smažeme náš nový Session Token
     location.reload();
 }
 
-// 5. UI Update - "CHYTRÁ" VERZE S ČEKÁNÍM NA HEADER
+// 3. UI Update - "CHYTRÁ" VERZE S ČEKÁNÍM NA HEADER
 function updateAuthUI(retryCount = 0) {
     const email = localStorage.getItem('rr_user_email');
-    const pic = localStorage.getItem('rr_user_pic');
+    let pic = localStorage.getItem('rr_user_pic');
     const isPremium = localStorage.getItem('rr_premium') === 'true';
+    
+    // Pokud uživatel nemá profilovku (např. registrace emailem), dáme mu výchozího avatara
+    if (!pic || pic === 'undefined') {
+        pic = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + (email || 'user');
+    }
     
     const desktopAuth = document.getElementById('auth-section');
     const mobileAuth = document.getElementById('auth-section-mobile');
@@ -87,9 +65,9 @@ function updateAuthUI(retryCount = 0) {
             <div class="w-[1px] h-4 bg-white/10 mx-1"></div>
             <button onclick="logout()" class="text-gray-500 hover:text-red-500 text-[10px] font-black px-1 transition-colors" title="Log Out">✕</button>
         </div>
-    ` : null;
+    ` : `<button onclick="window.location.href='login.html'" class="text-white text-xs font-bold border border-white/20 px-6 py-2 rounded-xl bg-[#111] hover:bg-white/10 transition-all">Log In</button>`;
 
-    if (desktopAuth && userHtml) desktopAuth.innerHTML = userHtml;
+    if (desktopAuth) desktopAuth.innerHTML = userHtml;
 
     if (mobileAuth) {
         if (email) { 
@@ -110,12 +88,13 @@ function updateAuthUI(retryCount = 0) {
                 </div>
             `;
         } else {
-            mobileAuth.innerHTML = `<button onclick="loginWithGoogle()" class="text-white text-lg font-bold border border-white/20 px-8 py-3 rounded-xl w-full bg-[#111]">Log In</button>`;
+            // 🔴 OPRAVA: Tlačítko nyní odkazuje na login.html
+            mobileAuth.innerHTML = `<button onclick="window.location.href='login.html'" class="text-white text-lg font-bold border border-white/20 px-8 py-3 rounded-xl w-full bg-[#111]">Log In</button>`;
         }
     }
 }
 
-// 6. OVLÁDÁNÍ MOBILNÍHO MENU
+// 4. OVLÁDÁNÍ MOBILNÍHO MENU
 function toggleMobileMenu() {
     const menu = document.getElementById('mobile-menu');
     const btn = document.getElementById('mobile-menu-btn');
@@ -133,7 +112,7 @@ function toggleMobileMenu() {
     }
 }
 
-// 7. TOAST NOTIFICATION SYSTEM
+// 5. TOAST NOTIFICATION SYSTEM
 function showToast(message, type = 'error') {
     const toast = document.getElementById('toast');
     if(!toast) { alert(message); return; }
@@ -150,41 +129,29 @@ function showToast(message, type = 'error') {
     setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
 }
 
-// 8. Logic for Cookie Banner
+// 6. Logic for Cookie Banner
 function acceptCookies() { localStorage.setItem('rigradar_tos', 'true'); hideBanner(); }
 function hideBanner() { const b = document.getElementById('cookie-banner'); if(b) b.style.display = 'none'; }
 function declineCookies() { alert("You must accept the Terms of Service."); window.location.href = 'index.html'; }
+
+// 🔴 OPRAVA: Původní funkce loginWithGoogle teď rovnou přesměruje uživatele na login.html
 function loginWithGoogle() { 
-    if (typeof google === 'undefined') {
-        if(typeof showToast === 'function') showToast("Connecting to Google...", "info");
-        return; 
-    }
-    // Necháme Google, ať si okno vyřeší sám přes nový FedCM standard
-    google.accounts.id.prompt(); 
+    window.location.href = 'login.html';
 }
 
-// 9. Initialization
+// 7. Initialization (Přejmenováno pro kompatibilitu, ale už neřeší Google Auth)
 function initGoogleAuth() {
     updateAuthUI();
 
-    if (typeof google === 'undefined') {
-        setTimeout(initGoogleAuth, 100);
-        return;
-    }
-
-    google.accounts.id.initialize({
-        client_id: "636272588894-duknv543nso4j9sj4j2d1qkq6tc690gf.apps.googleusercontent.com",
-        callback: handleCredentialResponse,
-        use_fedcm_for_prompt: true // <--- TOTO OPRAVÍ TU ČERVENOU HLÁŠKU
-    });
-
+    // Kontrola pro Cookie Banner
     const banner = document.getElementById('cookie-banner');
     if (banner && localStorage.getItem('rigradar_tos') !== 'true') {
         banner.style.display = 'flex';
         setTimeout(() => banner.classList.remove('translate-y-20', 'opacity-0'), 100);
     }
 }
-// 10. CENTRALIZOVANÉ NAČÍTÁNÍ LAYOUTU (Header & Footer)
+
+// 8. CENTRALIZOVANÉ NAČÍTÁNÍ LAYOUTU (Header & Footer)
 async function loadLayout() {
     try {
         // 1. Načíst Header
@@ -201,11 +168,11 @@ async function loadLayout() {
             if (footerRes.ok) footerPlaceholder.innerHTML = await footerRes.text();
         }
 
-        // 3. Inicializace Google Auth a synchronizace
+        // 3. Spuštění inicializace UI
         if (typeof initGoogleAuth === 'function') {
             initGoogleAuth();
             
-            // TADY JE TA ZMĚNA: Zkontrolujeme premium status při každém načtení stránky
+            // Zkontrolujeme premium status při každém načtení stránky přes náš nový Session Token
             const token = localStorage.getItem('rr_auth_token');
             if (token) {
                 await syncPremiumStatus(token);
