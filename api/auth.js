@@ -1,6 +1,6 @@
 import { Redis } from '@upstash/redis'
 import { OAuth2Client } from 'google-auth-library';
-import crypto from 'crypto'; // Zabudováno v Node.js, bezpečné šifrování
+import crypto from 'crypto';
 
 const redis = new Redis({
   url: process.env.KV_REST_API_URL,
@@ -9,7 +9,6 @@ const redis = new Redis({
 
 const authClient = new OAuth2Client();
 
-// Funkce pro vygenerování a uložení relace na 7 dní
 const generateSession = async (email) => {
     const sessionToken = crypto.randomBytes(32).toString('hex');
     await redis.set(`session:${sessionToken}`, email, { ex: 60 * 60 * 24 * 7 });
@@ -17,12 +16,60 @@ const generateSession = async (email) => {
 };
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).end();
-    
-    const { action } = req.query; // ?action=login | register | google
+    const { action } = req.query;
 
     try {
-        // --- 1. GOOGLE LOGIN ---
+        // --- 1. GITHUB CALLBACK (TOTO JE NOVÉ - Přijímá GET redirect z GitHubu) ---
+        if (req.method === 'GET' && action === 'github_callback') {
+            const { code } = req.query;
+            if (!code) return res.status(400).send("No code provided by GitHub.");
+
+            // A) Výměna kódu za GitHub Access Token
+            const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    client_id: process.env.GITHUB_CLIENT_ID,         // Musíš nastavit ve Vercelu!
+                    client_secret: process.env.GITHUB_CLIENT_SECRET, // Musíš nastavit ve Vercelu!
+                    code: code
+                })
+            });
+            
+            const tokenData = await tokenResponse.json();
+            const accessToken = tokenData.access_token;
+            if (!accessToken) return res.status(400).send("GitHub authentication failed.");
+
+            // B) Získání e-mailu uživatele z GitHubu
+            const emailResponse = await fetch('https://api.github.com/user/emails', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'User-Agent': 'RigRadar-App'
+                }
+            });
+            
+            const emails = await emailResponse.json();
+            // Najdeme primární a ověřený email (uživatel jich může mít víc)
+            const primaryEmailObj = emails.find(e => e.primary && e.verified) || emails[0];
+            if (!primaryEmailObj || !primaryEmailObj.email) {
+                return res.status(400).send("No valid email found on your GitHub account.");
+            }
+
+            const email = primaryEmailObj.email;
+
+            // C) Vytvoření naší RigRadar Session v Redisu
+            const sessionToken = await generateSession(email);
+
+            // D) Přesměrování zpět do naší aplikace s tokenem v URL
+            return res.redirect(`/chat.html?token=${sessionToken}&email=${encodeURIComponent(email)}`);
+        }
+
+        // --- VŠECHNY OSTATNÍ AKCE MUSÍ BÝT POST ---
+        if (req.method !== 'POST') return res.status(405).end();
+
+        // --- 2. GOOGLE LOGIN ---
         if (action === 'google') {
             const { idToken } = req.body;
             const ticket = await authClient.verifyIdToken({
@@ -35,29 +82,26 @@ export default async function handler(req, res) {
             return res.status(200).json({ token: sessionToken, email });
         }
         
-        // --- 2. VLASTNÍ REGISTRACE ---
+        // --- 3. VLASTNÍ REGISTRACE ---
         if (action === 'register') {
             const { email, password } = req.body;
             if (!email || !password || password.length < 6) {
                 return res.status(400).json({ error: "Invalid email or password too short (min 6 chars)" });
             }
 
-            // Kontrola, zda uživatel neexistuje
             const existing = await redis.get(`user_auth:${email}`);
             if (existing) return res.status(400).json({ error: "User already exists. Please log in." });
             
-            // Zašifrování hesla (Salt + Hash)
             const salt = crypto.randomBytes(16).toString('hex');
             const hash = crypto.scryptSync(password, salt, 64).toString('hex');
             
-            // Uložení hesla do databáze
             await redis.set(`user_auth:${email}`, `${salt}:${hash}`);
             
             const sessionToken = await generateSession(email);
             return res.status(200).json({ token: sessionToken, email });
         }
 
-        // --- 3. VLASTNÍ PŘIHLÁŠENÍ ---
+        // --- 4. VLASTNÍ PŘIHLÁŠENÍ ---
         if (action === 'login') {
             const { email, password } = req.body;
             
@@ -79,6 +123,6 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error("Auth API Error:", error);
-        res.status(500).json({ error: "Authentication failed. Try again." });
+        res.status(500).json({ error: "Authentication failed." });
     }
 }
