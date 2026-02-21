@@ -74,35 +74,35 @@
 
             <div id="view-radar" class="w-full md:w-1/2 h-full bg-[#0a0a0a] overflow-y-auto p-4 md:p-6 hidden md:flex flex-col space-y-6">
                 
-<div class="glass-panel p-5 rounded-2xl space-y-4 shadow-xl">
-    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest border-l-2 border-blue-500 pl-2">Market Scanner</h3>
-    
-    <div class="flex flex-col gap-3">
-        <div class="grid grid-cols-1 gap-2">
-            <input type="text" id="scanQuery" placeholder="Product (e.g. RTX 4070)" class="w-full bg-black/50 border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-blue-500 text-sm">
-            <input type="text" id="custom-store" placeholder="Store (e.g. Amazon, eBay)" class="w-full bg-black/50 border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-blue-500 text-sm">
-        </div>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            <div class="flex bg-black/50 border border-white/10 rounded-xl overflow-hidden focus-within:border-blue-500 transition-all">
-                <input type="number" id="min-price" placeholder="Min $" class="w-1/2 bg-transparent text-white px-3 py-3 focus:outline-none text-sm text-center border-r border-white/10">
-                <input type="number" id="max-price" placeholder="Max $" class="w-1/2 bg-transparent text-white px-3 py-3 focus:outline-none text-sm text-center">
-            </div>
-            
-            <div class="bg-black/50 border border-white/10 p-1 rounded-xl flex gap-1 relative">
-                <input type="hidden" id="condition-val" value="any">
-                <button onclick="setCondition('any', this)" class="cond-btn flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-blue-600/30 text-white border border-blue-500/50 transition-all shadow-[0_0_10px_rgba(37,99,235,0.2)]">ANY</button>
-                <button onclick="setCondition('new', this)" class="cond-btn flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-transparent text-gray-500 hover:text-gray-300 transition-all border border-transparent">NEW</button>
-                <button onclick="setCondition('used', this)" class="cond-btn flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-transparent text-gray-500 hover:text-gray-300 transition-all border border-transparent">USED</button>
-            </div>
-        </div>
-    </div>
-    
-    <button onclick="requestScan()" id="scan-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all uppercase tracking-wider text-sm shadow-lg shadow-blue-900/20 active:scale-95">
-        RUN RADAR SCAN 🚀
-    </button>
-    <div id="scanStatus" class="text-center text-xs font-mono h-4 text-gray-500 truncate"></div>
-</div>
+                <div class="glass-panel p-5 rounded-2xl space-y-4 shadow-xl">
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest border-l-2 border-blue-500 pl-2">Market Scanner</h3>
+                    
+                    <div class="flex flex-col gap-3">
+                        <div class="grid grid-cols-1 gap-2">
+                            <input type="text" id="scanQuery" placeholder="Product (e.g. RTX 4070)" class="w-full bg-black/50 border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-blue-500 text-sm">
+                            <input type="text" id="custom-store" placeholder="Store (e.g. Amazon, eBay)" class="w-full bg-black/50 border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-blue-500 text-sm">
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                            <div class="flex bg-black/50 border border-white/10 rounded-xl overflow-hidden focus-within:border-blue-500 transition-all">
+                                <input type="number" id="min-price" placeholder="Min $" class="w-1/2 bg-transparent text-white px-3 py-3 focus:outline-none text-sm text-center border-r border-white/10">
+                                <input type="number" id="max-price" placeholder="Max $" class="w-1/2 bg-transparent text-white px-3 py-3 focus:outline-none text-sm text-center">
+                            </div>
+                            
+                            <div class="bg-black/50 border border-white/10 p-1 rounded-xl flex gap-1 relative">
+                                <input type="hidden" id="condition-val" value="any">
+                                <button onclick="setCondition('any', this)" class="cond-btn flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-blue-600/30 text-white border border-blue-500/50 transition-all shadow-[0_0_10px_rgba(37,99,235,0.2)]">ANY</button>
+                                <button onclick="setCondition('new', this)" class="cond-btn flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-transparent text-gray-500 hover:text-gray-300 transition-all border border-transparent">NEW</button>
+                                <button onclick="setCondition('used', this)" class="cond-btn flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-transparent text-gray-500 hover:text-gray-300 transition-all border border-transparent">USED</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="requestScan()" id="scan-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all uppercase tracking-wider text-sm shadow-lg shadow-blue-900/20 active:scale-95">
+                        RUN RADAR SCAN 🚀
+                    </button>
+                    <div id="scanStatus" class="text-center text-xs font-mono h-4 text-gray-500 truncate"></div>
+                </div>
 
                 <div class="glass-panel p-5 rounded-2xl">
                     <h3 id="chart-title" class="text-xs font-bold text-gray-500 uppercase tracking-widest border-l-2 border-blue-500 pl-2 mb-4">Price Trend</h3>
@@ -165,14 +165,13 @@
             }
         }
         
-        // Na PC zobrazit vždy obojí
         window.addEventListener('resize', () => {
             if (window.innerWidth >= 768) {
                 document.getElementById('view-chat').classList.remove('hidden');
                 document.getElementById('view-radar').classList.remove('hidden');
                 document.getElementById('view-radar').classList.add('flex');
             } else {
-                switchTab('chat'); // Na mobilu reset na chat
+                switchTab('chat');
             }
         });
 
@@ -185,6 +184,16 @@
             } else {
                 sb.classList.add('-translate-x-full'); ov.classList.add('hidden');
             }
+        }
+
+        // --- LOGIKA PRO PŘEPÍNÁNÍ STAVU ---
+        function setCondition(value, clickedBtn) {
+            document.getElementById('condition-val').value = value;
+            const buttons = document.querySelectorAll('.cond-btn');
+            buttons.forEach(btn => {
+                btn.className = "cond-btn flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-transparent text-gray-500 hover:text-gray-300 transition-all border border-transparent";
+            });
+            clickedBtn.className = "cond-btn flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-blue-600/30 text-white border border-blue-500/50 transition-all shadow-[0_0_10px_rgba(37,99,235,0.2)]";
         }
 
         // --- AI CHAT LOGIC ---
@@ -220,15 +229,10 @@
                 if (response.ok) {
                     if (!activeChatId && data.chatId) activeChatId = data.chatId;
                     
-                    // --- THE INSTANT BRIDGE ---
-                    const scanTerm = message.replace(/[?!.]/g, '').trim(); 
-                    
+                    // Jednoduché vypsání zprávy z AI bez Bridge tlačítka
                     chatBox.innerHTML += `
-                        <div class="msg-ai p-4 rounded-2xl rounded-tl-none max-w-[85%] text-gray-300 text-sm mt-2 leading-relaxed flex flex-col gap-3">
-                            <span>${data.text}</span>
-                            <button onclick="bridgeToRadar('${scanTerm}')" class="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/50 font-bold py-2 rounded-lg uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 group">
-                                🚀 Instant Scan for "${scanTerm}"
-                            </button>
+                        <div class="msg-ai p-4 rounded-2xl rounded-tl-none max-w-[85%] text-gray-300 text-sm mt-2 leading-relaxed">
+                            ${data.text}
                         </div>`;
                 } else {
                     chatBox.innerHTML += `<div class="msg-ai p-3 text-red-400 text-xs">${data.text || "Error"}</div>`;
@@ -239,30 +243,13 @@
             }
         }
 
-        // --- BRIDGE FUNCTION ---
-        function bridgeToRadar(term) {
-            // Přepne na mobilu tab na Radar
-            if(window.innerWidth < 768) switchTab('radar');
-            
-            // Vyplní pole a spustí sken
-            const input = document.getElementById('scanQuery');
-            input.value = term;
-            input.scrollIntoView({ behavior: 'smooth' });
-            
-            // Efekt probliknutí a spuštění
-            input.parentElement.classList.add('ring-2', 'ring-blue-500');
-            setTimeout(() => { 
-                input.parentElement.classList.remove('ring-2', 'ring-blue-500'); 
-                requestScan(); 
-            }, 800);
-        }
-
         // --- RADAR LOGIC ---
         async function requestScan() {
             const query = document.getElementById('scanQuery').value;
             const customStore = document.getElementById('custom-store').value.trim();
             const minPrice = document.getElementById('min-price').value.trim();
             const maxPrice = document.getElementById('max-price').value.trim();
+            const condition = document.getElementById('condition-val').value; // OPRAVENO: přidáno načtení stavu
             const statusEl = document.getElementById('scanStatus');
             const btn = document.getElementById('scan-btn');
             const userEmail = localStorage.getItem('rr_user_email'); 
@@ -284,8 +271,12 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        query: query, stores: customStore ? [customStore] : ['ebay'],
-                        ownerEmail: userEmail || 'system', minPrice, maxPrice, condition
+                        query: query, 
+                        stores: customStore ? [customStore] : ['ebay'],
+                        ownerEmail: userEmail || 'system', 
+                        minPrice, 
+                        maxPrice, 
+                        condition
                     })
                 });
 
@@ -327,7 +318,6 @@
                 const res = await fetch(`/api/update_price?user=${userEmail}`);
                 const data = await res.json();
                 
-                // Vykreslení historie
                 if (data.history && Array.isArray(data.history)) {
                     const list = document.getElementById('history-list');
                     let htmlContent = '';
@@ -338,7 +328,6 @@
                         let listPrice = deal.price || "---";
                         if(listPrice.includes(":")) listPrice = listPrice.split(":")[1].trim();
                         
-                        // Data pro graf
                         const p = parseFloat(listPrice.replace(/[^0-9.]/g, ''));
                         if (!isNaN(p)) { chartPrices.push(p); chartLabels.push(''); }
 
@@ -354,7 +343,6 @@
                     });
                     if (htmlContent) list.innerHTML = htmlContent;
 
-                    // Update Grafu
                     if (chartPrices.length > 0 && priceChartInstance) {
                         priceChartInstance.data.datasets[0].data = chartPrices.reverse();
                         priceChartInstance.data.labels = chartLabels;
@@ -391,17 +379,8 @@
             loadLayout();
             initChart();
             fetchLatestDeal();
-            setInterval(fetchLatestDeal, 15000); // Aktualizace každých 15s
+            setInterval(fetchLatestDeal, 15000); 
         });
-        // --- LOGIKA PRO PŘEPÍNÁNÍ STAVU ---
-function setCondition(value, clickedBtn) {
-    document.getElementById('condition-val').value = value;
-    const buttons = document.querySelectorAll('.cond-btn');
-    buttons.forEach(btn => {
-        btn.className = "cond-btn flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-transparent text-gray-500 hover:text-gray-300 transition-all border border-transparent";
-    });
-    clickedBtn.className = "cond-btn flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-blue-600/30 text-white border border-blue-500/50 transition-all shadow-[0_0_10px_rgba(37,99,235,0.2)]";
-}
     </script>
 </body>
 </html>
