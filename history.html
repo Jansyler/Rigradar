@@ -235,20 +235,28 @@
             }, 300);
         }
 
-        async function confirmDelete() {
+async function confirmDelete() {
             if (!pendingDeleteId || !pendingDeleteBtn) return;
             const confirmBtn = document.getElementById('btn-confirm-delete');
             const originalText = confirmBtn.innerText;
             confirmBtn.innerText = "Deleting...";
             confirmBtn.disabled = true;
 
-            const email = localStorage.getItem('rr_user_email');
+            // 🚨 OPRAVA: Používáme zabezpečený token místo e-mailu v body
+            const token = localStorage.getItem('rr_auth_token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
 
             try {
                 const res = await fetch('/api/unsave_scan', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ dealId: pendingDeleteId, email })
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // 🔒 Zabezpečené ověření
+                    },
+                    body: JSON.stringify({ dealId: pendingDeleteId }) // Posíláme už jen ID
                 });
 
                 if (res.ok) {
@@ -257,7 +265,13 @@
                     card.style.transition = 'all 0.5s ease';
                     card.style.opacity = '0';
                     card.style.transform = 'scale(0.9)';
-                    setTimeout(() => { loadData(); }, 500);
+                    
+                    // Odstraníme položku z lokálních dat, aby se při renderu znovu neobjevila
+                    userData.saved = userData.saved.filter(s => s.id !== pendingDeleteId);
+                    
+                    setTimeout(() => { render(); }, 500);
+                } else {
+                    throw new Error("Failed to remove");
                 }
             } catch (e) {
                 showToast("Failed to remove", "error");
