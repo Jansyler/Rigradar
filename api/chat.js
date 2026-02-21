@@ -34,15 +34,14 @@ export default async function handler(req, res) {
 
         try {
             if (chatId) {
-                // Pokud frontend žádá o konkrétní chat, pošleme jen jeho zprávy z nového odděleného klíče
+                // Pokud frontend žádá o konkrétní chat, pošleme jen jeho zprávy
                 const history = await redis.get(`chat_history:${email}:${chatId}`) || [];
                 return res.status(200).json({ history });
             } else {
-                // Pokud frontend žádá jen o seznam chatů, pošleme malý JSON pouze s názvy (pro Sidebar)
+                // Pokud frontend žádá jen o seznam chatů (pro Sidebar)
                 const userData = await redis.get(userKey);
-                // Pročistíme data pro jistotu
                 const safeChats = userData?.chats || {};
-                Object.keys(safeChats).forEach(k => delete safeChats[k].history); // Nechceme posílat historii v sidebaru
+                Object.keys(safeChats).forEach(k => delete safeChats[k].history); 
                 return res.status(200).json({ chats: safeChats });
             }
         } catch (err) {
@@ -57,25 +56,26 @@ export default async function handler(req, res) {
     // ==========================================
     const { message, lang, chatId } = req.body;
     const currentChatId = chatId || `chat_${Date.now()}`;
-    const chatHistoryKey = `chat_history:${email}:${currentChatId}`; // Náš nový, samostatný klíč pro těžká data!
+    const chatHistoryKey = `chat_history:${email}:${currentChatId}`; 
 
     try {
-        // 1. Načtení lehkých uživatelských dat (Metadata)
-        let userData = await redis.get(userKey) || { 
-            count: 0, 
-            isPremium: false, 
-            chats: {}, 
-            lastReset: Date.now() 
-        };
-        
-        userData.chats = userData.chats || {};
+        // 1. Načtení základních metadat (seznam chatů)
+        let userData = await redis.get(userKey) || { isPremium: false, chats: {} };
         if (Array.isArray(userData.chats)) userData.chats = {}; 
 
-        // Reset počítadla po 24H
-        const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-        if (Date.now() - (userData.lastReset || 0) > ONE_DAY_MS) {
-            userData.count = 0;
-            userData.lastReset = Date.now();
+        // 🚨 OPRAVA RACE CONDITION: Denní limity řešíme odděleně a atomicky!
+        const today = new Date().toISOString().split('T')[0]; // Získáme dnešní datum (např. "2023-10-27")
+        const usageKey = `usage_chat:${email}:${today}`;
+        
+        const currentUsage = await redis.get(usageKey) || 0;
+        const DAILY_LIMIT = 5;
+
+        // Kontrola Free limitu na základě odděleného klíče
+        if (!userData.isPremium && parseInt(currentUsage) >= DAILY_LIMIT) {
+            return res.status(403).json({ 
+                text: `Daily limit (${DAILY_LIMIT} messages) reached! Limit resets at midnight or upgrade to Premium.`, 
+                limitReached: true 
+            });
         }
 
         // Vytvoříme záznam v Sidebaru pouze s názvem (bez historie)
@@ -83,22 +83,13 @@ export default async function handler(req, res) {
             userData.chats[currentChatId] = { title: message.substring(0, 30) + "..." };
         }
 
-        // Kontrola Free limitu
-        const DAILY_LIMIT = 5;
-        if (!userData.isPremium && userData.count >= DAILY_LIMIT) {
-            return res.status(403).json({ 
-                text: `Daily limit (${DAILY_LIMIT} messages) reached! Limit resets in 24h or upgrade to Premium.`, 
-                limitReached: true 
-            });
-        }
-
-        // 2. NAČTENÍ HISTORIE (Z nového samostatného klíče)
+        // 2. NAČTENÍ HISTORIE ZPRÁV
         let chatHistory = await redis.get(chatHistoryKey);
         
-        // 🚨 MIGRAČNÍ POJISTKA: Pokud chat existoval po starém způsobu, přesuneme ho!
+        // Migrační pojistka (přesun starých dat)
         if (!chatHistory && userData.chats[currentChatId]?.history) {
             chatHistory = userData.chats[currentChatId].history;
-            delete userData.chats[currentChatId].history; // Smažeme ho ze starého místa, aby odlehčil hlavní JSON
+            delete userData.chats[currentChatId].history; 
         }
         chatHistory = chatHistory || [];
 
@@ -113,17 +104,23 @@ export default async function handler(req, res) {
         const result = await chat.sendMessage(`Respond in ${lang || 'en'}. User: ${message}`);
         const aiResponse = result.response.text();
 
-        // 4. Uložení zpráv DO ODDĚLENÉHO POLE
+        // 4. Uložení zpráv do pole
         chatHistory.push({ role: 'user', text: message });
         chatHistory.push({ role: 'ai', text: aiResponse });
-
-        if (!userData.isPremium) userData.count += 1;
         
-        // 5. PARALELNÍ ULOŽENÍ DO DATABÁZE (Rychlejší chod)
-        await Promise.all([
-            redis.set(userKey, userData),             // Uložíme jen malá metadata a seznam panelů
-            redis.set(chatHistoryKey, chatHistory)    // Uložíme obří historii zpráv vedle
-        ]);
+        // 5. PARALELNÍ ULOŽENÍ DO DATABÁZE
+        const dbPromises = [
+            redis.set(userKey, userData),             // Uložíme metadata a seznam chatů
+            redis.set(chatHistoryKey, chatHistory)    // Uložíme historii zpráv vedle
+        ];
+
+        // Zvýšení počítadla a nastavení expirace (atomická operace)
+        if (!userData.isPremium) {
+            dbPromises.push(redis.incr(usageKey));
+            dbPromises.push(redis.expire(usageKey, 60 * 60 * 48)); // Klíč se po 48 hodinách sám smaže, ať neplní paměť
+        }
+
+        await Promise.all(dbPromises);
 
         res.status(200).json({ text: aiResponse, chatId: currentChatId });
 
