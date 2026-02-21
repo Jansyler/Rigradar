@@ -65,127 +65,129 @@
 <div id="notification-container" class="fixed top-5 right-5 z-[1000] flex flex-col gap-3 pointer-events-none"></div>
 
     <div id="header-placeholder"></div>
-<main class="flex-grow flex flex-col items-center justify-start px-4 pt-8 pb-20 w-full max-w-[1400px] mx-auto space-y-12 overflow-hidden">
+    
+    <main class="flex-grow flex flex-col items-center justify-start px-4 md:px-8 pt-32 pb-24 w-full max-w-[1400px] mx-auto space-y-16 overflow-hidden">
+        
         <div class="text-center space-y-6 max-w-4xl mx-auto mt-4">
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 font-mono text-[10px] md:text-xs uppercase tracking-widest animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 font-mono text-[10px] md:text-xs uppercase tracking-widest animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.2)]">
                 <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
                 Global Network Online & Scanning
             </div>
-            <h1 class="text-5xl md:text-7xl font-black tracking-tighter pb-2 text-transparent bg-clip-text bg-gradient-to-br from-white via-blue-100 to-blue-600">
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter pb-2 text-transparent bg-clip-text bg-gradient-to-br from-white via-blue-100 to-blue-600">
                 MARKET INTELLIGENCE
             </h1>
-            <p class="text-gray-400 text-base md:text-lg font-light max-w-2xl mx-auto">
+            <p class="text-gray-400 text-base md:text-lg lg:text-xl font-light max-w-2xl mx-auto leading-relaxed">
                 Naše satelity monitorují globální ceny hardwaru 24/7. Prohlédni si živý tep trhu níže. 
                 Pro spuštění vlastního skenování a AI konzultace vstup do Workspace.
             </p>
-            <div class="pt-6">
-                <button onclick="location.href='chat.html'" class="group relative px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black text-lg md:text-xl rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_40px_rgba(37,99,235,0.4)] hover:shadow-[0_0_60px_rgba(37,99,235,0.6)] flex items-center justify-center gap-3 mx-auto">
-                    <span>ENTER WORKSPACE 🚀</span>
+            <div class="pt-8">
+                <button onclick="location.href='chat.html'" class="group relative px-12 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black text-lg md:text-xl rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_40px_rgba(37,99,235,0.4)] hover:shadow-[0_0_60px_rgba(37,99,235,0.6)] flex items-center justify-center gap-3 mx-auto">
+                    <span class="uppercase tracking-widest">Enter Workspace 🚀</span>
                 </button>
             </div>
         </div>
 
-<div class="w-full bg-blue-600/5 border-y border-blue-500/20 py-3 overflow-hidden mt-20 z-10 relative">
-    <div class="ticker-wrapper font-mono text-xs text-blue-400 opacity-80 cursor-default flex items-center">
-        <div class="flex-none flex justify-around items-center px-4 w-1/2 min-w-max gap-12">
-            <span>[NEW] NVIDIA RTX 4070 SUPER <span class="text-green-400 ml-2 font-bold">$589</span></span>
-            <span>[PRICE DROP] AMD Ryzen 7 7800X3D <span class="text-green-400 ml-2 font-bold">$349</span></span>
-            <span>[ALERT] GIGABYTE RTX 4080 <span class="text-green-400 ml-2 font-bold">$999</span></span>
-            <span>[RESTOCK] ASUS B650E-F <span class="text-green-400 ml-2 font-bold">$210</span></span>
+        <div class="w-screen relative left-1/2 -translate-x-1/2 bg-blue-600/5 border-y border-blue-500/20 py-4 overflow-hidden my-12 z-10">
+            <div class="ticker-wrapper font-mono text-sm text-blue-400 opacity-80 cursor-default flex items-center">
+                <div class="flex-none flex justify-around items-center px-4 w-1/2 min-w-max gap-16">
+                    <span>[NEW] NVIDIA RTX 4070 SUPER <span class="text-green-400 ml-2 font-bold">$589</span></span>
+                    <span>[PRICE DROP] AMD Ryzen 7 7800X3D <span class="text-green-400 ml-2 font-bold">$349</span></span>
+                    <span>[ALERT] GIGABYTE RTX 4080 <span class="text-green-400 ml-2 font-bold">$999</span></span>
+                    <span>[RESTOCK] ASUS B650E-F <span class="text-green-400 ml-2 font-bold">$210</span></span>
+                </div>
+                <div class="flex-none flex justify-around items-center px-4 w-1/2 min-w-max gap-16">
+                    <span>[NEW] NVIDIA RTX 4070 SUPER <span class="text-green-400 ml-2 font-bold">$589</span></span>
+                    <span>[PRICE DROP] AMD Ryzen 7 7800X3D <span class="text-green-400 ml-2 font-bold">$349</span></span>
+                    <span>[ALERT] GIGABYTE RTX 4080 <span class="text-green-400 ml-2 font-bold">$999</span></span>
+                    <span>[RESTOCK] ASUS B650E-F <span class="text-green-400 ml-2 font-bold">$210</span></span>
+                </div>
+            </div>
         </div>
-        <div class="flex-none flex justify-around items-center px-4 w-1/2 min-w-max gap-12">
-            <span>[NEW] NVIDIA RTX 4070 SUPER <span class="text-green-400 ml-2 font-bold">$589</span></span>
-            <span>[PRICE DROP] AMD Ryzen 7 7800X3D <span class="text-green-400 ml-2 font-bold">$349</span></span>
-            <span>[ALERT] GIGABYTE RTX 4080 <span class="text-green-400 ml-2 font-bold">$999</span></span>
-            <span>[RESTOCK] ASUS B650E-F <span class="text-green-400 ml-2 font-bold">$210</span></span>
-        </div>
-    </div>
-</div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full pt-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 xl:gap-10 w-full pt-8">
             
-            <div class="glass-panel p-6 rounded-[32px] md:col-span-2 lg:col-span-1 flex flex-col justify-between relative overflow-hidden group cursor-pointer border-blue-500/30" onclick="location.href='chat.html'">
+            <div class="glass-panel p-8 md:p-10 rounded-[40px] md:col-span-2 lg:col-span-1 flex flex-col justify-between relative overflow-hidden group cursor-pointer border-blue-500/30 hover:scale-[1.02] transition-transform min-h-[400px]" onclick="location.href='chat.html'">
                 <div class="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-purple-600/10 opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/20 blur-2xl rounded-full"></div>
+                <div class="absolute -right-4 -top-4 w-32 h-32 bg-blue-500/20 blur-3xl rounded-full"></div>
                 
                 <div class="relative z-10">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-[10px] font-bold uppercase tracking-widest bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full border border-blue-500/30">🔥 Top Catch</span>
-                        <span class="text-xs text-gray-400">eBay</span>
+                    <div class="flex items-center justify-between mb-6">
+                        <span class="text-[10px] md:text-xs font-bold uppercase tracking-widest bg-blue-500/20 text-blue-400 px-4 py-1.5 rounded-full border border-blue-500/30">🔥 Top Catch</span>
+                        <span class="text-xs text-gray-400 font-mono">eBay</span>
                     </div>
-                    <h3 class="text-xl font-bold text-white leading-tight mb-2">GIGABYTE GeForce RTX 4090 Gaming OC</h3>
-                    <div class="flex items-end gap-3 mb-4">
-                        <span class="text-4xl font-black text-green-400">$1,599</span>
-                        <span class="text-sm text-gray-500 line-through pb-1">$1,899</span>
+                    <h3 class="text-2xl font-bold text-white leading-tight mb-4">GIGABYTE GeForce RTX 4090 Gaming OC</h3>
+                    <div class="flex items-end gap-4 mb-4">
+                        <span class="text-5xl font-black text-green-400 tracking-tighter">$1,599</span>
+                        <span class="text-base text-gray-500 line-through pb-1">$1,899</span>
                     </div>
                 </div>
                 
-                <div class="relative z-10 bg-black/40 border border-white/5 rounded-xl p-4 mt-auto">
-                    <div class="text-[10px] text-blue-400 uppercase font-bold tracking-widest mb-1 flex items-center gap-1"><span>🤖</span> AI VERDICT</div>
-                    <p class="text-xs text-gray-300 italic">"Priced 15% below market average. Historic low for this model. Recommend immediate purchase."</p>
+                <div class="relative z-10 bg-black/40 border border-white/5 rounded-2xl p-5 mt-auto">
+                    <div class="text-[10px] md:text-xs text-blue-400 uppercase font-bold tracking-widest mb-2 flex items-center gap-2"><span>🤖</span> AI VERDICT</div>
+                    <p class="text-sm text-gray-300 italic leading-relaxed">"Priced 15% below market average. Historic low for this model. Recommend immediate purchase."</p>
                 </div>
             </div>
 
-            <div class="glass-panel p-6 md:p-8 rounded-[32px] md:col-span-2 flex flex-col relative overflow-hidden group">
+            <div class="glass-panel p-8 md:p-10 rounded-[40px] md:col-span-2 flex flex-col relative overflow-hidden group min-h-[400px]">
                 <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[80px] rounded-full pointer-events-none group-hover:bg-blue-500/10 transition-colors"></div>
-                <div class="flex justify-between items-start mb-6 relative z-10">
+                <div class="flex justify-between items-start mb-8 relative z-10">
                     <div>
-                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                        <h3 class="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 mb-2">
                             <span class="text-blue-500">📈</span> Live Price Trend
                         </h3>
-                        <h2 id="chart-title" class="text-2xl font-black text-white mt-1 truncate">Gathering data...</h2>
+                        <h2 id="chart-title" class="text-3xl font-black text-white mt-1 truncate">Gathering data...</h2>
                     </div>
-                    <span class="text-[10px] font-mono bg-white/5 border border-white/10 px-2 py-1 rounded text-gray-400">Auto-updating</span>
+                    <span class="text-[10px] md:text-xs font-mono bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg text-gray-400">Auto-updating</span>
                 </div>
-                <div class="w-full h-48 md:h-64 relative z-10">
+                <div class="w-full h-full min-h-[250px] relative z-10">
                     <canvas id="priceChart"></canvas>
                 </div>
             </div>
 
-            <div class="glass-panel p-6 rounded-[32px] flex flex-col justify-between relative overflow-hidden group border border-white/5 hover:border-purple-500/30 transition-all cursor-pointer" onclick="location.href='chat.html'">
+            <div class="glass-panel p-8 md:p-10 rounded-[40px] flex flex-col justify-center relative overflow-hidden group border border-white/5 hover:border-purple-500/30 transition-all cursor-pointer min-h-[300px]" onclick="location.href='chat.html'">
                 <div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-purple-900/10 to-transparent pointer-events-none"></div>
                 
                 <div>
-                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                        <span class="text-purple-400">💬</span> AI Workspace Teaser
+                    <h3 class="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <span class="text-purple-400 text-lg">💬</span> AI Workspace Teaser
                     </h3>
                     
-                    <div class="space-y-3">
-                        <div class="bg-blue-600 text-white text-xs p-3 rounded-2xl rounded-tr-none self-end ml-auto max-w-[90%] shadow-lg">
+                    <div class="space-y-4">
+                        <div class="bg-blue-600 text-white text-sm p-4 rounded-2xl rounded-tr-none self-end ml-auto max-w-[90%] shadow-lg">
                             Building a 1440p rig. RTX 4070 or 7800 XT?
                         </div>
-                        <div class="bg-white/5 border border-white/10 text-gray-300 text-xs p-3 rounded-2xl rounded-tl-none max-w-[95%] relative">
-                            <div class="absolute -left-1 -top-1 w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                        <div class="bg-[#151515] border border-white/10 text-gray-300 text-sm p-4 rounded-2xl rounded-tl-none max-w-[95%] relative shadow-2xl">
+                            <div class="absolute -left-1.5 -top-1.5 w-3 h-3 bg-purple-500 rounded-full animate-pulse border-2 border-[#050505]"></div>
                             Based on current scans, the <span class="text-white font-bold">7800 XT is $80 cheaper</span> today on Amazon. However, if you need DLSS 3...
                         </div>
                     </div>
                 </div>
                 
-                <div class="mt-6 text-center text-[10px] text-purple-400 uppercase font-bold tracking-widest flex items-center justify-center gap-1 group-hover:text-purple-300 transition-colors">
-                    Start Your Consultation <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                <div class="mt-8 text-center text-[10px] md:text-xs text-purple-400 uppercase font-bold tracking-widest flex items-center justify-center gap-2 group-hover:text-purple-300 transition-colors">
+                    Start Your Consultation <svg class="w-4 h-4 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </div>
             </div>
 
-            <div class="glass-panel p-6 md:p-8 rounded-[32px] md:col-span-2 lg:col-span-1 flex flex-col h-[300px] border border-blue-500/20 relative overflow-hidden">
+            <div class="glass-panel p-8 md:p-10 rounded-[40px] md:col-span-2 lg:col-span-1 flex flex-col h-[400px] border border-blue-500/20 relative overflow-hidden">
                 <div class="absolute inset-0 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none"></div>
-                <h3 class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-6 flex items-center justify-between relative z-10">
+                <h3 class="text-xs md:text-sm font-bold text-blue-400 uppercase tracking-widest mb-6 flex items-center justify-between relative z-10">
                     <span>📡 Live Catches</span>
-                    <span class="w-2 h-2 bg-green-500 rounded-full animate-ping"></span>
+                    <span class="w-2.5 h-2.5 bg-green-500 rounded-full animate-ping"></span>
                 </h3>
-                <div id="history-list" class="flex-1 overflow-y-auto space-y-3 pr-2 relative z-10 custom-scrollbar">
+                <div id="history-list" class="flex-1 overflow-y-auto space-y-4 pr-2 relative z-10 custom-scrollbar">
                     <div class="text-center text-gray-600 text-sm py-10 animate-pulse">Intercepting signals...</div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-6 lg:col-span-1">
-                <div class="glass-panel p-6 rounded-[32px] flex flex-col justify-center items-center text-center relative overflow-hidden">
-                    <div class="text-3xl md:text-4xl font-black text-white mb-2 tracking-tighter" id="stat-scans">24/7</div>
-                    <div class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Autopilot Active</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:col-span-1 min-h-[200px]">
+                <div class="glass-panel p-8 rounded-[40px] flex flex-col justify-center items-center text-center relative overflow-hidden hover:bg-white/5 transition-colors">
+                    <div class="text-5xl md:text-6xl font-black text-white mb-3 tracking-tighter" id="stat-scans">24/7</div>
+                    <div class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold">Autopilot Active</div>
                 </div>
                 
-                <div class="glass-panel p-6 rounded-[32px] flex flex-col justify-center items-center text-center relative overflow-hidden">
-                    <div class="text-3xl md:text-4xl font-black text-blue-500 mb-2 tracking-tighter" id="stat-scans">3</div>
-                    <div class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Global Sources</div>
+                <div class="glass-panel p-8 rounded-[40px] flex flex-col justify-center items-center text-center relative overflow-hidden hover:bg-white/5 transition-colors">
+                    <div class="text-5xl md:text-6xl font-black text-blue-500 mb-3 tracking-tighter" id="stat-scans">3</div>
+                    <div class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold">Global Sources</div>
                 </div>
             </div>
 
