@@ -21,18 +21,23 @@ export default async function handler(req, res) {
         }
     }
 
-    // Pokud token neexistuje, je neplatný nebo ho poslal starý kód
     if (!verifiedEmail) {
         return res.status(401).json({ error: "Unauthorized. Please log in." });
     }
 
-    // 2. KONTROLA PREMIUM STATUSU
+    // 2. KONTROLA PREMIUM STATUSU Z NOVÉHO KLÍČE
     try {
-        const userData = await redis.get(`user_data:${verifiedEmail}`) || {};
-        const isPremium = userData.isPremium === true; 
+        // Kontrolujeme nový samostatný klíč, který nastavuje webhook
+        const premiumData = await redis.get(`premium:${verifiedEmail}`);
+        const isPremium = premiumData ? premiumData.isActive === true : false;
         
-        return res.status(200).json({ isPremium, email: verifiedEmail });
+        return res.status(200).json({ 
+            isPremium, 
+            email: verifiedEmail,
+            customerId: premiumData?.customerId || null 
+        });
     } catch (error) {
+        console.error("Premium check error:", error);
         return res.status(500).json({ error: "Database error." });
     }
 }
