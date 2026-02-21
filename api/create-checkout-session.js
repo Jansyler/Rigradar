@@ -1,27 +1,26 @@
+import { Redis } from '@upstash/redis';
 import Stripe from 'stripe';
-import { OAuth2Client } from 'google-auth-library'; // Přidat import
+
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL,
+  token: process.env.KV_REST_API_TOKEN,
+});
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const authClient = new OAuth2Client(); // Inicializace klienta
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).end();
 
-    // 1. ZÍSKÁNÍ A OVĚŘENÍ TOKENU (Stejné jako v chat.js)
+    // 1. ZÍSKÁNÍ A OVĚŘENÍ NAŠEHO SESSION TOKENU (Přes Redis)
     const authHeader = req.headers.authorization;
     let email = null;
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
         try {
-            const ticket = await authClient.verifyIdToken({
-                idToken: token,
-                audience: "636272588894-duknv543nso4j9sj4j2d1qkq6tc690gf.apps.googleusercontent.com", 
-            });
-            const payload = ticket.getPayload();
-            email = payload.email; // Získání ověřeného emailu
+            email = await redis.get(`session:${token}`);
         } catch (e) {
-            return res.status(401).json({ error: "Invalid token" });
+            console.error("Redis session verification failed:", e);
         }
     }
 
@@ -32,7 +31,7 @@ export default async function handler(req, res) {
     try {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
-            customer_email: email, // Použijeme ověřený email
+            customer_email: email, 
             line_items: [{
                 price: 'price_1Szk6wE8RZqAxyp4jTHjLBJH', 
                 quantity: 1,
@@ -44,6 +43,7 @@ export default async function handler(req, res) {
 
         res.status(200).json({ url: session.url });
     } catch (err) {
+        console.error("Stripe Checkout Error:", err);
         res.status(500).json({ error: err.message });
     }
 }
