@@ -52,7 +52,7 @@
 
 @keyframes ticker {
             0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
+            100% 
         }
         .ticker-wrapper { width: 3000%; display: flex; animation: ticker 40s linear infinite; }
         .ticker-wrapper:hover { animation-play-state: paused; }
@@ -83,7 +83,7 @@
             </div>
         </div>
 
-        <div class="w-screen relative left-1/2 -translate-x-1/2 bg-blue-600/5 border-y border-blue-500/20 py-3 overflow-hidden flex whitespace-nowrap mt-8">
+        <div class="w-screen relative left-1/2 -translate-x-1/2 bg-blue-600/5 border-y border-blue-500/20 py-3 flex whitespace-nowrap mt-8">
             <div class="animate-[ticker_30s_linear_infinite] flex items-center gap-8 px-4 font-mono text-xs text-blue-400 opacity-80" id="ticker-content">
                 <span>[NEW] NVIDIA RTX 4070 SUPER <span class="text-green-400 ml-2 font-bold">$589</span></span> •
                 <span>[PRICE DROP] AMD Ryzen 7 7800X3D <span class="text-green-400 ml-2 font-bold">$349</span></span> •
