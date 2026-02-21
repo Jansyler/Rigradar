@@ -97,8 +97,8 @@ export default async function handler(req, res) {
 
     // Příprava dat pro graf
     const chartData = combinedHistory.map(item => {
-        const numericPrice = parseFloat(item.price.replace(/[^0-9.]/g, ''));
-        const date = new Date(item.timestamp);
+const numericPrice = parseFloat(item.price.replace(',', '.').replace(/[^0-9.]/g, ''));
+      const date = new Date(item.timestamp);
         return {
             x: `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`,
             y: isNaN(numericPrice) ? 0 : numericPrice,
