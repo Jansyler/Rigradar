@@ -73,7 +73,7 @@ function updateAuthUI(retryCount = 0) {
     }
 
 // HTML šablona pro přihlášeného uživatele (DESKTOP)
-    const userHtml = email ? `
+const userHtml = email ? `
         <div class="flex items-center gap-1.5 bg-white/5 p-0.5 pr-2 rounded-full border ${isPremium ? 'border-yellow-500/50' : 'border-white/10'} hover:bg-white/10 transition-all cursor-pointer group">
             <div onclick="window.location.href='account.html'" class="flex items-center gap-1.5">
                 <img src="${pic}" class="w-6 h-6 rounded-full border ${isPremium ? 'border-yellow-500' : 'border-blue-500/50'}">
