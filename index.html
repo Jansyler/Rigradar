@@ -644,8 +644,9 @@ async function requestScan() {
             const query = document.getElementById('scanQuery').value;
             const customStore = document.getElementById('custom-store').value.trim();
             // PŘIDÁNO: Načtení filtrů
+            const minPrice = document.getElementById('min-price').value.trim(); 
             const maxPrice = document.getElementById('max-price').value.trim(); 
-            const condition = document.getElementById('condition').value;
+            const condition = document.getElementById('condition-val').value;
 
             const statusEl = document.getElementById('scanStatus');
             const btn = document.getElementById('scan-btn');
@@ -722,11 +723,26 @@ async function requestScan() {
             }
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
             await loadLayout(); 
             initChart();
             await fetchLatestDeal();
             setInterval(fetchLatestDeal, 10000); 
+
+            // --- AI BRIDGE AUTO-START ---
+            const params = new URLSearchParams(window.location.search);
+            const autoScanQuery = params.get('scan');
+            if (autoScanQuery) {
+                const scanInput = document.getElementById('scanQuery');
+                scanInput.value = autoScanQuery;
+                scanInput.scrollIntoView({ behavior: "smooth", block: "center" });
+                
+                // Automaticky spustíme scan
+                setTimeout(() => { requestScan(); }, 800);
+                
+                // Vyčistíme URL, aby se to neopakovalo při refreshi
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         });
     function openGuide() {
             const modal = document.getElementById('guide-modal');
@@ -772,6 +788,15 @@ async function requestScan() {
             }).catch(err => {
                 console.error('Failed to copy text: ', err);
             });
+        }
+    // --- LOGIKA PRO PŘEPÍNÁNÍ STAVU (Condition) ---
+        function setCondition(value, clickedBtn) {
+            document.getElementById('condition-val').value = value;
+            const buttons = document.querySelectorAll('.cond-btn');
+            buttons.forEach(btn => {
+                btn.className = "cond-btn flex-1 py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-lg bg-transparent text-gray-500 hover:text-gray-300 hover:bg-white/5 border border-transparent transition-all";
+            });
+            clickedBtn.className = "cond-btn flex-1 py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-lg bg-blue-600/30 text-white border border-blue-500/50 transition-all shadow-[0_0_10px_rgba(37,99,235,0.2)]";
         }
     </script>
 </body>
