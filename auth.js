@@ -50,10 +50,12 @@ function updateAuthUI(retryCount = 0) {
     let pic = localStorage.getItem('rr_user_pic');
     const isPremium = localStorage.getItem('rr_premium') === 'true';
     
-    // Pokud uživatel nemá profilovku (např. registrace emailem), dáme mu výchozího avatara
-    if (!pic || pic === 'undefined') {
-        pic = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + (email || 'user');
+    // Oprava: Pokud pic neexistuje, je null nebo je to řetězec "undefined", vygeneruj avatara
+    if (!pic || pic === 'undefined' || pic === 'null') {
+        pic = `https://api.dicebear.com/7.x/avataaars/svg?seed=${email || 'user'}`;
+        localStorage.setItem('rr_user_pic', pic); // Uložíme ho, aby se příště nenačítal znovu
     }
+    // ... zbytek funkce zůstává stejný
     
     const desktopAuth = document.getElementById('auth-section');
     const mobileAuth = document.getElementById('auth-section-mobile');
