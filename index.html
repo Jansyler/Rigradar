@@ -49,7 +49,18 @@
         #support-widget.open { width: 350px; height: 500px; border-radius: 20px; }
         .msg-supp-ai { background: rgba(255, 255, 255, 0.1); border-radius: 12px 12px 12px 0; }
         .msg-supp-user { background: #2563eb; border-radius: 12px 12px 0 12px; }
-
+@keyframes radar-sweep {
+            0% { transform: translateX(-100%) skewX(-15deg); }
+            100% { transform: translateX(200%) skewX(-15deg); }
+        }
+        .sweep-effect::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 30%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent);
+            animation: radar-sweep 4s infinite ease-in-out;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen overflow-x-hidden">
@@ -57,110 +68,163 @@
 
     <div id="header-placeholder"></div>
     
-    <main class="flex-grow flex flex-col items-center justify-start px-4 md:px-8 pt-32 pb-24 w-full max-w-[1400px] mx-auto space-y-16 overflow-hidden">
+<main class="flex-grow flex flex-col items-center justify-start px-4 md:px-8 pt-24 pb-24 w-full max-w-[1300px] mx-auto space-y-16 overflow-hidden">
         
-        <div class="text-center space-y-6 max-w-4xl mx-auto mt-4">
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 font-mono text-[10px] md:text-xs uppercase tracking-widest animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.2)]">
-                <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
-                Global Network Online & Scanning
+        <div class="text-center space-y-8 max-w-4xl mx-auto mt-8 relative">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/10 blur-[100px] rounded-full pointer-events-none"></div>
+            <div class="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 font-mono text-xs uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(59,130,246,0.15)]">
+                <span class="relative flex h-2.5 w-2.5">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
+                </span>
+                Global Network Online
             </div>
-            <h1 class="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter pb-2 text-transparent bg-clip-text bg-gradient-to-br from-white via-blue-100 to-blue-600">
-                MARKET INTELLIGENCE
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter pb-2 text-white drop-shadow-2xl">
+                RIG<span class="text-blue-500">RADAR</span>
             </h1>
-            <p class="text-gray-400 text-base md:text-lg lg:text-xl font-light max-w-2xl mx-auto leading-relaxed">
-                Naše satelity monitorují globální ceny hardwaru 24/7. Prohlédni si živý tep trhu níže. 
-                Pro spuštění vlastního skenování a AI konzultace vstup do Workspace.
+            <p class="text-blue-100/70 text-lg md:text-xl font-light max-w-2xl mx-auto leading-relaxed relative z-10">
+                Autonomous satellites monitoring hardware prices 24/7. Preview the live pulse below, or enter the Workspace to deploy your own custom scans.
             </p>
-            <div class="pt-8">
-                <button onclick="location.href='chat.html'" class="group relative px-12 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black text-lg md:text-xl rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_40px_rgba(37,99,235,0.4)] hover:shadow-[0_0_60px_rgba(37,99,235,0.6)] flex items-center justify-center gap-3 mx-auto">
-                    <span class="uppercase tracking-widest">Enter Workspace 🚀</span>
+            <div class="pt-8 relative z-10">
+                <button onclick="location.href='chat.html'" class="sweep-effect group relative px-12 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black text-lg md:text-xl rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_40px_rgba(37,99,235,0.4)] flex items-center justify-center gap-3 mx-auto overflow-hidden">
+                    <span class="relative z-10 uppercase tracking-widest">Enter Workspace 🚀</span>
                 </button>
             </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 xl:gap-10 w-full pt-8">
-            
-            <div class="glass-panel p-8 md:p-10 rounded-[40px] md:col-span-2 lg:col-span-1 flex flex-col justify-between relative overflow-hidden group cursor-pointer border-blue-500/30 hover:scale-[1.02] transition-transform min-h-[400px]" onclick="location.href='chat.html'">
-                <div class="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-purple-600/10 opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                <div class="absolute -right-4 -top-4 w-32 h-32 bg-blue-500/20 blur-3xl rounded-full"></div>
-                
-                <div class="relative z-10">
-                    <div class="flex items-center justify-between mb-6">
-                        <span class="text-[10px] md:text-xs font-bold uppercase tracking-widest bg-blue-500/20 text-blue-400 px-4 py-1.5 rounded-full border border-blue-500/30">🔥 Top Catch</span>
-                        <span class="text-xs text-gray-400 font-mono">eBay</span>
-                    </div>
-                    <h3 class="text-2xl font-bold text-white leading-tight mb-4">GIGABYTE GeForce RTX 4090 Gaming OC</h3>
-                    <div class="flex items-end gap-4 mb-4">
-                        <span class="text-5xl font-black text-green-400 tracking-tighter">$1,599</span>
-                        <span class="text-base text-gray-500 line-through pb-1">$1,899</span>
-                    </div>
-                </div>
-                
-                <div class="relative z-10 bg-black/40 border border-white/5 rounded-2xl p-5 mt-auto">
-                    <div class="text-[10px] md:text-xs text-blue-400 uppercase font-bold tracking-widest mb-2 flex items-center gap-2"><span>🤖</span> AI VERDICT</div>
-                    <p class="text-sm text-gray-300 italic leading-relaxed">"Priced 15% below market average. Historic low for this model. Recommend immediate purchase."</p>
-                </div>
-            </div>
 
-            <div class="glass-panel p-8 md:p-10 rounded-[40px] md:col-span-2 flex flex-col relative overflow-hidden group min-h-[400px]">
-                <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[80px] rounded-full pointer-events-none group-hover:bg-blue-500/10 transition-colors"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 w-full pt-8 relative z-10">
+            
+            <div class="glass-panel p-8 md:p-10 rounded-[32px] lg:col-span-2 flex flex-col relative overflow-hidden group min-h-[380px] border border-white/5 hover:border-blue-500/30 transition-colors">
+                <div class="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-50"></div>
                 <div class="flex justify-between items-start mb-8 relative z-10">
                     <div>
                         <h3 class="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 mb-2">
-                            <span class="text-blue-500">📈</span> Live Price Trend
+                            <span class="text-blue-500">📈</span> Market Trend
                         </h3>
-                        <h2 id="chart-title" class="text-3xl font-black text-white mt-1 truncate">Gathering data...</h2>
+                        <h2 id="chart-title" class="text-3xl font-black text-white truncate">Gathering data...</h2>
                     </div>
-                    <span class="text-[10px] md:text-xs font-mono bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg text-gray-400">Auto-updating</span>
+                    <span class="text-xs font-mono bg-blue-500/10 border border-blue-500/20 px-4 py-2 rounded-xl text-blue-400 flex items-center gap-3 shadow-lg">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span> Live
+                    </span>
                 </div>
-                <div class="w-full h-full min-h-[250px] relative z-10">
+                <div class="w-full h-full min-h-[220px] relative z-10">
                     <canvas id="priceChart"></canvas>
                 </div>
             </div>
 
-            <div class="glass-panel p-8 md:p-10 rounded-[40px] flex flex-col justify-center relative overflow-hidden group border border-white/5 hover:border-purple-500/30 transition-all cursor-pointer min-h-[300px]" onclick="location.href='chat.html'">
-                <div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-purple-900/10 to-transparent pointer-events-none"></div>
+            <div class="glass-panel p-8 rounded-[32px] lg:col-span-1 flex flex-col justify-between relative overflow-hidden group cursor-pointer border border-blue-500/20 hover:border-blue-400/50 transition-all min-h-[380px]" onclick="location.href='chat.html'">
+                <div class="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 
-                <div>
-                    <h3 class="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-widest mb-6 flex items-center gap-2">
-                        <span class="text-purple-400 text-lg">💬</span> AI Workspace Teaser
-                    </h3>
-                    
-                    <div class="space-y-4">
-                        <div class="bg-blue-600 text-white text-sm p-4 rounded-2xl rounded-tr-none self-end ml-auto max-w-[90%] shadow-lg">
-                            Building a 1440p rig. RTX 4070 or 7800 XT?
-                        </div>
-                        <div class="bg-[#151515] border border-white/10 text-gray-300 text-sm p-4 rounded-2xl rounded-tl-none max-w-[95%] relative shadow-2xl">
-                            <div class="absolute -left-1.5 -top-1.5 w-3 h-3 bg-purple-500 rounded-full animate-pulse border-2 border-[#050505]"></div>
-                            Based on current scans, the <span class="text-white font-bold">7800 XT is $80 cheaper</span> today on Amazon. However, if you need DLSS 3...
-                        </div>
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <span class="text-xs font-bold uppercase tracking-widest bg-blue-500/20 text-blue-400 px-4 py-2 rounded-full border border-blue-500/30 flex items-center gap-2">
+                            <span class="text-sm">🎯</span> Top Catch
+                        </span>
+                        <span id="top-catch-store" class="text-xs text-blue-200/50 font-mono uppercase tracking-widest">Scanning...</span>
+                    </div>
+                    <h3 id="top-catch-title" class="text-2xl font-bold text-white leading-tight mb-4 line-clamp-2">Waiting for satellite data...</h3>
+                    <div class="flex items-end gap-4 mb-4">
+                        <span id="top-catch-price" class="text-5xl font-black text-blue-400 tracking-tighter">--</span>
                     </div>
                 </div>
                 
-                <div class="mt-8 text-center text-[10px] md:text-xs text-purple-400 uppercase font-bold tracking-widest flex items-center justify-center gap-2 group-hover:text-purple-300 transition-colors">
-                    Start Your Consultation <svg class="w-4 h-4 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                <div class="relative z-10 mt-auto">
+                    <div class="bg-blue-950/20 border border-blue-500/20 rounded-2xl p-5 backdrop-blur-md">
+                        <div class="text-[10px] text-blue-400 uppercase font-bold tracking-widest mb-2 flex items-center gap-2"><span>🤖</span> AI Verdict</div>
+                        <p id="top-catch-opinion" class="text-sm text-blue-100/70 italic leading-relaxed line-clamp-2">"Analyzing market position..."</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="glass-panel p-8 md:p-10 rounded-[40px] md:col-span-2 lg:col-span-1 flex flex-col h-[400px] border border-blue-500/20 relative overflow-hidden">
+            <div class="glass-panel p-8 md:p-10 rounded-[32px] lg:col-span-2 flex flex-col min-h-[400px] border border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.05)] relative overflow-hidden group">
                 <div class="absolute inset-0 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none"></div>
-                <h3 class="text-xs md:text-sm font-bold text-blue-400 uppercase tracking-widest mb-6 flex items-center justify-between relative z-10">
-                    <span>📡 Live Catches</span>
+                <div class="flex justify-between items-center mb-6 relative z-10 px-1 border-b border-white/5 pb-4">
+                    <h3 class="text-base md:text-lg font-bold text-blue-400 uppercase tracking-widest flex items-center gap-3">
+                        <span class="text-xl">📡</span> Live Market Feed
+                    </h3>
                     <span class="w-2.5 h-2.5 bg-green-500 rounded-full animate-ping"></span>
-                </h3>
-                <div id="history-list" class="flex-1 overflow-y-auto space-y-4 pr-2 relative z-10 custom-scrollbar">
-                    <div class="text-center text-gray-600 text-sm py-10 animate-pulse">Intercepting signals...</div>
+                </div>
+                <div id="history-list" class="flex-1 overflow-y-auto space-y-4 pr-3 relative z-10 custom-scrollbar">
+                    <div class="text-center text-blue-200/50 text-sm py-10 animate-pulse">Intercepting signals...</div>
+                </div>
+                <div class="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-[#050505] to-transparent z-20 pointer-events-none rounded-b-[32px]"></div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-[32px] lg:col-span-1 flex flex-col h-full min-h-[400px] relative overflow-hidden border border-white/5 bg-[#0a0a0a]">
+                <div class="flex items-center gap-2 mb-4 px-2 relative z-10">
+                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span class="ml-2 text-[10px] font-mono text-gray-600 uppercase">satellite_log.sh</span>
+                </div>
+                <div class="flex-1 font-mono text-xs text-blue-400/80 leading-relaxed overflow-hidden relative z-10">
+                    <div class="absolute bottom-0 w-full h-12 bg-gradient-to-t from-[#0a0a0a] to-transparent z-20"></div>
+                    <div class="space-y-2 opacity-70">
+                        <p>> Target: Amazon DE API.</p>
+                        <p>> Bypassing captcha [OK]</p>
+                        <p>> Extracted 42 new listings.</p>
+                        <p>> Running AI evaluation...</p>
+                        <p class="text-white">> Anomaly found: 7800X3D</p>
+                        <p>> Pushing to global Redis...</p>
+                        <p>> Connecting to eBay Node...</p>
+                        <p>> Scraping auctions [OK]</p>
+                        <p class="animate-pulse">_</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:col-span-1 min-h-[200px]">
-                <div class="glass-panel p-8 rounded-[40px] flex flex-col justify-center items-center text-center relative overflow-hidden hover:bg-white/5 transition-colors">
-                    <div class="text-5xl md:text-6xl font-black text-white mb-3 tracking-tighter" id="stat-scans">24/7</div>
-                    <div class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold">Autopilot Active</div>
+            <div class="glass-panel p-8 md:p-10 rounded-[32px] lg:col-span-2 flex flex-col justify-center relative overflow-hidden group border border-blue-500/10 hover:border-blue-500/40 transition-all cursor-pointer min-h-[350px]" onclick="location.href='chat.html'">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                
+                <div class="relative z-10 w-full flex flex-col lg:flex-row items-center justify-between gap-8 md:gap-12">
+                    <div class="flex-1 space-y-5">
+                        <h3 class="text-xs md:text-sm font-bold text-blue-400 uppercase tracking-widest mb-2 flex items-center gap-3">
+                            <span class="text-blue-500 text-xl">💬</span> AI Workspace
+                        </h3>
+                        <h4 class="text-3xl md:text-4xl font-black text-white leading-tight tracking-tight">Unsure what to buy?<br>Let AI decide.</h4>
+                        <p class="text-blue-100/60 text-base leading-relaxed max-w-md">Our AI advisor analyzes your budget, suggests the perfect build, and instantly commands the radar to find the cheapest parts across the web.</p>
+                    </div>
+                    
+                    <div class="flex-1 w-full space-y-4 pt-4 lg:pt-0">
+                        <div class="bg-blue-600 text-white text-sm p-5 rounded-3xl rounded-tr-none self-end ml-auto max-w-[90%] shadow-lg shadow-blue-900/20">
+                            Building a 1440p rig. RTX 4070 or 7800 XT?
+                        </div>
+                        <div class="bg-[#111] border border-blue-500/20 text-gray-200 text-sm p-5 rounded-3xl rounded-tl-none max-w-[95%] relative shadow-2xl">
+                            <div class="absolute -left-1.5 -top-1.5 w-3 h-3 bg-blue-500 rounded-full animate-pulse border-2 border-[#050505]"></div>
+                            Based on live scans, the <span class="text-white font-bold">7800 XT is $80 cheaper</span> today. I recommend... <span class="text-blue-400 font-bold ml-1 opacity-70 animate-pulse">typing_</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-8 rounded-[32px] lg:col-span-1 flex flex-col justify-center relative overflow-hidden border border-white/5 group hover:border-blue-500/30 transition-colors cursor-pointer min-h-[350px]" onclick="location.href='chat.html'">
+                <div class="absolute right-0 top-0 w-full h-1/2 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none"></div>
+                <div class="flex justify-between items-center mb-6 relative z-10">
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                        <span class="text-blue-400 text-base">⚖️</span> Arbitrage
+                    </h3>
                 </div>
                 
-                <div class="glass-panel p-8 rounded-[40px] flex flex-col justify-center items-center text-center relative overflow-hidden hover:bg-white/5 transition-colors">
-                    <div class="text-5xl md:text-6xl font-black text-blue-500 mb-3 tracking-tighter" id="stat-scans">3</div>
-                    <div class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold">Global Sources</div>
+                <div class="flex flex-col gap-4 relative z-10 w-full mt-2">
+                    <div class="bg-[#111] border border-blue-500/20 rounded-2xl p-4 flex items-center justify-between relative shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+                        <div class="absolute -top-2 left-3 bg-blue-600 text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shadow-lg">Best Deal</div>
+                        <span class="text-xs text-blue-200/50 font-mono uppercase">Amazon</span>
+                        <span class="text-xl font-black text-white">$899</span>
+                    </div>
+                    <div class="bg-[#111] border border-white/10 rounded-2xl p-4 flex items-center justify-between opacity-80">
+                        <span class="text-xs text-gray-500 font-mono uppercase">eBay (Used)</span>
+                        <span class="text-xl font-black text-gray-300">$849</span>
+                    </div>
+                    <div class="bg-[#111] border border-white/10 rounded-2xl p-4 flex items-center justify-between opacity-50 relative">
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-2xl backdrop-blur-[1px]">
+                            <span class="text-red-400 text-[9px] font-bold uppercase tracking-widest border border-red-500/30 bg-red-500/10 px-2 py-0.5 rounded">Overpriced</span>
+                        </div>
+                        <span class="text-xs text-gray-500 font-mono uppercase">Alza</span>
+                        <span class="text-xl font-black text-gray-500">$1,050</span>
+                    </div>
+                </div>
+                <div class="mt-6 text-center text-[10px] text-blue-100/50 italic leading-relaxed">
+                    AI detected a <span class="text-white font-bold">$151 spread</span> on RTX 4080 Super.
                 </div>
             </div>
 
@@ -187,12 +251,10 @@
         </div>
 
         <div id="support-widget" class="fixed bottom-6 right-6 z-[200] w-14 h-14 bg-blue-600/20 text-blue-400 rounded-full border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)] backdrop-blur-md overflow-hidden flex flex-col transition-all duration-300">
-            
             <div onclick="toggleSupport()" class="w-full h-14 min-h-[56px] flex items-center justify-center cursor-pointer hover:bg-blue-600/40 transition-all absolute top-0 left-0 z-20 group">
                 <span id="supp-icon-open" class="text-2xl group-hover:scale-110 transition-transform">💬</span>
                 <span id="supp-icon-close" class="text-xl font-black hidden group-hover:scale-110 transition-transform text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]">✕</span>
             </div>
-            
             <div class="flex-1 bg-[#050505]/95 flex flex-col pt-14 opacity-0 transition-opacity duration-300 backdrop-blur-md" id="supp-body">
                 <div class="p-3 border-b border-blue-500/20 text-center">
                     <h4 class="text-xs font-bold uppercase tracking-widest text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.8)]">AI Advisor</h4>
@@ -214,17 +276,13 @@
         <div id="guide-modal" class="fixed inset-0 z-[400] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-all opacity-0">
             <div class="glass-panel w-full max-w-lg rounded-[32px] p-8 relative border border-blue-500/30 shadow-[0_0_50px_rgba(59,130,246,0.2)] transform scale-95 transition-all duration-300">
                 <button onclick="closeGuide()" class="absolute top-6 right-6 text-gray-500 hover:text-white text-2xl">✕</button>
-                
                 <div class="inline-block px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] uppercase font-bold mb-4 tracking-widest">
                     Quick Start Guide
                 </div>
-                
                 <h2 class="text-2xl font-black text-white leading-tight mb-4">How to use RigRadar 📡</h2>
-                
                 <p class="text-gray-300 text-sm font-light leading-relaxed mb-6">
                     Simply type the hardware you want (e.g. <span class="text-blue-400 font-mono">RTX 4070</span>), specify a store, and our satellite will autonomously hunt down the absolute best deals in real-time.
                 </p>
-
                 <div class="bg-blue-900/20 border border-blue-500/30 p-4 rounded-2xl mb-6 relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[40px] rounded-full pointer-events-none"></div>
                     <div class="flex items-start gap-3 relative z-10">
@@ -237,7 +295,6 @@
                         </div>
                     </div>
                 </div>
-
                 <button onclick="closeGuide()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl text-center uppercase text-sm tracking-wider transition-all shadow-lg shadow-blue-900/20">
                     GOT IT, LET'S SCAN 🚀
                 </button>
