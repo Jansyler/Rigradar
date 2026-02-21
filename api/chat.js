@@ -1,6 +1,5 @@
 import { Redis } from '@upstash/redis'
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { OAuth2Client } from 'google-auth-library';
 
 const redis = new Redis({
   url: process.env.KV_REST_API_URL,
@@ -8,32 +7,28 @@ const redis = new Redis({
 })
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const authClient = new OAuth2Client();
 
 export default async function handler(req, res) {
-    // 1. ZÍSKÁNÍ A OVĚŘENÍ TOKENU
+    // 1. ZÍSKÁNÍ A OVĚŘENÍ NAŠEHO SESSION TOKENU
     const authHeader = req.headers.authorization;
     let email = null;
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
         try {
-            const ticket = await authClient.verifyIdToken({
-                idToken: token,
-                // Ujisti se, že toto Client ID odpovídá tomu v auth.js / Google Cloud Console
-                audience: "636272588894-duknv543nso4j9sj4j2d1qkq6tc690gf.apps.googleusercontent.com", 
-            });
-            const payload = ticket.getPayload();
-            email = payload.email;
+            // Zkusíme najít email spárovaný s tímto tokenem v naší Redis databázi
+            email = await redis.get(`session:${token}`);
         } catch (e) {
-            console.error("Token verification failed:", e);
-            return res.status(401).json({ text: "Session expired. Please log in again." });
+            console.error("Redis session verification failed:", e);
         }
     }
 
-    if (!email) return res.status(401).json({ text: "Unauthorized: Please log in." });
+    // Pokud token neexistuje nebo vypršel
+    if (!email) return res.status(401).json({ text: "Session expired. Please log in again." });
 
     const userKey = `user_data:${email}`;
+
+    // ... Zbytek tvého kódu pro GET a POST zůstává naprosto beze změny! ...
 
     // GET: Načtení historie
     if (req.method === 'GET') {
