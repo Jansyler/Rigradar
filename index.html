@@ -49,6 +49,11 @@
         #support-widget.open { width: 350px; height: 500px; border-radius: 20px; }
         .msg-supp-ai { background: rgba(255, 255, 255, 0.1); border-radius: 12px 12px 12px 0; }
         .msg-supp-user { background: #2563eb; border-radius: 12px 12px 0 12px; }
+
+        @keyframes ticker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen overflow-x-hidden">
