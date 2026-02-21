@@ -10,6 +10,19 @@ export default async function handler(req, res) {
   // 1. PŘÍJEM DAT Z RADAR.PY (POST)
   // ---------------------------------------------------------
   if (req.method === 'POST') {
+    
+    // 🔴 NOVÉ: ZABEZPEČENÍ API - Pustíme jen toho, kdo zná heslo
+    const apiKey = req.headers['x-radar-api-key'];
+    if (apiKey !== process.env.RADAR_API_SECRET) {
+        return res.status(401).json({ error: 'Unauthorized radar node. Intrusion detected.' });
+    }
+
+    // 🔴 NOVÉ: PŘÍJEM HEARTBEATU Z PYTHONU
+    if (req.body.type === 'heartbeat') {
+        await redis.set('system_status', { status: 'online', timestamp: Date.now() });
+        return res.status(200).json({ status: 'Heartbeat registered' });
+    }
+
     const { price, title, url, store, opinion, score, type, ownerEmail } = req.body;
     
     // Validace základních dat
@@ -61,20 +74,22 @@ export default async function handler(req, res) {
     // Získáme email uživatele z URL parametru
     const userEmail = req.query.user;
 
-    // Příprava promisů pro Redis
+    // Příprava promisů pro Redis (Přidali jsme stahování system_status!)
     const promises = [
-        redis.get('latest_deal'),            // 0: Veřejný latest
-        redis.lrange('deal_history', 0, 19)  // 1: Veřejná historie
+        redis.get('latest_deal'),            // Index 0: Veřejný latest
+        redis.lrange('deal_history', 0, 19), // Index 1: Veřejná historie
+        redis.get('system_status')           // Index 2: 🔴 NOVÉ: Status Radaru (Heartbeat)
     ];
 
     // Pokud je uživatel přihlášen, stáhneme i jeho soukromou historii a uložené věci
     if (userEmail && userEmail !== 'undefined') {
-        promises.push(redis.lrange(`user_history:${userEmail}`, 0, 49)); // 2: User historie
-        promises.push(redis.lrange(`saved_scans:${userEmail}`, 0, 49));  // 3: Saved Items (NOVÉ)
+        promises.push(redis.lrange(`user_history:${userEmail}`, 0, 49)); // Index 3: User historie
+        promises.push(redis.lrange(`saved_scans:${userEmail}`, 0, 49));  // Index 4: Saved Items
     }
 
     const results = await Promise.all(promises);
     const globalLatest = results[0];
+    const systemStatusData = results[2]; // 🔴 Načtený Heartbeat z databáze
     
     // Helper funkce pro parsování JSON stringů z Redisu
     const parseItems = (items) => (items || []).map(item => {
@@ -82,8 +97,8 @@ export default async function handler(req, res) {
     }).filter(item => item !== null);
 
     const publicHistory = parseItems(results[1]);
-    const userHistory = parseItems(results[2]); // Bude prázdné, pokud není user
-    const savedItems = parseItems(results[3]);  // Bude prázdné, pokud není user
+    const userHistory = results[3] ? parseItems(results[3]) : []; // Bude prázdné, pokud není user
+    const savedItems = results[4] ? parseItems(results[4]) : [];  // Bude prázdné, pokud není user
 
     // --- SLOUČENÍ HISTORIE PRO LIVE FEED ---
     // Spojíme veřejné a soukromé scany dohromady pro hlavní stránku
@@ -97,7 +112,7 @@ export default async function handler(req, res) {
 
     // Příprava dat pro graf
     const chartData = combinedHistory.map(item => {
-const numericPrice = parseFloat(item.price.replace(',', '.').replace(/[^0-9.]/g, ''));
+      const numericPrice = parseFloat(item.price.replace(',', '.').replace(/[^0-9.]/g, ''));
       const date = new Date(item.timestamp);
         return {
             x: `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`,
@@ -111,7 +126,8 @@ const numericPrice = parseFloat(item.price.replace(',', '.').replace(/[^0-9.]/g,
         history: combinedHistory, // Pro hlavní stránku
         userHistory: userHistory, // Pro history.html (čistě user scany)
         saved: savedItems,        // Pro history.html (uložené věci)
-        chartData: chartData 
+        chartData: chartData,
+        systemStatus: systemStatusData // 🔴 NOVÉ: Posíláme info o stavu na frontend!
     });
 
   } catch (error) {
