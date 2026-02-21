@@ -129,10 +129,12 @@
             }
         }
 
-        // --- 3. GITHUB (Zatím ukázka, budeme řešit dalším krokem) ---
+// --- 3. GITHUB OAUTH ---
         function loginGitHub() {
-            showError("GitHub integration coming soon!");
-            // Zde později přijde přesměrování: window.location.href = 'https://github.com/login/oauth/authorize?...'
+            // ZDE VLOŽ SVŮJ GITHUB CLIENT ID z nastavení GitHub App
+            const clientId = 'Iv23liC9OjKqTZEr28Kb'; 
+            const redirectUri = encodeURIComponent(window.location.origin + '/api/auth?action=github_callback');
+            window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user:email&redirect_uri=${redirectUri}`;
         }
     </script>
 </body>
