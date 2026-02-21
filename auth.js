@@ -160,22 +160,19 @@ function loginWithGoogle() {
         return; 
     }
     
-    // Zkusíme zavolat vyskakovací okno
-    google.accounts.id.prompt((notification) => {
-        // Pokud Google okno zablokoval (cooldown) nebo prohlížeč blokuje popups
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            if(typeof showToast === 'function') {
-                showToast("Google popup is blocked by your browser's cooldown. Refresh the page or clear cookies.", "error");
-            }
-        }
-    }); 
+function loginWithGoogle() { 
+    if (typeof google === 'undefined') {
+        if(typeof showToast === 'function') showToast("Connecting to Google...", "info");
+        return; 
+    }
+    // Necháme Google, ať si okno vyřeší sám přes nový FedCM standard
+    google.accounts.id.prompt(); 
 }
 
-// 9. Initialization - OPRAVENO (Race Condition)
+// 9. Initialization
 function initGoogleAuth() {
     updateAuthUI();
 
-    // Pokud se Google skript ještě nestáhl, zkusíme to znovu za 100ms
     if (typeof google === 'undefined') {
         setTimeout(initGoogleAuth, 100);
         return;
@@ -183,7 +180,8 @@ function initGoogleAuth() {
 
     google.accounts.id.initialize({
         client_id: "636272588894-duknv543nso4j9sj4j2d1qkq6tc690gf.apps.googleusercontent.com",
-        callback: handleCredentialResponse
+        callback: handleCredentialResponse,
+        use_fedcm_for_prompt: true // <--- TOTO OPRAVÍ TU ČERVENOU HLÁŠKU
     });
 
     const banner = document.getElementById('cookie-banner');
