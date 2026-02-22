@@ -90,7 +90,6 @@ window.MarketUI = {
     initRealtime(pusherKey) {
         if (!pusherKey || window.pusherInstance) return;
 
-        // Pusher SDK musí být načteno v HTML přes <script>
         if (typeof Pusher === 'undefined') {
             console.error("Pusher SDK missing!");
             return;
@@ -103,7 +102,6 @@ window.MarketUI = {
         channel.bind('new-deal', function(data) {
             console.log("⚡ Real-time update received!");
             
-            // 1. Zastavení vizuálních indikátorů skenování
             const statusEl = document.getElementById('scanStatus');
             const container = document.getElementById('scanner-container');
             const scanBtn = document.getElementById('scan-btn');
@@ -116,10 +114,47 @@ window.MarketUI = {
             if (container) container.classList.remove('scanning');
             if (scanBtn) scanBtn.disabled = false;
 
-            // 2. Okamžitý refresh dat na stránce
             if (typeof fetchLatestDeal === 'function') {
                 fetchLatestDeal();
             }
         });
+    },
+
+    // 🔔 Univerzální Toast Notifikace (Error, Success, Info)
+    showToast(message, type = 'error') {
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none';
+            document.body.appendChild(toastContainer);
+        }
+
+        const toast = document.createElement('div');
+        
+        let bgColors = 'bg-red-600/90 border-red-500 text-white';
+        let icon = '⚠️';
+        
+        if (type === 'success') {
+            bgColors = 'bg-green-600/90 border-green-500 text-white';
+            icon = '✅';
+        } else if (type === 'info') {
+            bgColors = 'bg-blue-600/90 border-blue-500 text-white';
+            icon = 'ℹ️';
+        }
+
+        toast.className = `transform translate-y-10 opacity-0 transition-all duration-300 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl backdrop-blur-md text-sm font-bold ${bgColors}`;
+        toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+
+        toastContainer.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.classList.remove('translate-y-10', 'opacity-0');
+        });
+
+        setTimeout(() => {
+            toast.classList.add('translate-y-10', 'opacity-0');
+            setTimeout(() => toast.remove(), 300); 
+        }, 3000);
     }
 };
