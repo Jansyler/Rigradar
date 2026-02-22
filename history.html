@@ -193,7 +193,7 @@
                 });
                 
                 if (res.ok) {
-                    loadData(); 
+                    await loadData(); 
                     showToast("Scan saved to collection!", "success");
                 } else {
                     throw new Error("Failed to save");
