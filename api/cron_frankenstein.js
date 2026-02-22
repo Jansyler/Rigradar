@@ -9,8 +9,14 @@ const redis = new Redis({
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export default async function handler(req, res) {
-    // Povolíme GET pro ruční testování, jinak Cron používá POST
     if (req.method !== 'GET' && req.method !== 'POST') return res.status(405).end();
+
+    // 🛡️ ZABEZPEČENÍ: Povolí přístup POUZE Vercelu (nebo komukoliv, kdo zná heslo)
+    // Pokud to chceš testovat ručně v prohlížeči, dočasně tyto 3 řádky zakomentuj
+    const authHeader = req.headers.authorization;
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+        return res.status(401).json({ error: 'Unauthorized: Invalid CRON_SECRET.' });
+    }
 
     try {
         // 1. Načtení posledních 40 úlovků z globální historie
