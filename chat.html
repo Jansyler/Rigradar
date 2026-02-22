@@ -494,18 +494,31 @@
             } catch (e) { console.error("Fetch error:", e); }
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadLayout(); 
-            MarketUI.initChart('priceChart'); 
-            await fetchLatestDeal();
-    
-            startPolling(60000); 
-            
-            await loadSidebar(); 
-            
-            const chatBox = document.getElementById('chat-box');
-            if (chatBox && chatBox.innerHTML.trim() === "") {
-                startNewChat();
+document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // 1. Načteme layout a počkáme na něj
+                await loadLayout();
+                
+                // 2. Inicializace trhu
+                if (window.MarketUI) {
+                    MarketUI.initChart('priceChart');
+                }
+                
+                // 3. První načtení dat (pokud selže, nevadí, polling to zkusí znovu)
+                fetchLatestDeal().catch(err => console.warn("Initial fetch failed, starting polling..."));
+        
+                // 4. Start pollingu
+                startPolling(60000); 
+                
+                // 5. Načtení historie chatu
+                await loadSidebar(); 
+                
+                const chatBox = document.getElementById('chat-box');
+                if (chatBox && chatBox.innerHTML.trim() === "") {
+                    startNewChat();
+                }
+            } catch (err) {
+                console.error("Critical Init Error:", err);
             }
         });
     </script>
