@@ -11,21 +11,22 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).end();
 
-    // 1. ZÍSKÁNÍ A OVĚŘENÍ NAŠEHO SESSION TOKENU (Přes Redis)
-    const authHeader = req.headers.authorization;
-    let email = null;
+    // 1. ZÍSKÁNÍ TOKENU Z HTTP-ONLY COOKIE
+    const cookieHeader = req.headers.cookie || '';
+    const tokenMatch = cookieHeader.match(/rr_auth_token=([^;]+)/);
+    const token = tokenMatch ? tokenMatch[1] : null;
 
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.split(' ')[1];
-        try {
-            email = await redis.get(`session:${token}`);
-        } catch (e) {
-            console.error("Redis session verification failed:", e);
-        }
+    if (!token) return res.status(401).json({ error: 'Unauthorized: No cookie' });
+
+    let email = null;
+    try {
+        email = await redis.get(`session:${token}`);
+    } catch (e) {
+        console.error("Redis session verification failed:", e);
     }
 
     if (!email) {
-        return res.status(401).json({ error: 'Unauthorized: Please log in' });
+        return res.status(401).json({ error: 'Unauthorized: Session expired' });
     }
 
     try {
