@@ -172,8 +172,6 @@
             });
         }
 
-        // FUNKCE PRO ULOŽENÍ (z historie)
- // FUNKCE PRO ULOŽENÍ (z historie)
         async function saveDeal(dealStr, btn) {
             const deal = JSON.parse(decodeURIComponent(dealStr));
             const token = localStorage.getItem('rr_auth_token'); // 1. ZMĚNA: Používáme token
@@ -205,7 +203,6 @@
             }
         }
 
-        // --- MAZÁNÍ (CUSTOM MODAL) ---
         let pendingDeleteId = null;
         let pendingDeleteBtn = null;
 
