@@ -261,12 +261,10 @@
                 console.error("Failed to load sidebar", e);
             }
         }
-// OPRAVA: Při přepnutí chatu vždy vložíme uvítací zprávu jako první
         async function switchChat(id) {
             activeChatId = id;
             const chatBox = document.getElementById('chat-box');
             
-            // Vyčistíme chat a vložíme statické uvítání (aby tam bylo vždy)
             chatBox.innerHTML = `
                 <div class="msg-ai p-5 rounded-2xl rounded-tl-none max-w-[90%] text-gray-300 text-sm leading-relaxed mb-4">
                     <div class="text-[10px] uppercase tracking-wider text-blue-500 font-bold mb-1">RigRadar AI</div>
@@ -541,17 +539,19 @@
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
             loadLayout();
             initChart();
-            startPolling(60000); // 🚀 Zde startuje chytrý polling při načtení
+            startPolling(60000); 
             
             await loadSidebar(); 
+            
+            const chatBox = document.getElementById('chat-box');
+            if (chatBox && chatBox.innerHTML.trim() === "") {
+                startNewChat();
+            }
         });
     </script>
 </body>
 </html>
-</body>
-</html>
-</body>
-</html>
+
