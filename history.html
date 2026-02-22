@@ -249,7 +249,7 @@ async function confirmDelete() {
             }
 
             try {
-                const res = await fetch('/api/unsave_scan', {
+                const res = await fetch('/api/scans?action=unsave', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
