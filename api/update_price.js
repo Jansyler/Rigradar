@@ -24,6 +24,7 @@ export default async function handler(req, res) {
         store: store || "WEB", 
         opinion,
         score: score || 50,
+        forecast: forecast || "WAIT",
         type: type || 'HW',
         ownerEmail: ownerEmail || 'system',
         timestamp: Date.now(),
