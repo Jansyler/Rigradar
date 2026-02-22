@@ -548,6 +548,7 @@ async function fetchLatestDeal() {
                     });
                     list.innerHTML = htmlContent;
                 }
+                return data;
             } catch (e) { console.error("Fetch Error:", e); }
         }
 
