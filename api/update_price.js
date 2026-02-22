@@ -118,7 +118,7 @@ export default async function handler(req, res) {
         chartData: chartData,
         userHistory: userHistory,
         saved: savedItems, // Frontend tohle teď uvidí a vykreslí fajfky!
-        systemStatus: results[2]
+        systemStatus: results[2],
       pusherKey: process.env.NEXT_PUBLIC_PUSHER_KEY
     });
   } catch (error) {
