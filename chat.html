@@ -542,6 +542,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
             loadLayout();
             initChart();
+            await fetchLatestDeal();
+    
             startPolling(60000); 
             
             await loadSidebar(); 
