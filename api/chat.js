@@ -108,7 +108,15 @@ export default async function handler(req, res) {
         chatHistory = chatHistory || [];
 
         // 3. Volání AI
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash",systemInstruction: `You are the RigRadar Elite Hardware Advisor. 
+        Your goal is to help users build or upgrade PCs. 
+        STRICT RULES:
+        1. If the user shares their PC specs (CPU, GPU, RAM, etc.), analyze them for bottlenecks.
+        2. Always check if the Power Supply (PSU) is sufficient for suggested upgrades.
+        3. Be technical, precise, and objective. 
+        4. If a user asks to scan for a part, give them the exact name they should type into the Radar Control.
+        5. Keep responses concise but high-value.`
+    });
         const formattedHistory = chatHistory.map(msg => ({
             role: msg.role === 'ai' ? 'model' : 'user',
             parts: [{ text: msg.text }]
