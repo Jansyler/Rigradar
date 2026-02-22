@@ -120,8 +120,7 @@
 
             try {
                 const res = await fetch('/api/create-portal-session', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    method: 'POST'
                 });
 
                 const data = await res.json();
