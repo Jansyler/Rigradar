@@ -469,21 +469,19 @@ async function fetchLatestDeal() {
             });
             
             if (list && htmlContent) list.innerHTML = htmlContent;
-
-            // --- UPDATE GRAFU ---
             if (chartPrices.length > 0 && window.MarketUI) {
                 const chartTitle = data.history[0].title.split(' ').slice(0, 4).join(' ');
                 MarketUI.updateChart(chartPrices.reverse(), chartLabels, chartTitle);
             }
         }
 
-        // 🛡️ KLÍČOVÝ KROK: Vrátíme data, aby DOMContentLoaded získal pusherKey z Vercelu
         return data;
 
-    } catch (e) { 
-        console.error("Fetch error:", e); 
-        return null;
-    }
+} catch (e) { 
+    console.error("Fetch Error:", e); 
+    if (window.MarketUI) MarketUI.showToast("Connection lost. Radar offline.", "error");
+    return null;
+}
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
