@@ -253,8 +253,7 @@ async function confirmDelete() {
                 const res = await fetch('/api/unsave_scan', {
                     method: 'POST',
                     headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` // 🔒 Zabezpečené ověření
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ dealId: pendingDeleteId }) // Posíláme už jen ID
                 });
