@@ -2,6 +2,7 @@
 window.MarketUI = {
     priceChartInstance: null,
 
+    // 📊 Inicializace grafu
     initChart(canvasId) {
         const el = document.getElementById(canvasId);
         if (!el) return;
@@ -17,13 +18,14 @@ window.MarketUI = {
                 responsive: true, maintainAspectRatio: false, 
                 plugins: { legend: { display: false } }, 
                 scales: { 
-                    x: { display: false }, // We hide X axis on chat.html, but can enable it on index
+                    x: { display: false },
                     y: { ticks: { color: '#666' }, grid: { color: 'rgba(255,255,255,0.05)' } } 
                 } 
             }
         });
     },
 
+    // 📈 Aktualizace grafu novými daty
     updateChart(chartPrices, chartLabels, chartTitle) {
         if (!this.priceChartInstance) return;
         
@@ -35,6 +37,7 @@ window.MarketUI = {
         this.priceChartInstance.update();
     },
 
+    // 🔍 Otevření detailu produktu v modalu
     openDetail(dealDataEscaped) {
         try {
             const deal = JSON.parse(decodeURIComponent(dealDataEscaped));
@@ -46,7 +49,6 @@ window.MarketUI = {
             document.getElementById('modal-opinion').innerText = deal.opinion || "No analysis.";
             document.getElementById('modal-badge').innerText = (deal.store || "WEB").toUpperCase();
             
-            // Safe checks for index.html elements
             const scoreVal = document.getElementById('modal-score-val');
             if (scoreVal) scoreVal.innerText = (deal.score || 50) + '%';
             const scoreBar = document.getElementById('modal-score-bar');
@@ -54,22 +56,70 @@ window.MarketUI = {
             
             const link = document.getElementById('modal-link');
             const productUrl = deal.url || deal.link || "#";
-            if (productUrl !== "#") { link.href = productUrl; link.classList.remove('hidden'); } 
-            else { link.classList.add('hidden'); }
+            if (productUrl !== "#") { 
+                link.href = productUrl; 
+                link.classList.remove('hidden'); 
+            } else { 
+                link.classList.add('hidden'); 
+            }
             
             modal.classList.remove('hidden');
             setTimeout(() => { 
                 modal.classList.remove('opacity-0'); 
-                if(modalContent) { modalContent.classList.remove('scale-95'); modalContent.classList.add('scale-100'); }
+                if(modalContent) { 
+                    modalContent.classList.remove('scale-95'); 
+                    modalContent.classList.add('scale-100'); 
+                }
             }, 10);
         } catch (e) { console.error("Error opening detail:", e); }
     },
 
+    // ✖️ Zavření modalu
     closeModal() {
         const modal = document.getElementById('detail-modal');
         const modalContent = modal.querySelector('div');
         modal.classList.add('opacity-0');
-        if(modalContent) { modalContent.classList.remove('scale-100'); modalContent.classList.add('scale-95'); }
+        if(modalContent) { 
+            modalContent.classList.remove('scale-100'); 
+            modalContent.classList.add('scale-95'); 
+        }
         setTimeout(() => modal.classList.add('hidden'), 300);
+    },
+
+    // 📡 Pusher Real-time Inicializace (Klíč přichází z Vercelu)
+    initRealtime(pusherKey) {
+        if (!pusherKey || window.pusherInstance) return;
+
+        // Pusher SDK musí být načteno v HTML přes <script>
+        if (typeof Pusher === 'undefined') {
+            console.error("Pusher SDK missing!");
+            return;
+        }
+
+        const pusher = new Pusher(pusherKey, { cluster: 'eu' });
+        window.pusherInstance = pusher;
+
+        const channel = pusher.subscribe('rigradar-channel');
+        channel.bind('new-deal', function(data) {
+            console.log("⚡ Real-time update received!");
+            
+            // 1. Zastavení vizuálních indikátorů skenování
+            const statusEl = document.getElementById('scanStatus');
+            const container = document.getElementById('scanner-container');
+            const scanBtn = document.getElementById('scan-btn');
+
+            if (statusEl) {
+                statusEl.innerText = `✅ Signal intercepted!`;
+                statusEl.className = "text-center text-xs font-mono h-4 text-green-500";
+                setTimeout(() => { statusEl.innerText = ""; }, 3000);
+            }
+            if (container) container.classList.remove('scanning');
+            if (scanBtn) scanBtn.disabled = false;
+
+            // 2. Okamžitý refresh dat na stránce
+            if (typeof fetchLatestDeal === 'function') {
+                fetchLatestDeal();
+            }
+        });
     }
 };
