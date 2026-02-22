@@ -38,7 +38,7 @@ window.MarketUI = {
     },
 
     // 🔍 Otevření detailu produktu v modalu
-    openDetail(dealDataEscaped) {
+openDetail(dealDataEscaped) {
         try {
             const deal = JSON.parse(decodeURIComponent(dealDataEscaped));
             const modal = document.getElementById('detail-modal');
@@ -48,6 +48,20 @@ window.MarketUI = {
             document.getElementById('modal-price').innerText = deal.price || "---";
             document.getElementById('modal-opinion').innerText = deal.opinion || "No analysis.";
             document.getElementById('modal-badge').innerText = (deal.store || "WEB").toUpperCase();
+
+            // 📉 NOVINKA: Logika pro Predictive Forecaster odznak
+            const forecast = deal.forecast ? deal.forecast.toUpperCase() : "WAIT";
+            const forecastEl = document.getElementById('modal-forecast');
+            
+            if (forecastEl) {
+                if (forecast.includes('BUY')) {
+                    forecastEl.innerHTML = `<span class="bg-green-500/20 text-green-400 border border-green-500/50 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.3)]">🔥 BUY NOW</span>`;
+                } else if (forecast.includes('OVERPRICED') || forecast.includes('SELL')) {
+                    forecastEl.innerHTML = `<span class="bg-red-500/20 text-red-400 border border-red-500/50 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest">🛑 OVERPRICED</span>`;
+                } else {
+                    forecastEl.innerHTML = `<span class="bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest">⏳ WAIT / HOLD</span>`;
+                }
+            }
             
             const scoreVal = document.getElementById('modal-score-val');
             if (scoreVal) scoreVal.innerText = (deal.score || 50) + '%';
