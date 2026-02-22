@@ -507,7 +507,7 @@ async function requestScan() {
         // 🛡️ Modaly nyní ovládá market.js (openDetail a closeModal jsme smazali)
         
         document.addEventListener('DOMContentLoaded', async () => {
-            loadLayout();
+            await loadLayout();
             MarketUI.initChart('priceChart'); // 🛡️ Zavolání globální funkce
             await fetchLatestDeal();
     
