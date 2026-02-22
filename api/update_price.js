@@ -35,19 +35,24 @@ export default async function handler(req, res) {
         id: Date.now().toString() 
     };
 
-    try {
+try {
         if (!ownerEmail || ownerEmail === 'system') {
             await redis.set('latest_deal', newDeal);
-            // 🛡️ Také ukládáme do globální historie pro Frankensteina
+            await redis.lpush('deal_history', JSON.stringify(newDeal));
+            await redis.ltrim('deal_history', 0, 19); 
+            
+            // 👇 ADD THESE TWO LINES 👇
             await redis.lpush('global_history', JSON.stringify(newDeal));
             await redis.ltrim('global_history', 0, 100);
 
-            await redis.lpush('deal_history', JSON.stringify(newDeal));
-            await redis.ltrim('deal_history', 0, 19); 
         } else {
             const userHistoryKey = `user_history:${ownerEmail}`;
             await redis.lpush(userHistoryKey, JSON.stringify(newDeal));
             await redis.ltrim(userHistoryKey, 0, 9); 
+            
+            // 👇 AND ADD THEM HERE AS WELL SO USER SCANS CONTRIBUTE 👇
+            await redis.lpush('global_history', JSON.stringify(newDeal));
+            await redis.ltrim('global_history', 0, 100);
         }
         return res.status(200).json({ status: 'Saved' });
     } catch (error) {
