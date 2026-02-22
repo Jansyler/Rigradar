@@ -52,6 +52,19 @@
                         <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
                         Manage Subscription
                     </button>
+                    <div class="glass-panel p-6 rounded-3xl border border-white/5 mt-8">
+    <div class="flex items-center gap-3 mb-4">
+        <span class="text-xl">📊</span>
+        <h3 class="text-white font-bold text-lg tracking-tight">Data Export & API</h3>
+    </div>
+    <p class="text-sm text-gray-400 mb-6">Download your saved hardware deals as a CSV file to import into your own Excel sheets or analysis tools.</p>
+    
+    <div class="flex items-center gap-4">
+        <button onclick="exportCSV()" class="bg-[#111] border border-blue-500/30 hover:border-blue-500/80 hover:bg-blue-600/10 text-blue-400 font-bold py-3 px-6 rounded-xl transition-all flex items-center gap-2">
+            <span>📥</span> Export Saved Scans (CSV)
+        </button>
+    </div>
+</div>
 
                     <a href="/index.html" class="w-full bg-white/5 hover:bg-white/10 text-gray-300 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
                         ← Back to Overview
@@ -144,8 +157,43 @@
                 }
             }
         }
+        async function exportCSV() {
+    // Okamžitá kontrola na frontendu (zda se tváří jako premium)
+    const isPremium = localStorage.getItem('rr_premium') === 'true';
+    if (!isPremium) {
+        if (window.MarketUI) MarketUI.showToast("Premium feature! Upgrade to export data.", "error");
+        else alert("Premium feature! Upgrade to export data.");
+        return;
+    }
+
+    try {
+        if (window.MarketUI) MarketUI.showToast("Generating CSV...", "info");
+
+        const res = await fetch('/api/export');
+        
+        if (!res.ok) {
+            const errData = await res.json();
+            if (window.MarketUI) MarketUI.showToast(errData.error || "Export failed", "error");
+            return;
+        }
+
+        // Stáhnutí jako soubor (Blob)
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `rigradar_export_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        
+        if (window.MarketUI) MarketUI.showToast("Export successful!", "success");
+
+    } catch (e) {
+        console.error(e);
+        if (window.MarketUI) MarketUI.showToast("Connection failed.", "error");
+    }
+}
     </script>
-</body>
-</html>
 </body>
 </html>
