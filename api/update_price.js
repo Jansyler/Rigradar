@@ -119,6 +119,7 @@ export default async function handler(req, res) {
         userHistory: userHistory,
         saved: savedItems, // Frontend tohle teď uvidí a vykreslí fajfky!
         systemStatus: results[2]
+      pusherKey: process.env.NEXT_PUBLIC_PUSHER_KEY
     });
   } catch (error) {
     console.error("Fetch Error:", error);
