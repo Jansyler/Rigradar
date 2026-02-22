@@ -394,7 +394,7 @@ function startNewChat() {
             }, 1800);
 
             try {
-                const response = await fetch('/api/request_scan', {
+                const response = await fetch('/api/scans?action=request', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
