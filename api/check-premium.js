@@ -8,26 +8,29 @@ const redis = new Redis({
 export default async function handler(req, res) {
     if (req.method !== 'GET') return res.status(405).end();
 
-    // 1. ZÍSKÁNÍ A OVĚŘENÍ RELACE PŘES REDIS
-    const authHeader = req.headers.authorization;
-    let verifiedEmail = null;
+    // 1. ZÍSKÁNÍ TOKENU Z HTTP-ONLY COOKIE (Místo Authorization hlavičky!)
+    const cookieHeader = req.headers.cookie || '';
+    const tokenMatch = cookieHeader.match(/rr_auth_token=([^;]+)/);
+    const token = tokenMatch ? tokenMatch[1] : null;
 
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.split(' ')[1];
-        try {
-            verifiedEmail = await redis.get(`session:${token}`);
-        } catch (e) {
-            console.error("Redis session verification failed:", e);
-        }
+    if (!token) {
+        return res.status(401).json({ error: "Unauthorized. No cookie found." });
+    }
+
+    // 2. Ověření session v Redisu
+    let verifiedEmail = null;
+    try {
+        verifiedEmail = await redis.get(`session:${token}`);
+    } catch (e) {
+        console.error("Session verification failed:", e);
     }
 
     if (!verifiedEmail) {
-        return res.status(401).json({ error: "Unauthorized. Please log in." });
+        return res.status(401).json({ error: "Session expired." });
     }
 
-    // 2. KONTROLA PREMIUM STATUSU Z NOVÉHO KLÍČE
+    // 3. Kontrola Premium stavu z nového klíče
     try {
-        // Kontrolujeme nový samostatný klíč, který nastavuje webhook
         const premiumData = await redis.get(`premium:${verifiedEmail}`);
         const isPremium = premiumData ? premiumData.isActive === true : false;
         
