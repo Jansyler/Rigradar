@@ -4,6 +4,7 @@ const redis = new Redis({
   url: process.env.KV_REST_API_URL,
   token: process.env.KV_REST_API_TOKEN,
 })
+
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     const apiKey = req.headers['x-radar-api-key'];
@@ -44,18 +45,39 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Database save failed' });
     }
   }
+
   try {
-    const userEmail = req.query.user;
+    // 🛡️ OPRAVA: Přečteme identitu z Cookie místo z URL parametrů
+    const cookieHeader = req.headers.cookie || '';
+    const tokenMatch = cookieHeader.match(/rr_auth_token=([^;]+)/);
+    const token = tokenMatch ? tokenMatch[1] : null;
+
+    let userEmail = null;
+    if (token) {
+        try {
+            userEmail = await redis.get(`session:${token}`);
+        } catch (e) {}
+    }
+
+    // Fallback: Pokud by se to ještě odněkud volalo postaru s ?user=...
+    if (!userEmail && req.query.user && req.query.user !== 'undefined') {
+        userEmail = req.query.user;
+    }
+
     const promises = [
         redis.get('latest_deal'),            
         redis.lrange('deal_history', 0, 9),  
         redis.get('system_status')           
     ];
-    if (userEmail && userEmail !== 'undefined') {
+
+    // Nyní správně stáhne data jen pokud našel uživatele v Cookie
+    if (userEmail) {
         promises.push(redis.lrange(`user_history:${userEmail}`, 0, 9)); 
-        promises.push(redis.lrange(`saved_scans:${userEmail}`, 0, 49));
+        promises.push(redis.lrange(`saved_scans:${userEmail}`, 0, 49)); // TADY SE NAČÍTAJÍ ULOŽENÉ!
     }
+
     const results = await Promise.all(promises);
+
     const parseItems = (items) => (items || []).map(item => {
         try { 
             let parsed = (typeof item === 'string') ? JSON.parse(item) : item; 
@@ -65,11 +87,16 @@ export default async function handler(req, res) {
             return null; 
         }
     }).filter(item => item !== null && typeof item === 'object');
+
     const publicHistory = parseItems(results[1]);
     const userHistory = results[3] ? parseItems(results[3]) : [];
-    const savedItems = results[4] ? parseItems(results[4]) : [];
+    
+    // Tady frontend konečně dostane seznam svých uložených IDs
+    const savedItems = results[4] ? parseItems(results[4]) : []; 
+
     let combinedHistory = [...userHistory, ...publicHistory];
     combinedHistory.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
     const chartData = combinedHistory.map(item => {
       const safePrice = String(item.price || "0"); 
       const numericPrice = parseFloat(safePrice.replace(',', '.').replace(/[^0-9.]/g, ''));
@@ -79,18 +106,21 @@ export default async function handler(req, res) {
           title: item.title || "Unknown"
       };
     }).reverse();
+
     let safeLatest = results[0] || { price: "---", opinion: "No data", score: 50 };
     if (typeof safeLatest === 'string') {
         try { safeLatest = JSON.parse(safeLatest); } catch(e) {}
     }
+
     return res.status(200).json({ 
         latest: safeLatest,
         history: combinedHistory.slice(0, 10), 
         chartData: chartData,
         userHistory: userHistory,
-        saved: savedItems,
+        saved: savedItems, // Frontend tohle teď uvidí!
         systemStatus: results[2]
     });
+
   } catch (error) {
     console.error("Fetch Error:", error);
     return res.status(500).json({ error: 'Error loading data' });
