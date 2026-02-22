@@ -39,15 +39,18 @@ async function syncPremiumStatus() {
     }
 }
 
-// 2. User Logout
-function logout() {
-    localStorage.removeItem('rr_user_email');
-    localStorage.removeItem('rr_user_pic');
-    localStorage.removeItem('rr_premium');
+async function logout() {
+    try {
+        await fetch('/api/logout', { method: 'POST' });
+    } catch (e) {
+        console.error("Chyba při odhlašování na serveru:", e);
+    }
     
-    // Poznámka: Aby se HttpOnly cookie smazala i ze serveru, bude potřeba zavolat /api/logout.
-    // Prozatím smazání local dat stačí pro odhlášení z UI.
-    location.reload();
+    // 2. Smažeme lokální stopy (email uživatele)
+    localStorage.removeItem('rr_user_email');
+    
+    // 3. Přesměrujeme na hlavní stranu
+    window.location.href = 'index.html';
 }
 
 // 3. UI Update - "CHYTRÁ" VERZE S ČEKÁNÍM NA HEADER
