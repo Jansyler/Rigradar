@@ -46,7 +46,11 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'Invalid or too short search query.' });
             }
 
-            const allowedStores = ['ebay', 'amazon', 'alza', 'bazos', 'newegg', 'best buy'];
+const allowedStores = [
+    'ebay', 'amazon', 'alza', 'bazos', 'newegg', 
+    'mironet', 'datart', 'hellocomp', 'czc', 'tsbohemia', 
+    'mindfactory', 'caseking', 'bestbuy', 'bhphoto'
+];
             let cleanStores = Array.isArray(stores) ? stores.map(s => String(s).toLowerCase()) : ['ebay'];
             cleanStores = cleanStores.filter(s => allowedStores.includes(s));
             if (cleanStores.length === 0) cleanStores = ['ebay'];
