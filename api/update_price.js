@@ -110,6 +110,26 @@ if (userEmail) {
     let combinedHistory = [...userHistory, ...publicHistory];
     combinedHistory.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
     
+    // 🌟 NOVÉ: Výpočet Store Spread (Hledání nejlepší ceny)
+    const storeSpread = combinedHistory.reduce((acc, item) => {
+        if (!acc[item.store] || item.timestamp > acc[item.store].timestamp) {
+            acc[item.store] = {
+                price: parseFloat(String(item.price).replace(/[^0-9.]/g, '')),
+                originalPrice: item.price,
+                title: item.title,
+                timestamp: item.timestamp
+            };
+        }
+        return acc;
+    }, {});
+
+    const pricesOnly = Object.values(storeSpread).map(s => s.price).filter(p => !isNaN(p));
+    const minPrice = pricesOnly.length > 0 ? Math.min(...pricesOnly) : null;
+
+    Object.keys(storeSpread).forEach(store => {
+        storeSpread[store].isBestDeal = storeSpread[store].price === minPrice;
+    });
+    
     const chartData = combinedHistory.map(item => {
       const safePrice = String(item.price || "0"); 
       const numericPrice = parseFloat(safePrice.replace(',', '.').replace(/[^0-9.]/g, ''));
@@ -131,6 +151,7 @@ if (userEmail) {
         chartData: chartData,
         userHistory: userHistory,
         saved: savedItems,
+        storeSpread: storeSpread, // <-- Přidáno do odpovědi
         systemStatus: results[2],
         pusherKey: process.env.NEXT_PUBLIC_PUSHER_KEY,
         frankenstein: frankenstein
