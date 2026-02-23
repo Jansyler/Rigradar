@@ -18,14 +18,12 @@
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
         
-        /* Čistší a modernější chat bubliny */
         .msg-ai { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); }
         .msg-user { background: linear-gradient(135deg, #2563eb, #1d4ed8); border: 1px solid rgba(59, 130, 246, 0.5); }
         
         .active-chat { background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: white; }
         .glass-panel { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
         
-        /* Efekty pro Scanner */
         .radar-scan-line {
             width: 100%; height: 2px;
             background: linear-gradient(90deg, transparent, #3b82f6, transparent);
@@ -168,28 +166,42 @@
         </main>
     </div>
 
-    <div id="detail-modal" class="fixed inset-0 z-[300] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-all opacity-0">
-        <div class="glass-panel w-full max-w-lg rounded-[32px] p-8 relative shadow-2xl transform scale-95 transition-all duration-300">
-            <button onclick="MarketUI.closeModal()" class="absolute top-6 right-6 text-gray-500 hover:text-white text-2xl">✕</button>
-            <div class="flex items-center gap-2 mb-4">
-    <div id="modal-badge" class="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] uppercase font-bold tracking-widest">STORE</div>
-    <div id="modal-forecast"></div>
-</div>
-            <h2 id="modal-title" class="text-xl font-bold text-white leading-tight mb-2">---</h2>
-            <div id="modal-price" class="text-4xl font-black text-blue-500 tracking-tighter mb-6">$---</div>
-            <p id="modal-opinion" class="text-gray-400 italic text-sm mb-6 bg-black/30 p-4 rounded-xl border border-white/5">---</p>
-            <div class="flex gap-3">
-                <a id="modal-link" href="#" target="_blank" class="flex-grow bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl text-center uppercase text-sm tracking-wider transition-all">
-                    BUY NOW ↗
-                </a>
+<div id="detail-modal" class="fixed inset-0 z-[300] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-all opacity-0">
+    <div class="glass-panel w-full max-w-lg rounded-[32px] p-8 relative shadow-2xl transform scale-95 transition-all duration-300 max-h-[90vh] overflow-y-auto">
+        <button onclick="MarketUI.closeModal()" class="absolute top-6 right-6 text-gray-500 hover:text-white text-2xl z-10">✕</button>
+        
+        <div class="w-full h-40 bg-white/5 rounded-2xl mb-6 flex items-center justify-center overflow-hidden border border-white/10 relative">
+            <img id="modal-img" src="logo.png" alt="Product" class="h-full object-contain relative z-10 drop-shadow-lg">
+        </div>
+
+        <div class="flex items-center gap-2 mb-4">
+            <div id="modal-badge" class="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] uppercase font-bold tracking-widest">STORE</div>
+            <div id="modal-forecast"></div>
+        </div>
+        
+        <h2 id="modal-title" class="text-xl font-bold text-white leading-tight mb-2">---</h2>
+        <div id="modal-price" class="text-4xl font-black text-blue-500 tracking-tighter mb-6">$---</div>
+        
+        <p id="modal-opinion" class="text-gray-400 italic text-sm mb-4 bg-black/30 p-4 rounded-xl border border-white/5">---</p>
+
+        <div class="mb-6">
+            <div class="text-[10px] uppercase font-bold text-gray-500 mb-2">Store Specs</div>
+            <div id="modal-desc" class="text-gray-400 text-xs leading-relaxed max-h-24 overflow-y-auto pr-2 border-l-2 border-white/10 pl-3">
+                ---
             </div>
         </div>
+
+        <div class="flex gap-3">
+            <a id="modal-link" href="#" target="_blank" class="flex-grow bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl text-center uppercase text-sm tracking-wider transition-all">
+                BUY NOW ↗
+            </a>
+        </div>
     </div>
+</div>
 
     <script src="auth.js"></script>
     <script src="market.js"></script>
     <script>
-        // --- MOBILE TAB LOGIC ---
         function switchTab(tab) {
             const chatView = document.getElementById('view-chat');
             const radarView = document.getElementById('view-radar');
@@ -303,7 +315,6 @@
                 chatBox.innerHTML += '<div class="text-center text-red-500 text-xs mt-4">Failed to establish connection to archives.</div>';
             }
         }
-
 function startNewChat() {
     activeChatId = null;
     const chatBox = document.getElementById('chat-box');
@@ -319,7 +330,6 @@ function startNewChat() {
         </div>`;
     if (typeof loadSidebar === 'function') loadSidebar(); 
 }
-
         async function sendMessage() {
             const input = document.getElementById('user-input');
             const email = localStorage.getItem('rr_user_email');
@@ -368,8 +378,6 @@ function startNewChat() {
         }
     }
         }
-
-        // --- RADAR LOGIC ---
         async function requestScan() {
             const query = document.getElementById('scanQuery').value;
             const customStore = document.getElementById('custom-store').value.trim();
@@ -392,7 +400,6 @@ function startNewChat() {
             const moodInterval = setInterval(() => {
                 moodIndex++; if (moodIndex < moodMessages.length) statusEl.innerText = moodMessages[moodIndex];
             }, 1800);
-
             try {
                 const response = await fetch('/api/scans?action=request', {
                     method: 'POST',
@@ -434,12 +441,9 @@ async function fetchLatestDeal() {
     if (document.hidden) return; 
 
     try {
-        // 🛡️ Identita je řešena automaticky přes HttpOnly Cookies
         const res = await fetch(`/api/update_price`); 
         const data = await res.json();
-        
-        // --- HEARTBEAT KONTROLA ---
-        const dot = document.getElementById('system-status-dot');
+                const dot = document.getElementById('system-status-dot');
         const text = document.getElementById('system-status-text');
         
         if (dot && text && data.systemStatus) {
@@ -455,7 +459,6 @@ async function fetchLatestDeal() {
             }
         }
 
-        // --- UPDATE UI SEZNAMU ---
         if (data.history && Array.isArray(data.history) && data.history.length > 0) {
             const list = document.getElementById('history-list');
             let htmlContent = '';
@@ -486,7 +489,6 @@ async function fetchLatestDeal() {
                 MarketUI.updateChart(chartPrices.reverse(), chartLabels, chartTitle);
             }
         }
-
         return data;
 
 } catch (e) { 
@@ -504,11 +506,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             MarketUI.initChart('priceChart');
         }
 
-        // Načteme data a z nich získáme i klíč z Vercelu
         const res = await fetchLatestDeal(); 
-        
-        // Pokud API vrátilo klíč, zapneme Pusher přes market.js
-        if (res && res.pusherKey) {
+                if (res && res.pusherKey) {
             MarketUI.initRealtime(res.pusherKey);
         }
 
