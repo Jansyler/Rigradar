@@ -120,7 +120,6 @@ window.MarketUI = {
             
             const currentUserEmail = localStorage.getItem('rr_user_email');
             
-            // 🔔 Vyvolání globální notifikace pouze pro majitele scanu
             if (data.ownerEmail && data.ownerEmail === currentUserEmail) {
                 const title = data.title ? data.title.substring(0, 40) + '...' : 'New Deal Found!';
                 this.showGlobalNotification(title, data.price, data.store, data.url);
@@ -181,7 +180,6 @@ window.MarketUI = {
         }, 3000);
     },
 
-    // --- GLOBÁLNÍ NOTIFIKACE (Nyní jako správná metoda objektu) ---
     showGlobalNotification(title, price, store, url) {
         const toast = document.createElement('div');
         toast.className = "fixed top-24 right-5 z-[5000] bg-[#0a0a0a] border border-blue-500/50 text-white px-5 py-4 rounded-2xl shadow-[0_0_30px_rgba(59,130,246,0.2)] transform translate-x-full transition-all duration-500 cursor-pointer hover:bg-[#111]";
