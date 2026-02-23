@@ -22,6 +22,7 @@ window.MarketUI = {
             }
         });
     },
+
     updateChart(chartPrices, chartLabels, chartTitle) {
         if (!this.priceChartInstance) return;
         
@@ -118,8 +119,11 @@ window.MarketUI = {
             console.log("⚡ Real-time update received!", data);
             
             const currentUserEmail = localStorage.getItem('rr_user_email');
+            
+            // 🔔 Vyvolání globální notifikace pouze pro majitele scanu
             if (data.ownerEmail && data.ownerEmail === currentUserEmail) {
-                this.showToast(`Scan complete: ${data.title ? data.title.substring(0,30) + '...' : 'Deal found'}`, 'success');
+                const title = data.title ? data.title.substring(0, 40) + '...' : 'New Deal Found!';
+                this.showGlobalNotification(title, data.price, data.store, data.url);
             }
 
             const statusEl = document.getElementById('scanStatus');
@@ -139,6 +143,7 @@ window.MarketUI = {
             }
         });
     },
+
     showToast(message, type = 'error') {
         let toastContainer = document.getElementById('toast-container');
         if (!toastContainer) {
@@ -174,45 +179,47 @@ window.MarketUI = {
             toast.classList.add('translate-y-10', 'opacity-0');
             setTimeout(() => toast.remove(), 300); 
         }, 3000);
-    }
-window.MarketUI.showGlobalNotification = function(title, price, store, url) {
-    const toast = document.createElement('div');
-    toast.className = "fixed top-24 right-5 z-[5000] bg-[#0a0a0a] border border-blue-500/50 text-white px-5 py-4 rounded-2xl shadow-[0_0_30px_rgba(59,130,246,0.2)] transform translate-x-full transition-all duration-500 cursor-pointer hover:bg-[#111]";
-    
-    toast.innerHTML = `
-        <div class="flex items-center gap-4 relative overflow-hidden">
-            <div class="absolute -right-5 -top-5 w-20 h-20 bg-blue-600/10 rounded-full blur-xl"></div>
-            
-            <div class="bg-blue-600/20 border border-blue-500/30 p-3 rounded-xl text-blue-400 z-10">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-            </div>
-            <div class="flex-grow max-w-[220px] z-10">
-                <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-0.5">Scan Complete</p>
-                <p class="text-sm font-bold text-white truncate">${title}</p>
-                <div class="flex justify-between items-center mt-1">
-                    <p class="text-base font-black text-green-400">${price}</p>
-                    <p class="text-[10px] text-gray-500 uppercase font-bold bg-white/5 px-2 py-0.5 rounded">${store}</p>
+    },
+
+    // --- GLOBÁLNÍ NOTIFIKACE (Nyní jako správná metoda objektu) ---
+    showGlobalNotification(title, price, store, url) {
+        const toast = document.createElement('div');
+        toast.className = "fixed top-24 right-5 z-[5000] bg-[#0a0a0a] border border-blue-500/50 text-white px-5 py-4 rounded-2xl shadow-[0_0_30px_rgba(59,130,246,0.2)] transform translate-x-full transition-all duration-500 cursor-pointer hover:bg-[#111]";
+        
+        toast.innerHTML = `
+            <div class="flex items-center gap-4 relative overflow-hidden">
+                <div class="absolute -right-5 -top-5 w-20 h-20 bg-blue-600/10 rounded-full blur-xl"></div>
+                
+                <div class="bg-blue-600/20 border border-blue-500/30 p-3 rounded-xl text-blue-400 z-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <div class="flex-grow max-w-[220px] z-10">
+                    <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-0.5">Scan Complete</p>
+                    <p class="text-sm font-bold text-white truncate">${title}</p>
+                    <div class="flex justify-between items-center mt-1">
+                        <p class="text-base font-black text-green-400">${price || "---"}</p>
+                        <p class="text-[10px] text-gray-500 uppercase font-bold bg-white/5 px-2 py-0.5 rounded">${store || "WEB"}</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
 
-    toast.onclick = () => {
-        if (url) window.open(url, '_blank');
-        toast.remove();
-    };
+        toast.onclick = () => {
+            if (url) window.open(url, '_blank');
+            toast.remove();
+        };
 
-    document.body.appendChild(toast);
-    
-    requestAnimationFrame(() => {
-        toast.classList.remove('translate-x-full');
-    });
-    
-    setTimeout(() => {
-        toast.classList.add('translate-x-full');
-        setTimeout(() => toast.remove(), 500);
-    }, 7000);
-};
+        document.body.appendChild(toast);
+        
+        requestAnimationFrame(() => {
+            toast.classList.remove('translate-x-full');
+        });
+        
+        setTimeout(() => {
+            toast.classList.add('translate-x-full');
+            setTimeout(() => toast.remove(), 500);
+        }, 7000);
+    }
 };
