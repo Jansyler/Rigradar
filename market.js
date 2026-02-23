@@ -1,8 +1,6 @@
-// market.js - Shared UI Logic for RigRadar
 window.MarketUI = {
     priceChartInstance: null,
 
-    // 📊 Inicializace grafu
     initChart(canvasId) {
         const el = document.getElementById(canvasId);
         if (!el) return;
@@ -24,8 +22,6 @@ window.MarketUI = {
             }
         });
     },
-
-    // 📈 Aktualizace grafu novými daty
     updateChart(chartPrices, chartLabels, chartTitle) {
         if (!this.priceChartInstance) return;
         
@@ -37,8 +33,7 @@ window.MarketUI = {
         this.priceChartInstance.update();
     },
 
-    // 🔍 Otevření detailu produktu v modalu
-openDetail(dealDataEscaped) {
+    openDetail(dealDataEscaped) {
         try {
             const deal = JSON.parse(decodeURIComponent(dealDataEscaped));
             const modal = document.getElementById('detail-modal');
@@ -49,7 +44,16 @@ openDetail(dealDataEscaped) {
             document.getElementById('modal-opinion').innerText = deal.opinion || "No analysis.";
             document.getElementById('modal-badge').innerText = (deal.store || "WEB").toUpperCase();
 
-            // 📉 NOVINKA: Logika pro Predictive Forecaster odznak
+            const imgEl = document.getElementById('modal-img');
+            if (imgEl) {
+                imgEl.src = deal.image || 'logo.png'; 
+            }
+
+            const descEl = document.getElementById('modal-desc');
+            if (descEl) {
+                descEl.innerText = deal.description || deal.opinion; 
+            }
+
             const forecast = deal.forecast ? deal.forecast.toUpperCase() : "WAIT";
             const forecastEl = document.getElementById('modal-forecast');
             
@@ -88,7 +92,6 @@ openDetail(dealDataEscaped) {
         } catch (e) { console.error("Error opening detail:", e); }
     },
 
-    // ✖️ Zavření modalu
     closeModal() {
         const modal = document.getElementById('detail-modal');
         const modalContent = modal.querySelector('div');
@@ -100,7 +103,6 @@ openDetail(dealDataEscaped) {
         setTimeout(() => modal.classList.add('hidden'), 300);
     },
 
-    // 📡 Pusher Real-time Inicializace (Klíč přichází z Vercelu)
     initRealtime(pusherKey) {
         if (!pusherKey || window.pusherInstance) return;
 
@@ -113,9 +115,14 @@ openDetail(dealDataEscaped) {
         window.pusherInstance = pusher;
 
         const channel = pusher.subscribe('rigradar-channel');
-        channel.bind('new-deal', function(data) {
-            console.log("⚡ Real-time update received!");
+        channel.bind('new-deal', (data) => {
+            console.log("⚡ Real-time update received!", data);
             
+            const currentUserEmail = localStorage.getItem('rr_user_email');
+            if (data.ownerEmail && data.ownerEmail === currentUserEmail) {
+                this.showToast(`Scan complete: ${data.title ? data.title.substring(0,30) + '...' : 'Deal found'}`, 'success');
+            }
+
             const statusEl = document.getElementById('scanStatus');
             const container = document.getElementById('scanner-container');
             const scanBtn = document.getElementById('scan-btn');
@@ -133,8 +140,6 @@ openDetail(dealDataEscaped) {
             }
         });
     },
-
-    // 🔔 Univerzální Toast Notifikace (Error, Success, Info)
     showToast(message, type = 'error') {
         let toastContainer = document.getElementById('toast-container');
         if (!toastContainer) {
