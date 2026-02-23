@@ -132,11 +132,9 @@
                 
                 let scoreColor = (deal.score || 50) >= 80 ? 'bg-green-500' : 'bg-blue-500';
                 
-                // ROZHODOVÁNÍ O TLAČÍTKU PODLE ZÁLOŽKY
                 let actionBtn = '';
                 
                 if (currentTab === 'history') {
-                    // Záložka HISTORIE: Tlačítko SAVE
                     if (isAlreadySaved) {
                         actionBtn = `<span class="text-green-500 text-xs font-bold flex items-center gap-1 border border-green-500/30 px-2 py-1.5 rounded-lg bg-green-500/10">✓ Saved</span>`;
                     } else {
@@ -144,7 +142,6 @@
                         actionBtn = `<button onclick="saveDeal('${dealStr}', this)" class="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-2"><span>💾</span> SAVE</button>`;
                     }
                 } else {
-                    // Záložka ULOŽENÉ: Tlačítko DELETE (Otevře Modal)
                     actionBtn = `<button onclick="openDeleteModal('${deal.id}', this)" class="bg-red-500/10 hover:bg-red-500/30 text-red-500 hover:text-red-400 text-xs font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-2 border border-red-500/20"><span>🗑</span> REMOVE</button>`;
                 }
 
@@ -171,12 +168,9 @@
                 grid.appendChild(card);
             });
         }
-
-        // FUNKCE PRO ULOŽENÍ (z historie)
- // FUNKCE PRO ULOŽENÍ (z historie)
         async function saveDeal(dealStr, btn) {
             const deal = JSON.parse(decodeURIComponent(dealStr));
-            const token = localStorage.getItem('rr_auth_token'); // 1. ZMĚNA: Používáme token
+            const token = localStorage.getItem('rr_auth_token'); 
             
             if (!token) return;
 
@@ -184,13 +178,11 @@
             btn.disabled = true;
 
             try {
-                const res = await fetch('/api/save_scan', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ deal }) // 3. ZMĚNA: Posíláme jen deal
-                });
+const res = await fetch('/api/scans?action=save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ deal }) 
+});
                 
                 if (res.ok) {
                     await loadData(); 
@@ -204,7 +196,6 @@
             }
         }
 
-        // --- MAZÁNÍ (CUSTOM MODAL) ---
         let pendingDeleteId = null;
         let pendingDeleteBtn = null;
 
@@ -240,8 +231,6 @@ async function confirmDelete() {
             const originalText = confirmBtn.innerText;
             confirmBtn.innerText = "Deleting...";
             confirmBtn.disabled = true;
-
-            // 🚨 OPRAVA: Používáme zabezpečený token místo e-mailu v body
             const token = localStorage.getItem('rr_auth_token');
             if (!token) {
                 window.location.href = 'login.html';
@@ -252,10 +241,8 @@ async function confirmDelete() {
                 const res = await fetch('/api/scans?action=unsave', {
                     method: 'POST',
                     headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` // 🔒 Zabezpečené ověření
-                    },
-                    body: JSON.stringify({ dealId: pendingDeleteId }) // Posíláme už jen ID
+                        'Content-Type': 'application/json',                    },
+                    body: JSON.stringify({ dealId: pendingDeleteId })
                 });
 
                 if (res.ok) {
@@ -265,7 +252,6 @@ async function confirmDelete() {
                     card.style.opacity = '0';
                     card.style.transform = 'scale(0.9)';
                     
-                    // Odstraníme položku z lokálních dat, aby se při renderu znovu neobjevila
                     userData.saved = userData.saved.filter(s => s.id !== pendingDeleteId);
                     
                     setTimeout(() => { render(); }, 500);
@@ -288,11 +274,8 @@ async function confirmDelete() {
             render();
         }
 
-        // --- KLÍČOVÝ SPOUŠTĚČ STRÁNKY ---
         document.addEventListener('DOMContentLoaded', async () => {
-            // 1. Načte společný header/footer z auth.js
             await loadLayout();
-            // 2. Načte data z archivu uživatele
             loadData();
         });
     </script>
