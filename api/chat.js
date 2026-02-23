@@ -108,7 +108,7 @@ try {
             userData.chats[currentChatId] = { title: cleanMessage.substring(0, 30) + "..." };
         }
 
-        // 2. NAČTENÍ HISTORIE ZPRÁV
+// 2. NAČTENÍ HISTORIE ZPRÁV A TRHU
         let chatHistory = await redis.get(chatHistoryKey);
         if (!chatHistory && userData.chats[currentChatId]?.history) {
             chatHistory = userData.chats[currentChatId].history;
@@ -116,16 +116,29 @@ try {
         }
         chatHistory = chatHistory || [];
 
-        // 3. Volání AI
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash",systemInstruction: `You are the RigRadar Elite Hardware Advisor. 
-        Your goal is to help users build or upgrade PCs. 
+        // 🌟 NOVÉ: Načtení historie trhu pro AI
+        const globalHistoryRaw = await redis.lrange('global_history', 0, 19) || [];
+        const marketContext = globalHistoryRaw.map(item => {
+            try {
+                const p = JSON.parse(item);
+                return `${p.title}: ${p.price} at ${p.store} (${p.opinion})`;
+            } catch(e) { return ''; }
+        }).join('\n');
+
+        // 3. Volání AI (Vylepšený Prompt)
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash", systemInstruction: `You are the RigRadar Elite Hardware Advisor. 
+        Your goal is to help users build or upgrade PCs using real-time market data.
+
+        MARKET CONTEXT (Recent Scans):
+        ${marketContext || "No recent scan data available."}
+
         STRICT RULES:
-        1. If the user shares their PC specs (CPU, GPU, RAM, etc.), analyze them for bottlenecks.
-        2. Always check if the Power Supply (PSU) is sufficient for suggested upgrades.
-        3. Be technical, precise, and objective. 
-        4. If a user asks to scan for a part, give them the exact name they should type into the Radar Control.
+        1. PRE-SCAN ADVICE: Before suggesting a new scan, check the MARKET CONTEXT. If a part was recently found at a good price, mention the store and price.
+        2. BOTTLENECK ANALYSIS: If the user shares specs, analyze them for bottlenecks.
+        3. POWER SAFETY: Always check if the PSU is sufficient for suggested upgrades.
+        4. RADAR CONTROL: Give the exact part name to type into Radar Control.
         5. Keep responses concise but high-value.`
-    });
+        });
         const formattedHistory = chatHistory.map(msg => ({
             role: msg.role === 'ai' ? 'model' : 'user',
             parts: [{ text: msg.text }]
