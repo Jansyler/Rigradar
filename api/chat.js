@@ -8,17 +8,13 @@ const redis = new Redis({
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// 🛡️ POMOCNÁ FUNKCE: Sanitizace vstupu pro AI
 const sanitizeMessage = (msg) => {
     if (typeof msg !== 'string') return '';
-    // Omezíme délku, aby někdo neposílal romány a nečerpal API tokeny
     const limited = msg.substring(0, 500).trim(); 
-    // Odstraníme nebezpečné kontrolní znaky
     return limited.replace(/[\x00-\x1F\x7F]/g, ""); 
 };
 
 export default async function handler(req, res) {
-    // 1. ZÍSKÁNÍ TOKENU Z HTTP-ONLY COOKIE
     const cookieHeader = req.headers.cookie || '';
     const tokenMatch = cookieHeader.match(/rr_auth_token=([^;]+)/);
     const token = tokenMatch ? tokenMatch[1] : null;
@@ -37,10 +33,6 @@ export default async function handler(req, res) {
     if (!email) return res.status(401).json({ text: "Session expired. Please log in again." });
 
     const userKey = `user_data:${email}`;
-
-    // ==========================================
-    // GET: Načtení historie a postranního panelu
-    // ==========================================
     if (req.method === 'GET') {
         const { chatId } = req.query; 
 
@@ -61,12 +53,8 @@ export default async function handler(req, res) {
 
     if (req.method !== 'POST') return res.status(405).end();
     
-    // ==========================================
-    // POST: Nová zpráva pro AI
-    // ==========================================
     const { message, lang, chatId } = req.body;
     
-    // 🛡️ Sanitizace
     const cleanMessage = sanitizeMessage(message);
     if (!cleanMessage) return res.status(400).json({ text: "Empty or invalid message." });
 
@@ -74,27 +62,21 @@ export default async function handler(req, res) {
     const chatHistoryKey = `chat_history:${email}:${currentChatId}`; 
 
 try {
-        // 1. Načtení základních metadat
+
         let userData = await redis.get(userKey) || { isPremium: false, chats: {} };
         if (Array.isArray(userData.chats)) userData.chats = {}; 
 
-        // 🚨 OPRAVA RACE CONDITION: Plně atomické ověření limitů
         const today = new Date().toISOString().split('T')[0]; 
         const usageKey = `usage_chat:${email}:${today}`;
         const DAILY_LIMIT = 5;
 
         if (!userData.isPremium) {
-            // 1. Increment first (Atomic)
             const currentUsage = await redis.incr(usageKey);
             
-            // 2. Set expiry if it's the first message of the day
             if (currentUsage === 1) {
-                await redis.expire(usageKey, 60 * 60 * 48); // Expires in 48h
+                await redis.expire(usageKey, 60 * 60 * 48);
             }
-
-            // 3. Check limit
             if (currentUsage > DAILY_LIMIT) {
-                // Optional: Rollback the increment so the counter doesn't stay inflated
                 await redis.decr(usageKey); 
                 
                 return res.status(403).json({ 
@@ -108,7 +90,6 @@ try {
             userData.chats[currentChatId] = { title: cleanMessage.substring(0, 30) + "..." };
         }
 
-// 2. NAČTENÍ HISTORIE ZPRÁV A TRHU
         let chatHistory = await redis.get(chatHistoryKey);
         if (!chatHistory && userData.chats[currentChatId]?.history) {
             chatHistory = userData.chats[currentChatId].history;
@@ -116,7 +97,6 @@ try {
         }
         chatHistory = chatHistory || [];
 
-        // 🌟 NOVÉ: Načtení historie trhu pro AI
         const globalHistoryRaw = await redis.lrange('global_history', 0, 19) || [];
         const marketContext = globalHistoryRaw.map(item => {
             try {
@@ -124,20 +104,23 @@ try {
                 return `${p.title}: ${p.price} at ${p.store} (${p.opinion})`;
             } catch(e) { return ''; }
         }).join('\n');
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-2.0-flash", 
+            systemInstruction: `You are the RigRadar Elite PC Genius & IT Expert. 
+            You have mastered computer technology from A to Z. You can build a PC blindfolded and fix any software or hardware issue.
 
-        // 3. Volání AI (Vylepšený Prompt)
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash", systemInstruction: `You are the RigRadar Elite Hardware Advisor. 
-        Your goal is to help users build or upgrade PCs using real-time market data.
+            MARKET CONTEXT (Recent Scans):
+            ${marketContext || "No recent scan data available."}
 
-        MARKET CONTEXT (Recent Scans):
-        ${marketContext || "No recent scan data available."}
+            CORE GUIDELINES:
+            1. MULTILINGUAL: Always respond in the same language the user is speaking to you.
+            2. UNIVERSAL IT KNOWLEDGE: You provide expert advice on EVERYTHING related to PCs: building, upgrading, troubleshooting (e.g., PC won't turn on, BSOD, driver issues), overclocking, and software optimization.
+            3. MARKET AWARENESS: Use the MARKET CONTEXT to give pre-scan advice. Mention specific stores and prices if they are relevant to the user's query.
+            4. BOTTLENECK & POWER SAFETY: Always analyze specs for bottlenecks and ensure the PSU is sufficient for any suggested hardware.
+            5. RADAR CONTROL: If the user needs a fresh scan, provide the exact part name they should type into the Radar Control interface.
+            6. PERSONALITY: You are technical, precise, objective, and incredibly helpful. Your goal is to save the user's money and solve their tech problems efficiently.
 
-        STRICT RULES:
-        1. PRE-SCAN ADVICE: Before suggesting a new scan, check the MARKET CONTEXT. If a part was recently found at a good price, mention the store and price.
-        2. BOTTLENECK ANALYSIS: If the user shares specs, analyze them for bottlenecks.
-        3. POWER SAFETY: Always check if the PSU is sufficient for suggested upgrades.
-        4. RADAR CONTROL: Give the exact part name to type into Radar Control.
-        5. Keep responses concise but high-value.`
+            Example: If a user asks "Why won't my PC turn on?", perform a step-by-step professional diagnostic (PSU switch, RAM seating, CMOS battery, motherboard standoffs, etc.).`
         });
         const formattedHistory = chatHistory.map(msg => ({
             role: msg.role === 'ai' ? 'model' : 'user',
@@ -148,17 +131,15 @@ try {
         const result = await chat.sendMessage(`Respond in ${lang || 'en'}. User: ${cleanMessage}`);
         const aiResponse = result.response.text();
 
-        // 4. Uložení
         chatHistory.push({ role: 'user', text: cleanMessage });
         chatHistory.push({ role: 'ai', text: aiResponse });
         
-        // 5. ATOMICKÝ ZÁPIS (Zabrání Race Condition při updatu limitů)
         const transaction = redis.multi();
         transaction.set(userKey, userData);
         transaction.set(chatHistoryKey, chatHistory);
 
         if (!userData.isPremium) {
-            transaction.expire(usageKey, 60 * 60 * 48); // Vyprší za 48h
+            transaction.expire(usageKey, 60 * 60 * 48); 
         }
 
         await transaction.exec();
