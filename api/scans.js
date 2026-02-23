@@ -82,52 +82,42 @@ export default async function handler(req, res) {
 
             await redis.rpush('scan_queue', task);
             return res.status(200).json({ success: true, message: 'Scan queued successfully' });
-
-        } else if (action === 'save') {
-            // --- LOGIKA: ULOŽENÍ SCANU DO ARCHIVU ---
+        }else if (action === 'save') {
+            // --- LOGIKA: ULOŽENÍ SCANU DO ARCHIVU (REDIS HASH) ---
             const { deal } = req.body;
             if (!deal || !deal.id) return res.status(400).json({ error: 'Invalid deal data' });
 
             const savedKey = `saved_scans:${verifiedEmail}`;
-            const currentSaved = await redis.lrange(savedKey, 0, -1);
-            
-            const alreadySaved = currentSaved.some(item => {
-                try {
-                    const parsed = typeof item === 'string' ? JSON.parse(item) : item;
-                    return String(parsed.id) === String(deal.id);
-                } catch (e) { return false; }
-            });
+            const dealId = String(deal.id);
 
-            if (alreadySaved) return res.status(200).json({ status: 'Already saved' });
+            // 1. Check if already exists in O(1) time
+            const exists = await redis.hexists(savedKey, dealId);
+            if (exists) return res.status(200).json({ status: 'Already saved' });
 
+            // 2. Check limits (Hashes don't have ltrim, so we use hlen)
+            const currentSize = await redis.hlen(savedKey);
+            if (currentSize >= 50) {
+                return res.status(403).json({ error: 'Archive full. Please remove old scans first.' });
+            }
+
+            // 3. Save as a Hash field in O(1) time
             const dealString = JSON.stringify(deal);
-            await redis.lpush(savedKey, dealString);
-            await redis.ltrim(savedKey, 0, 49);
+            await redis.hset(savedKey, { [dealId]: dealString });
             
             return res.status(200).json({ status: 'Saved', id: deal.id });
 
         } else if (action === 'unsave') {
-            // --- LOGIKA: SMAZÁNÍ SCANU Z ARCHIVU ---
+            // --- LOGIKA: SMAZÁNÍ SCANU Z ARCHIVU (REDIS HASH) ---
             const { dealId } = req.body; 
             if (!dealId) return res.status(400).json({ error: 'Missing dealId' });
 
             const savedKey = `saved_scans:${verifiedEmail}`;
-            const currentSaved = await redis.lrange(savedKey, 0, -1);
             
-            const newSavedList = currentSaved.filter(item => {
-                try {
-                    const parsed = typeof item === 'string' ? JSON.parse(item) : item;
-                    return String(parsed.id) !== String(dealId); 
-                } catch (e) { return true; }
-            });
+            // 1. Delete instantly in O(1) time using the dealId as the hash field
+            const deleted = await redis.hdel(savedKey, String(dealId));
 
-            if (currentSaved.length === newSavedList.length) {
+            if (deleted === 0) {
                 return res.status(200).json({ status: 'Not found or already deleted' });
-            }
-
-            await redis.del(savedKey); 
-            if (newSavedList.length > 0) {
-                await redis.rpush(savedKey, ...newSavedList);
             }
             
             return res.status(200).json({ status: 'Deleted' });
