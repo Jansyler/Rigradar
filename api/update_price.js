@@ -15,8 +15,6 @@ export default async function handler(req, res) {
         await redis.set('system_status', { status: 'online', timestamp: Date.now() });
         return res.status(200).json({ status: 'Heartbeat registered' });
     }
-
-    // 🛡️ PŘIDÁNO 'forecast' do destructuringu
     const { price, title, url, store, opinion, score, type, ownerEmail, forecast } = req.body;
     
     if (!price || !opinion) return res.status(400).json({ error: 'Missing data' });
@@ -28,7 +26,7 @@ export default async function handler(req, res) {
         store: store || "WEB", 
         opinion,
         score: score || 50,
-        forecast: forecast || "WAIT", // 🛡️ Uložení předpovědi
+        forecast: forecast || "WAIT",
         type: type || 'HW',
         ownerEmail: ownerEmail || 'system',
         timestamp: Date.now(),
@@ -41,7 +39,6 @@ try {
             await redis.lpush('deal_history', JSON.stringify(newDeal));
             await redis.ltrim('deal_history', 0, 19); 
             
-            // 👇 ADD THESE TWO LINES 👇
             await redis.lpush('global_history', JSON.stringify(newDeal));
             await redis.ltrim('global_history', 0, 100);
 
@@ -50,7 +47,6 @@ try {
             await redis.lpush(userHistoryKey, JSON.stringify(newDeal));
             await redis.ltrim(userHistoryKey, 0, 9); 
             
-            // 👇 AND ADD THEM HERE AS WELL SO USER SCANS CONTRIBUTE 👇
             await redis.lpush('global_history', JSON.stringify(newDeal));
             await redis.ltrim('global_history', 0, 100);
         }
@@ -60,8 +56,6 @@ try {
         return res.status(500).json({ error: 'Database save failed' });
     }
   }
-
-  // --- SEKCE GET (Načítání pro frontend) ---
   try {
     const cookieHeader = req.headers.cookie || '';
     const tokenMatch = cookieHeader.match(/rr_auth_token=([^;]+)/);
@@ -84,12 +78,12 @@ try {
         redis.get('latest_deal'),            
         redis.lrange('deal_history', 0, 9),  
         redis.get('system_status'),
-        redis.get('frankenstein_build') // 🛡️ NAČTENÍ FRANKENSTEINA (Index 3)
+        redis.get('frankenstein_build') 
     ];
     
-    if (userEmail) {
+if (userEmail) {
         promises.push(redis.lrange(`user_history:${userEmail}`, 0, 9)); 
-        promises.push(redis.lrange(`saved_scans:${userEmail}`, 0, 49));
+        promises.push(redis.hvals(`saved_scans:${userEmail}`));
     }
     
     const results = await Promise.all(promises);
@@ -108,7 +102,6 @@ try {
     const userHistory = results[4] ? parseItems(results[4]) : [];
     const savedItems = results[5] ? parseItems(results[5]) : [];
     
-    // 🛡️ ZPRACOVÁNÍ FRANKENSTEINA
     let frankenstein = results[3];
     if (typeof frankenstein === 'string') {
         try { frankenstein = JSON.parse(frankenstein); } catch(e) {}
@@ -140,7 +133,7 @@ try {
         saved: savedItems,
         systemStatus: results[2],
         pusherKey: process.env.NEXT_PUBLIC_PUSHER_KEY,
-        frankenstein: frankenstein // 🛡️ POSLÁNÍ NA FRONTEND
+        frankenstein: frankenstein
     });
   } catch (error) {
     console.error("Fetch Error:", error);
