@@ -145,7 +145,6 @@ try {
         transaction.set(chatHistoryKey, chatHistory);
 
         if (!userData.isPremium) {
-            transaction.incr(usageKey);
             transaction.expire(usageKey, 60 * 60 * 48); // Vyprší za 48h
         }
 
