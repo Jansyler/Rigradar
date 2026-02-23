@@ -15,7 +15,7 @@ export default async function handler(req, res) {
         await redis.set('system_status', { status: 'online', timestamp: Date.now() });
         return res.status(200).json({ status: 'Heartbeat registered' });
     }
-    const { price, title, url, store, opinion, score, type, ownerEmail, forecast } = req.body;
+    const { price, title, url, store, opinion, score, type, ownerEmail, forecast, image, description } = req.body;
     
     if (!price || !opinion) return res.status(400).json({ error: 'Missing data' });
     
@@ -25,6 +25,8 @@ export default async function handler(req, res) {
         url: url || "#",
         store: store || "WEB", 
         opinion,
+        image: image || "",
+        description: description || "", 
         score: score || 50,
         forecast: forecast || "WAIT",
         type: type || 'HW',
@@ -110,7 +112,6 @@ if (userEmail) {
     let combinedHistory = [...userHistory, ...publicHistory];
     combinedHistory.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
     
-    // 🌟 NOVÉ: Výpočet Store Spread (Hledání nejlepší ceny)
     const storeSpread = combinedHistory.reduce((acc, item) => {
         if (!acc[item.store] || item.timestamp > acc[item.store].timestamp) {
             acc[item.store] = {
@@ -139,19 +140,18 @@ if (userEmail) {
           title: item.title || "Unknown"
       };
     }).reverse();
-    
+  
     let safeLatest = results[0] || { price: "---", opinion: "No data", score: 50 };
     if (typeof safeLatest === 'string') {
         try { safeLatest = JSON.parse(safeLatest); } catch(e) {}
     }
-    
     return res.status(200).json({ 
         latest: safeLatest,
         history: combinedHistory.slice(0, 10), 
         chartData: chartData,
         userHistory: userHistory,
         saved: savedItems,
-        storeSpread: storeSpread, // <-- Přidáno do odpovědi
+        storeSpread: storeSpread, 
         systemStatus: results[2],
         pusherKey: process.env.NEXT_PUBLIC_PUSHER_KEY,
         frankenstein: frankenstein
