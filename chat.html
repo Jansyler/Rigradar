@@ -24,7 +24,7 @@
     padding: 12px;
     color: #d1d5db;
     line-height: 1.6;
-    white-space: pre-wrap; 
+    white-space: normal; 
     word-break: break-word; }
         .msg-user { background: linear-gradient(135deg, #2563eb, #1d4ed8); border: 1px solid rgba(59, 130, 246, 0.5); }
         
@@ -257,6 +257,25 @@
 
         let activeChatId = null;
         let allChats = {};
+        function formatAIResponse(text) {
+            if (!text) return "";
+            
+            const lines = text.split('\n').filter(line => line.trim() !== "");
+            
+            return lines.map(line => {
+                const trimmed = line.trim();
+                
+                if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+                    const content = trimmed.replace(/^[-•]\s*/, '');
+                    return `<div class="flex gap-2 items-start mb-2 ml-2">
+                                <span class="text-blue-500">•</span>
+                                <span class="text-gray-300">${content}</span>
+                            </div>`;
+                }
+                
+                return `<p class="mb-4 last:mb-0 leading-relaxed text-gray-300">${trimmed}</p>`;
+            }).join('');
+        }
 
         async function loadSidebar() {
             const email = localStorage.getItem('rr_user_email');
@@ -310,9 +329,11 @@
                 if (data.history && data.history.length > 0) {
                     data.history.forEach(msg => {
                         const isUser = msg.role === 'user';
+                        const formattedText = isUser ? msg.text : formatAIResponse(msg.text);
+                        
                         chatBox.innerHTML += `
                             <div class="${isUser ? 'msg-user self-end ml-auto text-white' : 'msg-ai text-gray-300'} p-4 rounded-2xl ${isUser ? 'rounded-tr-none' : 'rounded-tl-none'} max-w-[85%] text-sm leading-relaxed mb-2 shadow-md">
-                                ${msg.text}
+                                ${formattedText}
                             </div>`;
                     });
                 }
@@ -368,7 +389,7 @@ function startNewChat() {
                     
                     chatBox.innerHTML += `
                         <div class="msg-ai p-4 rounded-2xl rounded-tl-none max-w-[85%] text-gray-300 text-sm mt-2 leading-relaxed">
-                            ${data.text}
+                            ${formatAIResponse(data.text)}
                         </div>`;
                         
                     loadSidebar(); 
@@ -376,14 +397,14 @@ function startNewChat() {
                     chatBox.innerHTML += `<div class="msg-ai p-3 text-red-400 text-xs">${data.text || "Error"}</div>`;
                 }
                 chatBox.scrollTop = chatBox.scrollHeight;
-} catch (e) {
-        const typingEl = document.getElementById(typingId);
-        if (typingEl) typingEl.remove();
-        
-        if (window.MarketUI) {
-            MarketUI.showToast("Failed to connect to AI Advisor. Check your connection.", "error");
-        }
-    }
+            } catch (e) {
+                const typingEl = document.getElementById(typingId);
+                if (typingEl) typingEl.remove();
+                
+                if (window.MarketUI) {
+                    MarketUI.showToast("Failed to connect to AI Advisor. Check your connection.", "error");
+                }
+            }
         }
         async function requestScan() {
             const query = document.getElementById('scanQuery').value;
@@ -441,9 +462,6 @@ function startNewChat() {
                 }, 4000); 
             }
         }
-
-
-
 async function fetchLatestDeal() {
     if (document.hidden) return; 
 
@@ -504,7 +522,6 @@ async function fetchLatestDeal() {
     return null;
 }
 }
-
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await loadLayout();
@@ -517,7 +534,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (res && res.pusherKey) {
             MarketUI.initRealtime(res.pusherKey);
         }
-
         await loadSidebar();
         
         const chatBox = document.getElementById('chat-box');
