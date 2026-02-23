@@ -45,7 +45,6 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .new-item { animation: fadeIn 0.5s ease-out; }
 
-        /* Support Bot Styles */
         #support-widget { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         #support-widget.open { width: 350px; height: 500px; border-radius: 20px; }
         .msg-supp-ai { background: rgba(255, 255, 255, 0.1); border-radius: 12px 12px 12px 0; }
@@ -65,8 +64,6 @@
     </style>
 </head>
 <body class="flex flex-col min-h-screen overflow-x-hidden">
-<div id="notification-container" class="fixed top-5 right-5 z-[1000] flex flex-col gap-3 pointer-events-none"></div>
-
     <div id="header-placeholder"></div>
     
 <main class="flex-grow flex flex-col items-center justify-start px-4 md:px-8 pt-24 pb-24 w-full max-w-[1300px] mx-auto space-y-16 overflow-hidden">
@@ -359,88 +356,15 @@
                 chat.innerHTML += `<div class="msg-supp-ai p-3 text-red-400">Connection failed.</div>`;
             }
         }
-
-        // --- NOTIFICATIONS & CHART LOGIC ---
-        let lastNotifiedId = null;
-        let isFirstLoad = true;
-        let isWaitingForScan = false;
-
-        function showRigNotification(title, price, link, deal) {
-            const container = document.getElementById('notification-container');
-            const id = Date.now();
-            
-            const notification = document.createElement('div');
-            notification.className = "glass-panel pointer-events-auto p-4 rounded-2xl shadow-2xl transform translate-x-full transition-all duration-500 ease-out cursor-pointer hover:border-blue-500/50 min-w-[280px] border border-white/5";
-            notification.id = `notif-${id}`;
-            notification.style.background = "rgba(10, 10, 10, 0.9)";
-            
-            notification.innerHTML = `
-                <div class="flex items-center gap-4">
-                    <div class="bg-blue-600/20 p-2 rounded-lg text-blue-400">📡</div>
-                    <div class="flex-grow">
-                        <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Satellite Found Deal</p>
-                        <p class="text-sm font-bold text-white truncate w-48">${title}</p>
-                        <p class="text-lg font-black text-green-400 mt-1">${price}</p>
-                    </div>
-                </div>
-            `;
-
-notification.onclick = () => {
-                const dealDataEscaped = encodeURIComponent(JSON.stringify(deal))
-                    .replace(/'/g, "%27")
-                    .replace(/\(/g, "%28")
-                    .replace(/\)/g, "%29");
-                MarketUI.openDetail(dealDataEscaped); 
-                notification.remove();
-            };
-
-            container.appendChild(notification);
-            setTimeout(() => notification.classList.remove('translate-x-full'), 100);
-
-            setTimeout(() => {
-                notification.classList.add('translate-x-[150%]');
-                setTimeout(() => notification.remove(), 500);
-            }, 6000);
-        }
-
-        function checkNotifications(deal) {
-            if (!deal || !deal.id) return;
-            
-            if (isFirstLoad) {
-                lastNotifiedId = deal.id;
-                isFirstLoad = false;
-                return;
-            }
-
-            if (lastNotifiedId !== deal.id) {
-                lastNotifiedId = deal.id;
-                
-                if (isWaitingForScan) {
-                    showRigNotification(deal.title, deal.price, deal.url, deal);
-                    isWaitingForScan = false; 
-                }
-            }
-        }
-
-
-
+ee
         let priceChartInstance = null;
 
 
 async function fetchLatestDeal() {
     try {
-        // 🛡️ Cookie se posílá automaticky, identitu uživatele backend pozná sám
         const res = await fetch(`/api/update_price`);
         const data = await res.json();
         
-        // NOTIFICATIONS
-        if (data.history && data.history.length > 0) {
-            checkNotifications(data.history[0]);
-        } else if (data.latest) {
-            checkNotifications(data.latest);
-        }
-
-        // --- MAIN CARD (TOP CATCH) ---
         if (data.latest) {
             const priceEl = document.getElementById('top-catch-price');
             const opinionEl = document.getElementById('top-catch-opinion');
@@ -454,8 +378,7 @@ async function fetchLatestDeal() {
             if(opinionEl) opinionEl.innerText = `"${data.latest.opinion || "Scanning market..."}"`;
             if(titleEl) titleEl.innerText = data.latest.title || "Latest Catch";
             if(storeEl) storeEl.innerText = data.latest.store || "WEB";
-            
-            // 🛡️ UPDATE CHART VIA MARKET.JS
+ 
             if (data.history && data.history.length > 0) {
                 const activeTitle = data.latest.title || "Unknown Product";
                 const keywords = activeTitle.split(' ').slice(0, 2).join(' ').toLowerCase();
@@ -483,8 +406,6 @@ async function fetchLatestDeal() {
                 }
             }
         }
-
-        // --- LIST UPDATE ---
         const list = document.getElementById('history-list');
         const savedIds = (data.saved || []).map(s => String(s.id));
 
@@ -492,7 +413,6 @@ async function fetchLatestDeal() {
             const limitedHistory = data.history.slice(0, 5); 
             let htmlContent = '';
             
-            // Pro iteraci history
             limitedHistory.forEach((deal, index) => {
                 let timeText = "Now";
                 if (deal.timestamp) {
@@ -542,8 +462,6 @@ async function fetchLatestDeal() {
             });
             list.innerHTML = htmlContent;
         }
-
-        // 🧟‍♂️ NOVINKA: ZOBRAZENÍ FRANKENSTEIN BUILDU
         const fCard = document.getElementById('frankenstein-card');
         if (data.frankenstein && fCard) {
             console.log("✅ Frankenstein data nalezena:", data.frankenstein);
@@ -578,15 +496,12 @@ async function fetchLatestDeal() {
                 </div>
             `;
         } else {
-            // 🛑 TENTO ŘÁDEK TI V KONZOLI PROZRADÍ, PROČ SE TO NEUKAZUJE
             console.log("⚠️ Frankenstein skryt: Data buď chybí v API, nebo nebyl nalezen div.", {
                 dataExists: !!data.frankenstein, 
                 divExists: !!fCard
             });
             if (fCard) fCard.classList.add('hidden');
         }
-
-        // 🛡️ KLÍČOVÝ KROK: Vrátíme data, aby se mohl spustit Pusher
         return data; 
 
     } catch (e) { 
@@ -598,8 +513,7 @@ async function fetchLatestDeal() {
 
 async function saveScanFromIndex(event, dealDataEscaped, btn) {
             event.stopPropagation(); 
-            
-            // 🛡️ Removed token check. Now we check if email exists to verify UI state
+        
             const email = localStorage.getItem('rr_user_email');
             if (!email) { 
                 alert("⚠️ Please log in to save scans!");
@@ -615,7 +529,7 @@ async function saveScanFromIndex(event, dealDataEscaped, btn) {
             try {
                 const res = await fetch('/api/scans?action=save', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }, // 🛡️ Removed Auth Header
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ deal }) 
                 });
                 
@@ -630,7 +544,7 @@ async function saveScanFromIndex(event, dealDataEscaped, btn) {
                         btn.classList.remove("text-red-500");
                     }, 2000);
                 } else {
-                    btn.onclick = null; // Disable button after save
+                    btn.onclick = null;
                     btn.title = "Saved";
                 }
             } catch (e) {
@@ -674,7 +588,7 @@ async function requestScan() {
             try {
                 const response = await fetch('/api/request_scan', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }, // 🛡️ Removed Auth Header
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         query: query, 
                         stores: stores,
@@ -742,8 +656,6 @@ async function requestScan() {
             modalContent.classList.add('scale-95');
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
-
-        // --- SHARE LOGIC ---
         function shareDeal() {
             const title = document.getElementById('modal-title').innerText;
             const price = document.getElementById('modal-price').innerText;
