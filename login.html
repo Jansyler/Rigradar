@@ -60,9 +60,7 @@
     </div>
 
     <script>
-        // --- INICIALIZACE GOOGLE (Moderní FedCM API) ---
         window.onload = function () {
-            // Počkáme chvilku, než se načte Google knihovna (prevence proti chybám z rychlého připojení)
             if (typeof google === 'undefined') {
                 setTimeout(arguments.callee, 100);
                 return;
@@ -92,7 +90,6 @@
             el.classList.remove('hidden');
         }
 
-        // --- 1. EMAIL/PASSWORD LOGIN & REGISTER ---
         async function handleAuth(action) {
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
@@ -122,7 +119,6 @@
             }
         }
 
-// Pomocná funkce pro přečtení dat z Google Tokenu
         function parseJwt(token) {
             try {
                 return JSON.parse(atob(token.split('.')[1]));
@@ -131,14 +127,11 @@
             }
         }
 
-        // --- 2. GOOGLE OAUTH ---
         async function handleGoogle(response) {
             try {
-                // 1. Nejprve si sami přečteme profilovku od Googlu
                 const payload = parseJwt(response.credential);
                 const googlePic = payload ? payload.picture : null;
 
-                // 2. Pošleme to na náš backend pro ověření a získání naší relace
                 const res = await fetch(`/api/auth?action=google`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -147,7 +140,6 @@
                 const data = await res.json();
                 
                 if (res.ok) {
-                    // 3. Uložíme náš nový token, email A OFICIÁLNÍ FOTKU!
                     localStorage.setItem('rr_auth_token', data.token);
                     localStorage.setItem('rr_user_email', data.email);
                     if (googlePic) {
@@ -162,7 +154,6 @@
             }
         }
 
-        // --- 3. GITHUB OAUTH ---
         function loginGitHub() {
             const clientId = 'Iv23liC9OjKqTZEr28Kb'; 
             const redirectUri = encodeURIComponent(window.location.origin + '/api/auth?action=github_callback');
