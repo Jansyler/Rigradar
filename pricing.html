@@ -61,7 +61,6 @@
     <script src="auth.js"></script>
     <script>
         async function startPayment() {
-            // 🛡️ Kontrolujeme jen email, token už v localStorage není potřeba
             const email = localStorage.getItem('rr_user_email');
 
             if (!email) { 
@@ -76,7 +75,6 @@
             btn.disabled = true;
 
             try {
-                // 🛡️ Žádné hlavičky Authorization, cookies se posílají samy
                 const response = await fetch('/api/stripe?type=checkout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
@@ -108,8 +106,6 @@
                 btn.disabled = false;
             }
         }
-
-        // Spuštění layoutu při načtení
         document.addEventListener('DOMContentLoaded', async () => {
             await loadLayout();
         });
