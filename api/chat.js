@@ -73,7 +73,7 @@ export default async function handler(req, res) {
     const currentChatId = chatId || `chat_${Date.now()}`;
     const chatHistoryKey = `chat_history:${email}:${currentChatId}`; 
 
-    try {
+try {
         // 1. Načtení základních metadat
         let userData = await redis.get(userKey) || { isPremium: false, chats: {} };
         if (Array.isArray(userData.chats)) userData.chats = {}; 
@@ -83,18 +83,27 @@ export default async function handler(req, res) {
         const usageKey = `usage_chat:${email}:${today}`;
         const DAILY_LIMIT = 5;
 
-        let currentUsage = 0;
-
         if (!userData.isPremium) {
-            currentUsage = await redis.get(usageKey) || 0;
-            if (parseInt(currentUsage) >= DAILY_LIMIT) {
+            // 1. Increment first (Atomic)
+            const currentUsage = await redis.incr(usageKey);
+            
+            // 2. Set expiry if it's the first message of the day
+            if (currentUsage === 1) {
+                await redis.expire(usageKey, 60 * 60 * 48); // Expires in 48h
+            }
+
+            // 3. Check limit
+            if (currentUsage > DAILY_LIMIT) {
+                // Optional: Rollback the increment so the counter doesn't stay inflated
+                await redis.decr(usageKey); 
+                
                 return res.status(403).json({ 
                     text: `Daily limit (${DAILY_LIMIT} messages) reached! Limit resets at midnight or upgrade to Premium.`, 
                     limitReached: true 
                 });
             }
         }
-
+        
         if (!userData.chats[currentChatId]) {
             userData.chats[currentChatId] = { title: cleanMessage.substring(0, 30) + "..." };
         }
