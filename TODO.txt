@@ -1,53 +1,23 @@
- Premium Funkce a Analýza obrázků
+A.Premium Funkce a Analýza obrázků
 
-Tvůj chat.js má již základní limity, které je třeba rozšířit.
+1.Frontend: Přidat do chatu tlačítko pro nahrání obrázku.
+2.Backend: V api/chat.js použij model Gemini, který podporuje multimodální vstup (obrázky).
+3.Limity: V api/chat.js přidej kontrolu: if (!userData.isPremium && imageCount > 0) return res.status(403)....
 
+B.Premium nápady:
 
-Vizuální diagnostika (Nové):
-
-Frontend: Přidej do chatu tlačítko pro nahrání obrázku.
-
-Backend: V api/chat.js použij model Gemini, který podporuje multimodální vstup (obrázky).
-
-Limity: V api/chat.js přidej kontrolu: if (!userData.isPremium && imageCount > 0) return res.status(403)....
-
-Další Premium nápady:
-
-
-
-
-Prioritní fronta: V api/scans.js nastav u Premium uživatelů v Redis úkolu priority: true, aby je radar.py zpracoval jako první.
-
-
-Hlídací pes: Možnost nastavit si „Upozorni mě, až RTX 4080 klesne pod 20 000 Kč“.
+1.Prioritní fronta: V api/scans.js nastav u Premium uživatelů v Redis úkolu priority: true, aby je radar.py zpracoval jako první.
+2.Hlídací pes: Možnost nastavit si „Upozorni mě, až RTX 4080 klesne pod 20 000 Kč“.
 u hlidaciho psa pri premium bude specialni scan kterej bude na ten specifickej search (rtx 4080)scannovanej kazdou hodinu z toho shopu kterej si uzivatel vybere a posle se mu to na mail kazda zmena ceny jinak ne proste takovy email reminder subscription jako maj eshopy upozorneni na naskladneni produktu tak tohle bude stejny akorat ze specialne pro toho uzivatele se to kazdou hodinu bude scanovat aby mel ten pocit toho ze usetri cas tim ze zbytecne nehleda jak dement a nerefreshuje furt stranky .GENIALNI HLIDACI PES FUNKCE BYLA HLAVNI DUVOD PROC JSEM ZACAL STAVET RIGRADARAI!!!
 
-3. Stripe: Vlastní UI a Management Předplatného
+C. Stripe: Vlastní UI a Management Předplatného
 
-Aktuálně používáme stripe.checkout.sessions.create, což uživatele vždy přesměruje na stránky Stripe.
+1.Aktuálně používáme stripe.checkout.sessions.create, což uživatele vždy přesměruje na stránky Stripe.
+2.Stripe Elements: Pro platbu přímo na webu musíme v pricing.html implementovat Stripe Elements. To  umožní vytvořit vlastní formulář pro kartu, který vypadá jako součást designu webu.
+3.Management v UI: Místo posílání uživatele do Stripe portálu vytvořit v account.html sekci „Moje předplatné“, která bude volat nový endpoint (např. api/subscription-info.js). Tento endpoint vrátí data o předplatném přes Stripe API a ty  se vykreslíš v UI webu.
+4.Zrušení v UI: Tlačítko „Zrušit předplatné“ bude volat backend, který provede stripe.subscriptions.update(id, { cancel_at_period_end: true }).
 
+D.Porovnávání cen a „Best Deal“ //Tato funkce vyžaduje analýzu historie napříč obchody, kterou už částečně vracíš v storeSpread.
 
-Stripe Elements: Pro platbu přímo na webu musíme v pricing.html implementovat Stripe Elements. To  umožní vytvořit vlastní formulář pro kartu, který vypadá jako součást designu webu.
-
-Management v UI: Místo posílání uživatele do Stripe portálu vytvořit v account.html sekci „Moje předplatné“, která bude volat nový endpoint (např. api/subscription-info.js). Tento endpoint vrátí data o předplatném přes Stripe API a ty  se vykreslíš v UI webu.
-
-Zrušení v UI: Tlačítko „Zrušit předplatné“ bude volat backend, který provede stripe.subscriptions.update(id, { cancel_at_period_end: true }).
-
-Porovnávání cen a „Best Deal“
-
-Tato funkce vyžaduje analýzu historie napříč obchody, kterou už částečně vracíš v storeSpread.
-
-
-Algoritmus porovnání: V api/update_price.js vytvoř logiku, která pro každé hledané slovo (query) projde posledních 50 záznamů v global_history a najde nejnižší cenu.
-
-Zobrazení: Na frontendu u každého výsledku zobraz bublinu: „Ušetříte X % oproti průměru“ nebo „Nejlevnější na trhu“.
-
-1. Přesnost cen a shoda s listingem/ nekdy AI posle spatnou cenu produktu nez ta ktera je na eshopu
-
-Problém je v tom, že AI nyní parsuje obrovské množství textu naráz, což vede k záměně ceny produktu s cenou poštovného nebo souvisejícího příslušenství.
-
-Strukturovaný parsing: V radar.py uprav funkci analyze_html tak, aby před odesláním do Gemini extrahovala konkrétní bloky HTML (např. kontejnery pro výsledky vyhledávání), místo aby posílala veškerý text stránky.
-
-Vynucení validace: Do promptu pro AI přidej instrukci: „Verify that the price corresponds to the main product title and is not a shipping fee, warranty price, or accessory“.
-
-Regex před-validace: V radar.py implementuj jednoduchý regulární výraz, který z textu vyřadí řetězce obsahující klíčová slova jako „poštovné“, „shipping“, „box only“ dříve, než se text dostane k AI.
+1.Algoritmus porovnání: V api/update_price.js vytvoř logiku, která pro každé hledané slovo (query) projde posledních 50 záznamů v global_history a najde nejnižší cenu.
+2.Zobrazení: Na frontendu u každého výsledku zobraz bublinu: „Ušetříte X % oproti průměru“ nebo „Nejlevnější na trhu“.
