@@ -57,86 +57,145 @@
         </div>
     </main>
 
-<div id="payment-modal" class="hidden fixed inset-0 z-[500] bg-black/80 flex items-center justify-center p-4 backdrop-blur-md">
-    <div class="bg-[#0a0a0a] w-full max-w-md rounded-[32px] p-8 relative border border-white/10 shadow-2xl">
-        <button onclick="document.getElementById('payment-modal').classList.add('hidden')" class="absolute top-6 right-6 text-gray-500 hover:text-white text-xl">✕</button>
-        <h2 class="text-2xl font-black text-white mb-6">Complete Upgrade 🚀</h2>
+<div id="payment-modal" class="hidden fixed inset-0 z-[500] bg-black/90 flex items-center justify-center p-4 backdrop-blur-xl">
+    <div class="bg-[#0a0a0a] w-full max-w-md rounded-[24px] p-8 relative border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+        
+        <button onclick="document.getElementById('payment-modal').classList.add('hidden')" class="absolute top-6 right-6 text-gray-500 hover:text-white transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-500/10 text-blue-500 mb-4">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <h2 class="text-2xl font-black text-white">Upgrade to Premium</h2>
+            <p class="text-sm text-gray-400 mt-1">100 Kč / week. Cancel anytime.</p>
+        </div>
+
         <form id="payment-form">
-            <div id="payment-element" class="bg-white/5 p-4 rounded-xl border border-white/10 mb-6 min-h-[200px]"></div>
+            <div id="payment-element" class="min-h-[200px] mb-6"></div>
             
-            <button id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] flex justify-center items-center">
-                <span id="button-text">Subscribe ($5.00/week)</span>
+            <button id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] flex justify-center items-center gap-2 uppercase tracking-wide text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                <span id="button-text">Subscribe Now</span>
             </button>
-            <div id="payment-message" class="text-red-400 text-xs font-bold text-center mt-4 hidden"></div>
+
+            <div class="mt-4 flex items-center justify-center gap-2 text-gray-500 text-xs font-medium">
+                <svg class="w-4 h-4" viewBox="0 0 32 32" fill="currentColor"><path d="M29.98 9.006c-.02-.046-.046-.09-.074-.132l-3.376-5.064c-.186-.278-.496-.446-.83-.446H6.29c-.328 0-.635.162-.822.433L2.096 8.875c-.03.043-.057.087-.078.134-.047.106-.073.22-.073.336v15.29c0 .825.67 1.495 1.495 1.495h25.12c.825 0 1.495-.67 1.495-1.495v-15.3c0-.115-.026-.227-.074-.33zM6.654 4.86h18.682l2.67 4H3.985l2.67-4zm21.9 20.27H3.444V10.355h25.11v14.776z"></path><path d="M16 11.35c-2.48 0-4.5 2.02-4.5 4.5s2.02 4.5 4.5 4.5 4.5-2.02 4.5-4.5-2.02-4.5-4.5-4.5zm0 7.5c-1.654 0-3-1.346-3-3s1.346-3 3-3 3 1.346 3 3-1.346 3-3 3z"></path></svg>
+                Guaranteed safe & secure checkout by Stripe
+            </div>
+
+            <div id="payment-message" class="text-red-400 text-sm font-bold text-center mt-4 hidden bg-red-400/10 py-2 rounded-lg border border-red-400/20"></div>
         </form>
     </div>
 </div>
 
-    <div id="footer-placeholder" class="w-full"></div>
+<div id="footer-placeholder" class="w-full"></div>
 
-    <script src="auth.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadLayout();
-        });
-
-let stripe, elements;
-
-async function startPremiumUpgrade() {
-    const email = localStorage.getItem('rr_user_email');
-    if (!email) { 
-        window.location.href = 'login.html'; 
-        return; 
-    }
-
-    document.getElementById('payment-modal').classList.remove('hidden');
-    document.getElementById('button-text').innerText = "Loading secured UI...";
-
-    try {
-        const res = await fetch('/api/subscription?action=create', { method: 'POST' });
-        const data = await res.json();
-        
-        if (!res.ok) throw new Error(data.error);
-
-        stripe = Stripe(data.publishableKey);
-
-        const appearance = { 
-            theme: 'night', 
-            variables: { colorPrimary: '#3b82f6', colorBackground: '#111' } 
-        };
-        elements = stripe.elements({ appearance, clientSecret: data.clientSecret });
-
-        const paymentElement = elements.create('payment');
-        paymentElement.mount('#payment-element');
-        
-        document.getElementById('button-text').innerText = "Subscribe (5.00$/week)";
-        
-        document.getElementById('payment-form').addEventListener('submit', handlePaymentSubmit);
-    } catch (e) {
-        document.getElementById('payment-message').innerText = e.message;
-        document.getElementById('payment-message').classList.remove('hidden');
-    }
-}
-
-async function handlePaymentSubmit(e) {
-    e.preventDefault();
-    document.getElementById('button-text').innerText = "Processing...";
-    document.getElementById('submit-btn').disabled = true;
-
-    const { error } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-            return_url: window.location.origin + '/chat.html?success=true',
-        }
+<script src="auth.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadLayout();
     });
 
-    if (error) {
-        document.getElementById('payment-message').innerText = error.message;
-        document.getElementById('payment-message').classList.remove('hidden');
-        document.getElementById('button-text').innerText = "Try Again";
-        document.getElementById('submit-btn').disabled = false;
+    let stripe, elements;
+
+    async function startPremiumUpgrade() {
+        const email = localStorage.getItem('rr_user_email');
+        if (!email) { 
+            window.location.href = 'login.html'; 
+            return; 
+        }
+
+        document.getElementById('payment-modal').classList.remove('hidden');
+        document.getElementById('button-text').innerText = "Establishing Secure Connection...";
+
+        try {
+            const res = await fetch('/api/subscription?action=create', { method: 'POST' });
+            const data = await res.json();
+            
+            if (!res.ok) throw new Error(data.error);
+
+            stripe = Stripe(data.publishableKey);
+
+            // 🎨 PRÉMIOVÝ DESIGN PRO STRIPE ELEMENTS
+            const appearance = { 
+                theme: 'night', 
+                variables: { 
+                    fontFamily: 'Inter, sans-serif',
+                    colorPrimary: '#3b82f6', 
+                    colorBackground: '#0a0a0a', // Dokonale splyne s pozadím modalu
+                    colorText: '#ffffff',
+                    colorDanger: '#ef4444',
+                    spacingUnit: '4px',
+                    borderRadius: '8px',
+                    colorTextPlaceholder: '#6b7280'
+                },
+                rules: {
+                    '.Tab': {
+                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                        boxShadow: 'none'
+                    },
+                    '.Tab:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    },
+                    '.Tab--selected': {
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    },
+                    '.Input': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        boxShadow: 'none'
+                    },
+                    '.Input:focus': {
+                        borderColor: '#3b82f6',
+                        boxShadow: '0 0 0 1px #3b82f6'
+                    }
+                }
+            };
+
+            // 🟢 VYNUCENÍ MODERNÍHO "TABS" LAYOUTU
+            elements = stripe.elements({ appearance, clientSecret: data.clientSecret });
+            const paymentElementOptions = {
+                layout: 'tabs', // Toto udělá ty hezké tlačítka nahoře
+            };
+
+            const paymentElement = elements.create('payment', paymentElementOptions);
+            paymentElement.mount('#payment-element');
+            
+            document.getElementById('button-text').innerText = "Subscribe Now";
+            document.getElementById('payment-form').addEventListener('submit', handlePaymentSubmit);
+            
+        } catch (e) {
+            document.getElementById('payment-message').innerText = e.message;
+            document.getElementById('payment-message').classList.remove('hidden');
+            document.getElementById('button-text').innerText = "Connection Failed";
+        }
     }
-}
-    </script>
+
+    async function handlePaymentSubmit(e) {
+        e.preventDefault();
+        document.getElementById('button-text').innerText = "Processing Securely...";
+        document.getElementById('submit-btn').disabled = true;
+        document.getElementById('submit-btn').classList.add('opacity-70');
+
+        const { error } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                return_url: window.location.origin + '/chat.html?success=true',
+            }
+        });
+
+        if (error) {
+            document.getElementById('payment-message').innerText = error.message;
+            document.getElementById('payment-message').classList.remove('hidden');
+            document.getElementById('button-text').innerText = "Try Again";
+            document.getElementById('submit-btn').disabled = false;
+            document.getElementById('submit-btn').classList.remove('opacity-70');
+        }
+    }
+</script>
 </body>
 </html>
