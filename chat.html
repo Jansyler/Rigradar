@@ -86,19 +86,33 @@
     <div id="chat-box" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 pt-20 lg:pt-8 custom-scrollbar z-0"> 
     </div>
 
-    <div class="w-full p-4 pb-8 md:p-6 md:pb-6 bg-[#050505] border-t border-white/5 z-20 shrink-0 relative">
-        <div class="flex gap-3 items-end max-w-4xl mx-auto">
+<div class="w-full p-4 pb-8 md:p-6 md:pb-6 bg-[#050505] border-t border-white/5 z-20 shrink-0 relative">
+    <div class="flex flex-col gap-2 max-w-4xl mx-auto w-full">
+        
+<div id="image-preview-container" class="hidden relative w-20 h-20 ml-2">
+    <img id="image-preview" src="" class="w-full h-full object-cover rounded-xl border border-white/20 shadow-lg" />
+            <button onclick="clearImage()" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold shadow-lg transition-colors">✕</button>
+        </div>
+
+        <div class="flex gap-3 items-end w-full">
+            <input type="file" id="image-upload" accept="image/jpeg, image/png, image/webp" class="hidden" onchange="handleImageSelect(event)" />
+            
+            <button onclick="document.getElementById('image-upload').click()" class="bg-[#111] border border-white/10 hover:border-white/20 text-gray-400 hover:text-white p-4 rounded-2xl transition-all shadow-2xl flex-shrink-0 h-auto">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+            </button>
+
             <div class="flex-1 bg-[#111] border border-white/10 hover:border-white/20 focus-within:border-blue-500/50 rounded-2xl flex items-center px-4 shadow-2xl transition-all duration-300 relative overflow-hidden group">
                 <div class="absolute inset-0 bg-blue-500/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none"></div>
-                <textarea id="user-input" rows="1" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'" onkeypress="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }" placeholder="Message AI Advisor..." class="flex-1 bg-transparent outline-none text-white py-4 text-sm placeholder-gray-600 resize-none max-h-32 custom-scrollbar relative z-10"></textarea>
+                <textarea id="user-input" rows="1" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'" onkeypress="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }" placeholder="Message AI Advisor (or attach an image)..." class="flex-1 bg-transparent outline-none text-white py-4 text-sm placeholder-gray-600 resize-none max-h-32 custom-scrollbar relative z-10"></textarea>
             </div>
+            
             <button onclick="sendMessage()" class="bg-white text-black hover:bg-gray-200 p-4 rounded-2xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-95 flex-shrink-0 h-auto">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19V5m0 0l-7 7m7-7l7 7"></path></svg>
             </button>
         </div>
-        
-        <div class="text-center mt-3 text-[10px] text-gray-500 font-mono">RigRadar AI can make mistakes. Verify critical specifications.</div>
     </div>
+    <div class="text-center mt-3 text-[10px] text-gray-500 font-mono">RigRadar AI can make mistakes. Verify critical specifications.</div>
+</div>
 </div>
 
                 <div id="view-radar" class="w-full md:w-1/2 lg:w-9/12 h-full bg-[#050505] overflow-y-auto p-4 md:p-6 hidden md:flex flex-col space-y-6 custom-scrollbar relative">
@@ -358,17 +372,64 @@ function startNewChat() {
         </div>`;
     if (typeof loadSidebar === 'function') loadSidebar(); 
 }
+        let selectedImage = null;
+
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 5 * 1024 * 1024) {
+                if(window.MarketUI) MarketUI.showToast("Image is too large. Max 5MB.", "error");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64String = e.target.result.split(',')[1];
+                selectedImage = {
+                    data: base64String,
+                    mimeType: file.type,
+                    url: e.target.result
+                };
+                
+                document.getElementById('image-preview').src = e.target.result;
+                document.getElementById('image-preview-container').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearImage() {
+            selectedImage = null;
+            document.getElementById('image-upload').value = '';
+            document.getElementById('image-preview-container').classList.add('hidden');
+        }
+
         async function sendMessage() {
             const input = document.getElementById('user-input');
             const email = localStorage.getItem('rr_user_email');
             const message = input.value.trim();
             
-            if(!message) return;
+            if(!message && !selectedImage) return;
             if(!email) { alert("Please log in first!"); return; } 
 
             const chatBox = document.getElementById('chat-box');
-            chatBox.innerHTML += `<div class="msg-user p-4 rounded-2xl rounded-tr-none max-w-[85%] self-end ml-auto text-white text-sm shadow-md mb-2">${message}</div>`;
+            
+            let userHtml = `<div class="msg-user flex flex-col p-4 rounded-2xl rounded-tr-none max-w-[85%] self-end ml-auto text-white text-sm shadow-md mb-2">`;            
+            if (selectedImage) {
+                userHtml += `<img src="${selectedImage.url}" class="max-w-full h-auto rounded-lg mb-2 border border-white/20 max-h-48 object-contain bg-black/20" />`;
+            }
+            if (message) {
+                userHtml += `<p>${message}</p>`;
+            }
+            userHtml += `</div>`;
+            chatBox.innerHTML += userHtml;
+            
             input.value = '';
+            input.style.height = 'auto';
+            
+            const imagePayload = selectedImage ? { data: selectedImage.data, mimeType: selectedImage.mimeType } : null;
+            clearImage();
+            
             chatBox.scrollTop = chatBox.scrollHeight;
 
             const typingId = "typing-" + Date.now();
@@ -379,7 +440,7 @@ function startNewChat() {
                 const response = await fetch('/api/chat', {
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message, email, chatId: activeChatId, lang: 'en' })
+                    body: JSON.stringify({ message, email, chatId: activeChatId, lang: 'en', image: imagePayload })
                 });
                 const data = await response.json();
                 document.getElementById(typingId).remove();
@@ -394,16 +455,17 @@ function startNewChat() {
                         
                     loadSidebar(); 
                 } else {
-                    chatBox.innerHTML += `<div class="msg-ai p-3 text-red-400 text-xs">${data.text || "Error"}</div>`;
+                    chatBox.innerHTML += `
+                        <div class="msg-ai p-4 border border-red-500/50 bg-red-500/10 text-red-400 text-sm rounded-2xl rounded-tl-none max-w-[85%] mt-2">
+                            <span class="font-bold text-base block mb-1">👑 Premium Required</span>
+                            ${data.text || data.error || "Error"}
+                        </div>`;
                 }
                 chatBox.scrollTop = chatBox.scrollHeight;
             } catch (e) {
                 const typingEl = document.getElementById(typingId);
                 if (typingEl) typingEl.remove();
-                
-                if (window.MarketUI) {
-                    MarketUI.showToast("Failed to connect to AI Advisor. Check your connection.", "error");
-                }
+                if (window.MarketUI) MarketUI.showToast("Failed to connect to AI Advisor.", "error");
             }
         }
         async function requestScan() {
