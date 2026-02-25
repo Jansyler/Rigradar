@@ -60,21 +60,23 @@ export default async function handler(req, res) {
     const chatHistoryKey = `chat_history:${email}:${currentChatId}`; 
 
 try {
-
-        let userData = await redis.get(userKey) || { isPremium: false, chats: {} };
+        let userData = await redis.get(userKey) || { chats: {} };
         if (Array.isArray(userData.chats)) userData.chats = {}; 
+
+        const premiumData = await redis.get(`premium:${email}`);
+        const isPremium = premiumData && premiumData.isActive === true;
 
         const today = new Date().toISOString().split('T')[0]; 
         const usageKey = `usage_chat:${email}:${today}`;
         const DAILY_LIMIT = 5;
 
-        if (image && !userData.isPremium) {
+        if (image && !isPremium) {
             return res.status(403).json({ 
                 text: "Visual diagnostics and image uploads are strictly for Premium users. Upgrade to analyze motherboard layouts, error codes, and hardware setups." 
             });
         }
 
-        if (!userData.isPremium) {
+        if (!isPremium) {
             const currentUsage = await redis.incr(usageKey);
             
             if (currentUsage === 1) {
@@ -161,7 +163,7 @@ try {
         transaction.set(userKey, userData);
         transaction.set(chatHistoryKey, chatHistory);
 
-        if (!userData.isPremium) {
+        if (!isPremium) {
             transaction.expire(usageKey, 60 * 60 * 48); 
         }
 
