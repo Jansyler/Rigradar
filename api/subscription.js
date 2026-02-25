@@ -47,8 +47,8 @@ export default async function handler(req, res) {
 
             return res.status(200).json({
                 clientSecret: subscription.latest_invoice.payment_intent.client_secret,
-                subscriptionId: subscription.id
-              publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+                subscriptionId: subscription.id, // 🟢 TADY CHYBĚLA ČÁRKA
+                publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
             });
         }
 
