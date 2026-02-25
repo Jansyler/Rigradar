@@ -5,7 +5,11 @@ const redis = new Redis({
   url: process.env.KV_REST_API_URL,
   token: process.env.KV_REST_API_TOKEN,
 });
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+// 🟢 OPRAVA 1: Vynucení moderní verze API (obejde staré nastavení tvého Stripe účtu)
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16'
+});
 
 export default async function handler(req, res) {
     const cookieHeader = req.headers.cookie || '';
@@ -47,14 +51,17 @@ export default async function handler(req, res) {
                 customer: customerId,
                 items: [{ price: 'price_1T4k69E8RZqAxyp4h2AyWV1W' }], 
                 payment_behavior: 'default_incomplete',
-                payment_settings: { save_default_payment_method: 'on_subscription' },
+                // 🟢 OPRAVA 2: Explicitní požadavek na platbu kartou
+                payment_settings: { 
+                    save_default_payment_method: 'on_subscription',
+                    payment_method_types: ['card'] 
+                },
                 expand: ['latest_invoice.payment_intent', 'pending_setup_intent'],
             });
 
-            // 🟢 NEPRŮSTŘELNÉ ZÍSKÁNÍ KLÍČE
+            // ZÍSKÁNÍ KLÍČE Z NOVÉHO API
             let clientSecret = null;
 
-            // 1. Zkusíme to z faktury (A stáhneme ji ručně, pokud máme jen ID)
             if (subscription.latest_invoice) {
                 let invoice = subscription.latest_invoice;
                 if (typeof invoice === 'string') {
@@ -69,7 +76,6 @@ export default async function handler(req, res) {
                 }
             }
 
-            // 2. Záloha ze setup_intent
             if (!clientSecret && subscription.pending_setup_intent) {
                 let si = subscription.pending_setup_intent;
                 if (typeof si === 'string') {
@@ -79,8 +85,7 @@ export default async function handler(req, res) {
             }
 
             if (!clientSecret) {
-                console.error("Stripe nám klíč nedal. Zde jsou data:", JSON.stringify(subscription, null, 2));
-                throw new Error("Stripe vytvořil předplatné, ale nedal nám klíč. Podívej se do Vercel Logů.");
+                throw new Error("Stripe stále nedal klíč. Prověř kompatibilitu měny a karet.");
             }
 
             return res.status(200).json({
