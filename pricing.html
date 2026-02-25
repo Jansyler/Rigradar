@@ -158,9 +158,12 @@
             elements = stripe.elements({ appearance, clientSecret: data.clientSecret });
             const paymentElementOptions = {
                layout: 'tabs', 
-                fields: {
+                defaultValues: {
                     billingDetails: {
-                        name: 'auto'
+                        name: '', 
+                        address: {
+                            country: 'US' // Předvyplníme, ale umožníme změnu
+                        }
                     }
                 }
             };
