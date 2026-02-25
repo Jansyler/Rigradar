@@ -73,6 +73,14 @@
         </div>
 
         <form id="payment-form">
+            <form id="payment-form">
+            <div class="mb-4">
+                <label for="cardholder-name" class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Name on card</label>
+                <input type="text" id="cardholder-name" placeholder="John Doe" required
+                       class="w-full bg-[#0a0a0a] border border-white/5 rounded-lg px-3 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-all shadow-none">
+            </div>
+
+            <div id="payment-element" class="min-h-[200px] mb-6"></div>
             <div id="payment-element" class="min-h-[200px] mb-6"></div>
             
             <button id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] flex justify-center items-center gap-2 uppercase tracking-wide text-sm">
