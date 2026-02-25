@@ -4,15 +4,9 @@ B.Premium nápady:
 2.Hlídací pes: Možnost nastavit si „Upozorni mě, až RTX 4080 klesne pod 20 000 Kč“.
 u hlidaciho psa pri premium bude specialni scan kterej bude na ten specifickej search (rtx 4080)scannovanej kazdou hodinu z toho shopu kterej si uzivatel vybere a posle se mu to na mail kazda zmena ceny jinak ne proste takovy email reminder subscription jako maj eshopy upozorneni na naskladneni produktu tak tohle bude stejny akorat ze specialne pro toho uzivatele se to kazdou hodinu bude scanovat aby mel ten pocit toho ze usetri cas tim ze zbytecne nehleda jak dement a nerefreshuje furt stranky .GENIALNI HLIDACI PES FUNKCE BYLA HLAVNI DUVOD PROC JSEM ZACAL STAVET RIGRADARAI!!!
 
-C. Stripe: Vlastní UI a Management Předplatného
-
-1.Aktuálně používáme stripe.checkout.sessions.create, což uživatele vždy přesměruje na stránky Stripe.
-2.Stripe Elements: Pro platbu přímo na webu musíme v pricing.html implementovat Stripe Elements. To  umožní vytvořit vlastní formulář pro kartu, který vypadá jako součást designu webu.
-3.Management v UI: Místo posílání uživatele do Stripe portálu vytvořit v account.html sekci „Moje předplatné“, která bude volat nový endpoint (např. api/subscription-info.js). Tento endpoint vrátí data o předplatném přes Stripe API a ty  se vykreslíš v UI webu.
-4.Zrušení v UI: Tlačítko „Zrušit předplatné“ bude volat backend, který provede stripe.subscriptions.update(id, { cancel_at_period_end: true }).
-
 D.Porovnávání cen a „Best Deal“ //Tato funkce vyžaduje analýzu historie napříč obchody, kterou už částečně vracíš v storeSpread.
 
 1.Algoritmus porovnání: V api/update_price.js vytvoř logiku, která pro každé hledané slovo (query) projde posledních 50 záznamů v global_history a najde nejnižší cenu.
 2.Zobrazení: Na frontendu u každého výsledku zobraz bublinu: „Ušetříte X % oproti průměru“ nebo „Nejlevnější na trhu“.
+
 
