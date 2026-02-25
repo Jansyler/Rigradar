@@ -44,7 +44,7 @@ export default async function handler(req, res) {
 
 const subscription = await stripe.subscriptions.create({
     customer: customerId,
-    items: [{ price: 'price_1T4k69E8RZqAxyp4j2AyWV1W' }],
+    items: [{ price: 'price_1T4k69E8RZqAxyp4h2AyWV1W' }],
     payment_behavior: 'default_incomplete',
     payment_settings: { save_default_payment_method: 'on_subscription' },
     expand: ['latest_invoice.payment_intent', 'pending_setup_intent'],
