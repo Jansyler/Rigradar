@@ -157,7 +157,12 @@
 
             elements = stripe.elements({ appearance, clientSecret: data.clientSecret });
             const paymentElementOptions = {
-                layout: 'tabs',
+               layout: 'tabs', 
+                fields: {
+                    billingDetails: {
+                        name: 'always'
+                    }
+                }
             };
 
             const paymentElement = elements.create('payment', paymentElementOptions);
