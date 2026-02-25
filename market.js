@@ -34,7 +34,7 @@ window.MarketUI = {
         this.priceChartInstance.update();
     },
 
-    openDetail(dealDataEscaped) {
+openDetail(dealDataEscaped) {
         try {
             const deal = JSON.parse(decodeURIComponent(dealDataEscaped));
             const modal = document.getElementById('detail-modal');
@@ -50,14 +50,8 @@ window.MarketUI = {
                 imgEl.src = deal.image || 'logo.png'; 
             }
 
-            const descEl = document.getElementById('modal-desc');
-            if (descEl) {
-                descEl.innerText = deal.description || deal.opinion; 
-            }
-
             const forecast = deal.forecast ? deal.forecast.toUpperCase() : "WAIT";
             const forecastEl = document.getElementById('modal-forecast');
-            
             if (forecastEl) {
                 if (forecast.includes('BUY')) {
                     forecastEl.innerHTML = `<span class="bg-green-500/20 text-green-400 border border-green-500/50 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.3)]">🔥 BUY NOW</span>`;
@@ -67,10 +61,28 @@ window.MarketUI = {
                     forecastEl.innerHTML = `<span class="bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest">⏳ WAIT / HOLD</span>`;
                 }
             }
+
             const scoreVal = document.getElementById('modal-score-val');
             if (scoreVal) scoreVal.innerText = (deal.score || 50) + '%';
             const scoreBar = document.getElementById('modal-score-bar');
             if (scoreBar) scoreBar.style.width = (deal.score || 50) + '%';
+            
+            const descEl = document.getElementById('modal-desc');
+            if (descEl) {
+                const rawText = deal.description || deal.opinion || "";
+                const lines = rawText.split('\n').filter(line => line.trim() !== "");
+                
+                descEl.innerHTML = lines.map(line => {
+                    const trimmed = line.trim();
+                    if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+                        return `<div class="flex gap-2 items-start mb-2 ml-1 text-gray-300 text-xs">
+                                    <span class="text-blue-500 font-bold">•</span>
+                                    <span>${trimmed.replace(/^[-•]\s*/, '')}</span>
+                                </div>`;
+                    }
+                    return `<p class="mb-4 text-gray-400 leading-relaxed text-xs">${trimmed}</p>`;
+                }).join('');
+            }
             
             const link = document.getElementById('modal-link');
             const productUrl = deal.url || deal.link || "#";
