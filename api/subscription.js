@@ -19,7 +19,6 @@ export default async function handler(req, res) {
     const { action } = req.query;
 
     try {
-        // 1. VYTVOŘENÍ INTENTU PRO STRIPE ELEMENTS
         if (req.method === 'POST' && action === 'create') {
             let customerId;
             const premiumData = await redis.get(`premium:${email}`);
@@ -35,26 +34,22 @@ export default async function handler(req, res) {
                 }
             }
 
-            // 🧹 ÚKLID: Zrušíme staré nedokončené pokusy o platbu, aby se nehromadily
             const incompleteSubs = await stripe.subscriptions.list({ customer: customerId, status: 'incomplete' });
             for (const sub of incompleteSubs.data) {
                 await stripe.subscriptions.cancel(sub.id);
             }
 
-            // Kontrola, jestli už není aktivní
             const subs = await stripe.subscriptions.list({ customer: customerId, status: 'active' });
             if (subs.data.length > 0) return res.status(400).json({ error: 'Already subscribed' });
 
-            // 🟢 ZMĚNA: Přidán expand pro 'pending_setup_intent' (pro případ Free Trial nebo nulové částky)
             const subscription = await stripe.subscriptions.create({
                 customer: customerId,
-                items: [{ price: 'price_1Szk6wE8RZqAxyp4jTHjLBJH' }],
+                items: [{ price: 'price_1T4k69E8RZqAxyp4h2AyWV1W' }],
                 payment_behavior: 'default_incomplete',
                 payment_settings: { save_default_payment_method: 'on_subscription' },
                 expand: ['latest_invoice.payment_intent', 'pending_setup_intent'],
             });
 
-            // 🟢 BEZPEČNÁ EXTRAKCE CLIENT SECRET (Funguje i pro Trial verze)
             let clientSecret = null;
             if (subscription.latest_invoice && subscription.latest_invoice.payment_intent) {
                 clientSecret = subscription.latest_invoice.payment_intent.client_secret;
@@ -73,7 +68,6 @@ export default async function handler(req, res) {
             });
         }
 
-        // 2. ČTENÍ DAT DO UŽIVATELSKÉHO PROFILU
         if (req.method === 'GET') {
             const premiumData = await redis.get(`premium:${email}`);
             if (!premiumData || !premiumData.customerId) return res.status(200).json({ active: false });
@@ -90,7 +84,6 @@ export default async function handler(req, res) {
             });
         }
 
-        // 3. ZRUŠENÍ PŘEDPLATNÉHO
         if (req.method === 'POST' && action === 'cancel') {
             const { subscriptionId } = req.body;
             if (!subscriptionId) return res.status(400).json({ error: 'Missing subscription ID' });
