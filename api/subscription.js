@@ -19,7 +19,6 @@ export default async function handler(req, res) {
     const { action } = req.query;
 
     try {
-        // 1. VYTVOŘENÍ INTENTU PRO STRIPE ELEMENTS (pricing.html)
         if (req.method === 'POST' && action === 'create') {
             let customerId;
             const premiumData = await redis.get(`premium:${email}`);
@@ -40,7 +39,7 @@ export default async function handler(req, res) {
 
             const subscription = await stripe.subscriptions.create({
                 customer: customerId,
-                items: [{ price: 'price_1Szk6wE8RZqAxyp4jTHjLBJH' }], // Tvoje stávající ID Ceny
+                items: [{ price: 'price_1Szk6wE8RZqAxyp4jTHjLBJH' }],
                 payment_behavior: 'default_incomplete',
                 payment_settings: { save_default_payment_method: 'on_subscription' },
                 expand: ['latest_invoice.payment_intent'],
@@ -49,10 +48,10 @@ export default async function handler(req, res) {
             return res.status(200).json({
                 clientSecret: subscription.latest_invoice.payment_intent.client_secret,
                 subscriptionId: subscription.id
+              publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
             });
         }
 
-        // 2. ČTENÍ DAT DO UŽIVATELSKÉHO PROFILU (account.html)
         if (req.method === 'GET') {
             const premiumData = await redis.get(`premium:${email}`);
             if (!premiumData || !premiumData.customerId) return res.status(200).json({ active: false });
@@ -69,13 +68,12 @@ export default async function handler(req, res) {
             });
         }
 
-        // 3. ZRUŠENÍ PŘEDPLATNÉHO (account.html)
         if (req.method === 'POST' && action === 'cancel') {
             const { subscriptionId } = req.body;
             if (!subscriptionId) return res.status(400).json({ error: 'Missing subscription ID' });
 
             const sub = await stripe.subscriptions.update(subscriptionId, {
-                cancel_at_period_end: true // Zruší se až na konci zaplaceného období
+                cancel_at_period_end: true
             });
 
             return res.status(200).json({ success: true, cancel_at_period_end: sub.cancel_at_period_end });
