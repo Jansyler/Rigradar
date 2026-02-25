@@ -15,13 +15,16 @@ export default async function handler(req, res) {
 
     const email = await redis.get(`session:${token}`);
     if (!email) return res.status(401).json({ error: 'Session expired' });
-    const isPremium = await redis.get(`premium:${email}`);
-    if (!isPremium || isPremium !== 'true') {
+
+    const premiumData = await redis.get(`premium:${email}`);
+    const isPremium = premiumData && premiumData.isActive === true;
+
+    if (!isPremium) {
         return res.status(403).json({ error: 'Upgrade to Premium to unlock CSV Export.' });
     }
 
     try {
-    const savedRaw = await redis.hvals(`saved_scans:${email}`);        
+        const savedRaw = await redis.hvals(`saved_scans:${email}`);        
         if (!savedRaw || savedRaw.length === 0) {
             return res.status(404).json({ error: 'No saved data found' });
         }
