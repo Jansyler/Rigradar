@@ -1,0 +1,89 @@
+import { Redis } from '@upstash/redis';
+import Stripe from 'stripe';
+
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL,
+  token: process.env.KV_REST_API_TOKEN,
+});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+export default async function handler(req, res) {
+    const cookieHeader = req.headers.cookie || '';
+    const tokenMatch = cookieHeader.match(/rr_auth_token=([^;]+)/);
+    const token = tokenMatch ? tokenMatch[1] : null;
+
+    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+    let email = await redis.get(`session:${token}`);
+    if (!email) return res.status(401).json({ error: 'Session expired' });
+
+    const { action } = req.query;
+
+    try {
+        // 1. VYTVOŘENÍ INTENTU PRO STRIPE ELEMENTS (pricing.html)
+        if (req.method === 'POST' && action === 'create') {
+            let customerId;
+            const premiumData = await redis.get(`premium:${email}`);
+            
+            if (premiumData && premiumData.customerId) {
+                customerId = premiumData.customerId;
+            } else {
+                const customers = await stripe.customers.list({ email, limit: 1 });
+                if (customers.data.length > 0) customerId = customers.data[0].id;
+                else {
+                    const customer = await stripe.customers.create({ email });
+                    customerId = customer.id;
+                }
+            }
+
+            const subs = await stripe.subscriptions.list({ customer: customerId, status: 'active' });
+            if (subs.data.length > 0) return res.status(400).json({ error: 'Already subscribed' });
+
+            const subscription = await stripe.subscriptions.create({
+                customer: customerId,
+                items: [{ price: 'price_1Szk6wE8RZqAxyp4jTHjLBJH' }], // Tvoje stávající ID Ceny
+                payment_behavior: 'default_incomplete',
+                payment_settings: { save_default_payment_method: 'on_subscription' },
+                expand: ['latest_invoice.payment_intent'],
+            });
+
+            return res.status(200).json({
+                clientSecret: subscription.latest_invoice.payment_intent.client_secret,
+                subscriptionId: subscription.id
+            });
+        }
+
+        // 2. ČTENÍ DAT DO UŽIVATELSKÉHO PROFILU (account.html)
+        if (req.method === 'GET') {
+            const premiumData = await redis.get(`premium:${email}`);
+            if (!premiumData || !premiumData.customerId) return res.status(200).json({ active: false });
+
+            const subs = await stripe.subscriptions.list({ customer: premiumData.customerId, status: 'active' });
+            if (subs.data.length === 0) return res.status(200).json({ active: false });
+
+            const sub = subs.data[0];
+            return res.status(200).json({
+                active: true,
+                cancel_at_period_end: sub.cancel_at_period_end,
+                current_period_end: sub.current_period_end,
+                id: sub.id
+            });
+        }
+
+        // 3. ZRUŠENÍ PŘEDPLATNÉHO (account.html)
+        if (req.method === 'POST' && action === 'cancel') {
+            const { subscriptionId } = req.body;
+            if (!subscriptionId) return res.status(400).json({ error: 'Missing subscription ID' });
+
+            const sub = await stripe.subscriptions.update(subscriptionId, {
+                cancel_at_period_end: true // Zruší se až na konci zaplaceného období
+            });
+
+            return res.status(200).json({ success: true, cancel_at_period_end: sub.cancel_at_period_end });
+        }
+
+        return res.status(400).json({ error: 'Invalid action' });
+    } catch (error) {
+        console.error("Stripe UI API Error:", error);
+        return res.status(500).json({ error: error.message });
+    }
+}
