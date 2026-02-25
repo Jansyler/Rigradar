@@ -50,13 +50,11 @@ export default async function handler(req, res) {
             return res.status(200).json({ chats: {}, history: [] });
         }
     }
-
-    if (req.method !== 'POST') return res.status(405).end();
+    const { message, lang, chatId, image } = req.body;
     
-    const { message, lang, chatId } = req.body;
+    const cleanMessage = sanitizeMessage(message) || "";
     
-    const cleanMessage = sanitizeMessage(message);
-    if (!cleanMessage) return res.status(400).json({ text: "Empty or invalid message." });
+    if (!cleanMessage && !image) return res.status(400).json({ text: "Empty or invalid message." });
 
     const currentChatId = chatId || `chat_${Date.now()}`;
     const chatHistoryKey = `chat_history:${email}:${currentChatId}`; 
@@ -69,6 +67,12 @@ try {
         const today = new Date().toISOString().split('T')[0]; 
         const usageKey = `usage_chat:${email}:${today}`;
         const DAILY_LIMIT = 5;
+
+        if (image && !userData.isPremium) {
+            return res.status(403).json({ 
+                text: "Visual diagnostics and image uploads are strictly for Premium users. Upgrade to analyze motherboard layouts, error codes, and hardware setups." 
+            });
+        }
 
         if (!userData.isPremium) {
             const currentUsage = await redis.incr(usageKey);
@@ -87,7 +91,8 @@ try {
         }
         
         if (!userData.chats[currentChatId]) {
-            userData.chats[currentChatId] = { title: cleanMessage.substring(0, 30) + "..." };
+            const titleText = cleanMessage ? cleanMessage.substring(0, 30) : "Image Analysis";
+            userData.chats[currentChatId] = { title: titleText + "..." };
         }
 
         let chatHistory = await redis.get(chatHistoryKey);
@@ -104,6 +109,7 @@ try {
                 return `${p.title}: ${p.price} at ${p.store} (${p.opinion})`;
             } catch(e) { return ''; }
         }).join('\n');
+
         const model = genAI.getGenerativeModel({ 
             model: "gemini-2.0-flash", 
             systemInstruction: `You are the RigRadar Elite PC Genius & IT Expert. 
@@ -115,23 +121,40 @@ try {
             CORE GUIDELINES:
             1. MULTILINGUAL: Always respond in the same language the user is speaking to you.
             2. UNIVERSAL IT KNOWLEDGE: You provide expert advice on EVERYTHING related to PCs: building, upgrading, troubleshooting (e.g., PC won't turn on, BSOD, driver issues), overclocking, and software optimization.
-            3. MARKET AWARENESS: Use the MARKET CONTEXT to give pre-scan advice. Mention specific stores and prices if they are relevant to the user's query.
+            3. VISUAL DIAGNOSTICS: If the user provides an image, act as a senior technician. Identify components, point out incorrect wiring, assess physical damage, or read error screens.
             4. BOTTLENECK & POWER SAFETY: Always analyze specs for bottlenecks and ensure the PSU is sufficient for any suggested hardware.
             5. RADAR CONTROL: If the user needs a fresh scan, provide the exact part name they should type into the Radar Control interface.
-            6. PERSONALITY: You are technical, precise, objective, and incredibly helpful. Your goal is to save the user's money and solve their tech problems efficiently.
-
-            Example: If a user asks "Why won't my PC turn on?", perform a step-by-step professional diagnostic (PSU switch, RAM seating, CMOS battery, motherboard standoffs, etc.).`
+            6. PERSONALITY: You are technical, precise, objective, and incredibly helpful. Your goal is to save the user's money and solve their tech problems efficiently.`
         });
+
         const formattedHistory = chatHistory.map(msg => ({
             role: msg.role === 'ai' ? 'model' : 'user',
             parts: [{ text: msg.text }]
         }));
 
         const chat = model.startChat({ history: formattedHistory });
-        const result = await chat.sendMessage(`Respond in ${lang || 'en'}. User: ${cleanMessage}`);
+        
+        let result;
+        const textPrompt = `Respond in ${lang || 'en'}. User: ${cleanMessage || "Please analyze this image."}`;
+
+        if (image && image.data && image.mimeType) {
+            result = await chat.sendMessage([
+                textPrompt,
+                {
+                    inlineData: {
+                        data: image.data,
+                        mimeType: image.mimeType
+                    }
+                }
+            ]);
+        } else {
+            result = await chat.sendMessage(textPrompt);
+        }
+
         const aiResponse = result.response.text();
 
-        chatHistory.push({ role: 'user', text: cleanMessage });
+        const histMessage = cleanMessage + (image ? "\n[System: User uploaded an image for analysis]" : "");
+        chatHistory.push({ role: 'user', text: histMessage });
         chatHistory.push({ role: 'ai', text: aiResponse });
         
         const transaction = redis.multi();
