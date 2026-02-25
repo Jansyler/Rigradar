@@ -181,8 +181,11 @@
         }
     }
 
-    async function handlePaymentSubmit(e) {
+async function handlePaymentSubmit(e) {
         e.preventDefault();
+        
+        const nameInput = document.getElementById('cardholder-name').value;
+
         document.getElementById('button-text').innerText = "Processing Securely...";
         document.getElementById('submit-btn').disabled = true;
         document.getElementById('submit-btn').classList.add('opacity-70');
@@ -191,6 +194,11 @@
             elements,
             confirmParams: {
                 return_url: window.location.origin + '/chat.html?success=true',
+                payment_method_data: {
+                    billing_details: {
+                        name: nameInput
+                    }
+                }
             }
         });
 
