@@ -99,6 +99,20 @@
             </div>
         </div>
     </main>
+    <div id="cancel-modal" class="hidden fixed inset-0 z-[600] bg-black/90 flex items-center justify-center p-4 backdrop-blur-xl">
+    <div class="glass-panel w-full max-w-sm rounded-[24px] p-8 border border-white/10 text-center">
+        <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        </div>
+        <h3 class="text-xl font-black text-white mb-2 uppercase tracking-tight">Wait! Are you sure?</h3>
+        <p class="text-gray-400 text-sm mb-6">You will lose access to Priority Scans and the Visual AI Advisor once your current period ends.</p>
+        
+        <div class="flex flex-col gap-3">
+            <button id="confirm-cancel-btn" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-xl transition-all uppercase text-xs">Yes, Cancel Premium</button>
+            <button onclick="document.getElementById('cancel-modal').classList.add('hidden')" class="w-full bg-white/5 hover:bg-white/10 text-gray-300 font-bold py-3 rounded-xl transition-all uppercase text-xs">Keep My Benefits</button>
+        </div>
+    </div>
+</div>
 
     <script src="auth.js"></script>
     <script>
@@ -133,26 +147,43 @@
             }
         }
 
-        async function cancelSubscription(subId) {
-            if(!confirm('Are you sure you want to cancel your Premium? You will lose access to Priority Scans and the Visual AI Advisor at the end of the billing period.')) return;
-            
-            document.getElementById('cancel-sub-btn').innerText = "Canceling...";
-            
-            try {
-                const res = await fetch('/api/subscription?action=cancel', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ subscriptionId: subId })
-                });
-                if(res.ok) {
-                    loadSubscriptionInfo(); 
-                }
-            } catch(e) {
-                console.error(e);
-                document.getElementById('cancel-sub-btn').innerText = "Cancel Subscription";
-            }
-        }
+let currentSubIdToDelete = null;
 
+async function cancelSubscription(subId) {
+    currentSubIdToDelete = subId;
+    document.getElementById('cancel-modal').classList.remove('hidden');
+    
+    document.getElementById('confirm-cancel-btn').onclick = async () => {
+        const modal = document.getElementById('cancel-modal');
+        const btn = document.getElementById('cancel-sub-btn');
+        const confirmBtn = document.getElementById('confirm-cancel-btn');
+        
+        confirmBtn.innerText = "Processing...";
+        confirmBtn.disabled = true;
+
+        try {
+            const res = await fetch('/api/subscription?action=cancel', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ subscriptionId: currentSubIdToDelete })
+            });
+            
+            if(res.ok) {
+                modal.classList.add('hidden');
+                await loadSubscriptionInfo(); 
+                if (window.MarketUI) MarketUI.showToast("Subscription cancelled successfully.", "success");
+            } else {
+                throw new Error("Failed to cancel");
+            }
+        } catch(e) {
+            console.error(e);
+            alert("Error canceling subscription. Please try again.");
+        } finally {
+            confirmBtn.innerText = "Yes, Cancel Premium";
+            confirmBtn.disabled = false;
+        }
+    };
+}
         async function exportCSV() {
             const isPremium = localStorage.getItem('rr_premium') === 'true';
             if (!isPremium) {
@@ -190,16 +221,12 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // Wait for layout and auth to load fully
             await loadLayout();
             
-            // Check subscription directly against Stripe
             loadSubscriptionInfo();
 
-            // Setup profile UI
             const email = localStorage.getItem('rr_user_email');
             const pic = localStorage.getItem('rr_user_pic');
-            // We check this after loadLayout has run to ensure it's up to date
             const isPremium = localStorage.getItem('rr_premium') === 'true';
 
             if (!email) {
