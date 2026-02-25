@@ -19,10 +19,12 @@ export default async function handler(req, res) {
     const { action } = req.query;
 
     try {
+        // 1. VYTVOŘENÍ NOVÉHO PŘEDPLATNÉHO
         if (req.method === 'POST' && action === 'create') {
             let customerId;
             const premiumData = await redis.get(`premium:${email}`);
             
+            // Získání nebo vytvoření zákazníka
             if (premiumData && premiumData.customerId) {
                 customerId = premiumData.customerId;
             } else {
@@ -34,22 +36,26 @@ export default async function handler(req, res) {
                 }
             }
 
+            // ÚKLID: Zrušíme staré nedokončené pokusy, aby se nekupily
             const incompleteSubs = await stripe.subscriptions.list({ customer: customerId, status: 'incomplete' });
             for (const sub of incompleteSubs.data) {
                 await stripe.subscriptions.cancel(sub.id);
             }
 
+            // Kontrola, zda už není aktivní
             const subs = await stripe.subscriptions.list({ customer: customerId, status: 'active' });
             if (subs.data.length > 0) return res.status(400).json({ error: 'Already subscribed' });
 
+            // 🟢 VYTVOŘENÍ PŘEDPLATNÉHO (S NOVOU CENOU ZA 100 KČ)
             const subscription = await stripe.subscriptions.create({
                 customer: customerId,
-                items: [{ price: 'price_1T4k69E8RZqAxyp4h2AyWV1W' }],
+                items: [{ price: 'price_1T4k69E8RZqAxyp4h2AyWV1W' }], // Tvé nové ID (100 CZK/week)
                 payment_behavior: 'default_incomplete',
                 payment_settings: { save_default_payment_method: 'on_subscription' },
                 expand: ['latest_invoice.payment_intent', 'pending_setup_intent'],
             });
 
+            // 🟢 ZÍSKÁNÍ KLÍČE (Client Secret)
             let clientSecret = null;
             if (subscription.latest_invoice && subscription.latest_invoice.payment_intent) {
                 clientSecret = subscription.latest_invoice.payment_intent.client_secret;
@@ -58,7 +64,7 @@ export default async function handler(req, res) {
             }
 
             if (!clientSecret) {
-                throw new Error("Při komunikaci se Stripe se nevygeneroval platební klíč. Zkontrolujte nastavení ceny (jestli není chybná nebo za $0 bez trialu).");
+                throw new Error("Stripe nevygeneroval klíč. Zkontrolujte, zda cena v Dashboardu nemá nastavený 'Free Trial'.");
             }
 
             return res.status(200).json({
@@ -68,6 +74,7 @@ export default async function handler(req, res) {
             });
         }
 
+        // 2. ČTENÍ STAVU PŘEDPLATNÉHO
         if (req.method === 'GET') {
             const premiumData = await redis.get(`premium:${email}`);
             if (!premiumData || !premiumData.customerId) return res.status(200).json({ active: false });
@@ -84,6 +91,7 @@ export default async function handler(req, res) {
             });
         }
 
+        // 3. ZRUŠENÍ PŘEDPLATNÉHO
         if (req.method === 'POST' && action === 'cancel') {
             const { subscriptionId } = req.body;
             if (!subscriptionId) return res.status(400).json({ error: 'Missing subscription ID' });
