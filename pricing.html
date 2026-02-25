@@ -109,7 +109,7 @@ async function startPremiumUpgrade() {
         const paymentElement = elements.create('payment');
         paymentElement.mount('#payment-element');
         
-        document.getElementById('button-text').innerText = "Subscribe (100 Kč/week)";
+        document.getElementById('button-text').innerText = "Subscribe (5.00$/week)";
         
         document.getElementById('payment-form').addEventListener('submit', handlePaymentSubmit);
     } catch (e) {
