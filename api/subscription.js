@@ -19,12 +19,10 @@ export default async function handler(req, res) {
     const { action } = req.query;
 
     try {
-        // 1. VYTVOŘENÍ NOVÉHO PŘEDPLATNÉHO
         if (req.method === 'POST' && action === 'create') {
             let customerId;
             const premiumData = await redis.get(`premium:${email}`);
             
-            // Získání nebo vytvoření zákazníka
             if (premiumData && premiumData.customerId) {
                 customerId = premiumData.customerId;
             } else {
@@ -36,17 +34,15 @@ export default async function handler(req, res) {
                 }
             }
 
-            // ÚKLID: Zrušíme staré nedokončené pokusy
+            // ÚKLID: Zruší staré nedokončené pokusy
             const incompleteSubs = await stripe.subscriptions.list({ customer: customerId, status: 'incomplete' });
             for (const sub of incompleteSubs.data) {
                 await stripe.subscriptions.cancel(sub.id);
             }
 
-            // Kontrola, zda už není aktivní
             const subs = await stripe.subscriptions.list({ customer: customerId, status: 'active' });
             if (subs.data.length > 0) return res.status(400).json({ error: 'Already subscribed' });
 
-            // 🟢 VYTVOŘENÍ PŘEDPLATNÉHO S OPRAVENÝM ID (s písmenem "h")
             const subscription = await stripe.subscriptions.create({
                 customer: customerId,
                 items: [{ price: 'price_1T4k69E8RZqAxyp4h2AyWV1W' }], 
@@ -55,16 +51,36 @@ export default async function handler(req, res) {
                 expand: ['latest_invoice.payment_intent', 'pending_setup_intent'],
             });
 
-            // BEZPEČNÉ ZÍSKÁNÍ CLIENT SECRET
+            // 🟢 NEPRŮSTŘELNÉ ZÍSKÁNÍ KLÍČE
             let clientSecret = null;
-            if (subscription.latest_invoice?.payment_intent) {
-                clientSecret = subscription.latest_invoice.payment_intent.client_secret;
-            } else if (subscription.pending_setup_intent) {
-                clientSecret = subscription.pending_setup_intent.client_secret;
+
+            // 1. Zkusíme to z faktury (A stáhneme ji ručně, pokud máme jen ID)
+            if (subscription.latest_invoice) {
+                let invoice = subscription.latest_invoice;
+                if (typeof invoice === 'string') {
+                    invoice = await stripe.invoices.retrieve(invoice);
+                }
+                if (invoice.payment_intent) {
+                    let pi = invoice.payment_intent;
+                    if (typeof pi === 'string') {
+                        pi = await stripe.paymentIntents.retrieve(pi);
+                    }
+                    clientSecret = pi.client_secret;
+                }
+            }
+
+            // 2. Záloha ze setup_intent
+            if (!clientSecret && subscription.pending_setup_intent) {
+                let si = subscription.pending_setup_intent;
+                if (typeof si === 'string') {
+                    si = await stripe.setupIntents.retrieve(si);
+                }
+                clientSecret = si.client_secret;
             }
 
             if (!clientSecret) {
-                throw new Error("Stripe nevygeneroval klíč. Zkontrolujte, zda cena v Dashboardu nemá nastavený 'Free Trial'.");
+                console.error("Stripe nám klíč nedal. Zde jsou data:", JSON.stringify(subscription, null, 2));
+                throw new Error("Stripe vytvořil předplatné, ale nedal nám klíč. Podívej se do Vercel Logů.");
             }
 
             return res.status(200).json({
@@ -74,7 +90,6 @@ export default async function handler(req, res) {
             });
         }
 
-        // 2. ČTENÍ STAVU PŘEDPLATNÉHO
         if (req.method === 'GET') {
             const premiumData = await redis.get(`premium:${email}`);
             if (!premiumData || !premiumData.customerId) return res.status(200).json({ active: false });
@@ -91,7 +106,6 @@ export default async function handler(req, res) {
             });
         }
 
-        // 3. ZRUŠENÍ PŘEDPLATNÉHO
         if (req.method === 'POST' && action === 'cancel') {
             const { subscriptionId } = req.body;
             if (!subscriptionId) return res.status(400).json({ error: 'Missing subscription ID' });
