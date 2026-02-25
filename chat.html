@@ -455,10 +455,11 @@ function startNewChat() {
                         
                     loadSidebar(); 
                 } else {
+                    const errorTitle = response.status === 500 ? "⚠️ System Overload" : "👑 Premium Required";
                     chatBox.innerHTML += `
-                        <div class="msg-ai p-4 border border-red-500/50 bg-red-500/10 text-red-400 text-sm rounded-2xl rounded-tl-none max-w-[85%] mt-2">
-                            <span class="font-bold text-base block mb-1">👑 Premium Required</span>
-                            ${data.text || data.error || "Error"}
+                        <div class="msg-ai p-4 border border-red-500/50 bg-red-500/10 text-red-400 text-sm rounded-2xl rounded-tl-none max-w-[85%] mt-2 shadow-lg">
+                            <span class="font-bold text-base block mb-1">${errorTitle}</span>
+                            ${data.text || data.error || "An unexpected error occurred."}
                         </div>`;
                 }
                 chatBox.scrollTop = chatBox.scrollHeight;
