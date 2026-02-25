@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account - RigRadar AI</title>
     <link rel="icon" type="image/png" href="logo.png">
-<link href="style.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://js.pusher.com/8.0.1/pusher.min.js"></script>
     <style>
@@ -49,31 +49,42 @@
 
                 <div class="w-full space-y-3">
                     
-                    <button onclick="manageSubscription()" id="btn-manage" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2 group">
-                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                        Manage Subscription
-                    </button>
-                    <div class="glass-panel p-6 rounded-3xl border border-white/5 mt-8">
-    <div class="flex items-center gap-3 mb-4">
-        <span class="text-xl">📊</span>
-        <h3 class="text-white font-bold text-lg tracking-tight">Data Export & API</h3>
-    </div>
-    <p class="text-sm text-gray-400 mb-6">Download your saved hardware deals as a CSV file to import into your own Excel sheets or analysis tools.</p>
-    
-    <div class="flex items-center gap-4">
-        <button onclick="exportCSV()" class="bg-[#111] border border-blue-500/30 hover:border-blue-500/80 hover:bg-blue-600/10 text-blue-400 font-bold py-3 px-6 rounded-xl transition-all flex items-center gap-2">
-            <span>📥</span> Export Saved Scans (CSV)
-        </button>
-    </div>
-</div>
+                    <div class="glass-panel p-6 rounded-[32px] mt-6 border border-white/5">
+                        <h3 class="text-lg font-bold text-white mb-4">Subscription Management</h3>
+                        <div id="sub-loading" class="text-gray-400 text-sm animate-pulse">Checking status...</div>
+                        
+                        <div id="sub-details" class="hidden flex flex-col items-start gap-4">
+                            <div>
+                                <p id="sub-status" class="text-sm text-gray-300"></p>
+                                <p id="sub-renew" class="text-xs text-gray-500 mt-1"></p>
+                            </div>
+                            <button id="cancel-sub-btn" class="px-5 py-2.5 bg-red-600/10 text-red-500 border border-red-500/30 rounded-xl hover:bg-red-500 hover:text-white transition-all text-xs font-bold uppercase tracking-wider">
+                                Cancel Subscription
+                            </button>
+                        </div>
+                    </div>
 
-                    <a href="/index.html" class="w-full bg-white/5 hover:bg-white/10 text-gray-300 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <div class="glass-panel p-6 rounded-3xl border border-white/5 mt-8">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="text-xl">📊</span>
+                            <h3 class="text-white font-bold text-lg tracking-tight">Data Export & API</h3>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-6">Download your saved hardware deals as a CSV file to import into your own Excel sheets or analysis tools.</p>
+                        
+                        <div class="flex items-center gap-4">
+                            <button onclick="exportCSV()" class="bg-[#111] border border-blue-500/30 hover:border-blue-500/80 hover:bg-blue-600/10 text-blue-400 font-bold py-3 px-6 rounded-xl transition-all flex items-center gap-2">
+                                <span>📥</span> Export Saved Scans (CSV)
+                            </button>
+                        </div>
+                    </div>
+
+                    <a href="/index.html" class="w-full bg-white/5 hover:bg-white/10 text-gray-300 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 mt-4">
                         ← Back to Overview
                     </a>
                     <a href="history.html" class="w-full bg-white/5 hover:bg-white/10 text-white font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 group border border-white/5">
-    <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-    My Archive & History
-</a>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        My Archive & History
+                    </a>
 
                     <button onclick="logout()" class="w-full text-red-500/80 hover:text-red-500 text-xs font-bold py-4 transition-colors uppercase tracking-widest mt-4">
                         Log Out
@@ -86,25 +97,113 @@
         </div>
     </main>
 
-<script src="auth.js"></script>
+    <script src="auth.js"></script>
     <script>
-        // JEDINÝ sjednocený spouštěč pro account stránku
-        document.addEventListener('DOMContentLoaded', async () => {
-            // 1. Nejdříve načteme layout (header/footer) přes auth.js
-            await loadLayout();
+        async function loadSubscriptionInfo() {
+            try {
+                const res = await fetch('/api/subscription');
+                const data = await res.json();
+                
+                document.getElementById('sub-loading').classList.add('hidden');
+                const details = document.getElementById('sub-details');
+                details.classList.remove('hidden');
 
-            // 2. Poté načteme data pro tuhle konkrétní kartu účtu
-            const email = localStorage.getItem('rr_user_email');
-            const pic = localStorage.getItem('rr_user_pic');
+                if (data.active) {
+                    const date = new Date(data.current_period_end * 1000).toLocaleDateString();
+                    if (data.cancel_at_period_end) {
+                        document.getElementById('sub-status').innerHTML = `<span class="text-yellow-500 font-bold bg-yellow-500/10 px-2 py-1 rounded">Canceling</span>`;
+                        document.getElementById('sub-renew').innerText = `Active until ${date}, then it will not renew.`;
+                        document.getElementById('cancel-sub-btn').classList.add('hidden');
+                    } else {
+                        document.getElementById('sub-status').innerHTML = `<span class="text-green-500 font-bold bg-green-500/10 px-2 py-1 rounded">Active Premium</span>`;
+                        document.getElementById('sub-renew').innerText = `Renews automatically on ${date}`;
+                        document.getElementById('cancel-sub-btn').onclick = () => cancelSubscription(data.id);
+                    }
+                } else {
+                    document.getElementById('sub-status').innerHTML = `<span class="text-gray-500 font-bold bg-white/5 px-2 py-1 rounded">Free Plan</span>`;
+                    document.getElementById('sub-renew').innerText = `Upgrade to unlock full potential.`;
+                    document.getElementById('cancel-sub-btn').classList.add('hidden');
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('sub-loading').innerText = "Failed to load subscription info.";
+            }
+        }
+
+        async function cancelSubscription(subId) {
+            if(!confirm('Are you sure you want to cancel your Premium? You will lose access to Priority Scans and the Visual AI Advisor at the end of the billing period.')) return;
+            
+            document.getElementById('cancel-sub-btn').innerText = "Canceling...";
+            
+            try {
+                const res = await fetch('/api/subscription?action=cancel', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ subscriptionId: subId })
+                });
+                if(res.ok) {
+                    loadSubscriptionInfo(); 
+                }
+            } catch(e) {
+                console.error(e);
+                document.getElementById('cancel-sub-btn').innerText = "Cancel Subscription";
+            }
+        }
+
+        async function exportCSV() {
             const isPremium = localStorage.getItem('rr_premium') === 'true';
-
-            // Pokud není přihlášen, pošleme ho na domovskou stránku
-            if (!email) {
-                window.location.href = '/';
+            if (!isPremium) {
+                if (window.MarketUI) MarketUI.showToast("Premium feature! Upgrade to export data.", "error");
+                else alert("Premium feature! Upgrade to export data.");
                 return;
             }
 
-            // Vyplnění prvků na stránce
+            try {
+                if (window.MarketUI) MarketUI.showToast("Generating CSV...", "info");
+
+                const res = await fetch('/api/export');
+                
+                if (!res.ok) {
+                    const errData = await res.json();
+                    if (window.MarketUI) MarketUI.showToast(errData.error || "Export failed", "error");
+                    return;
+                }
+
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `rigradar_export_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                
+                if (window.MarketUI) MarketUI.showToast("Export successful!", "success");
+
+            } catch (e) {
+                console.error(e);
+                if (window.MarketUI) MarketUI.showToast("Connection failed.", "error");
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Wait for layout and auth to load fully
+            await loadLayout();
+            
+            // Check subscription directly against Stripe
+            loadSubscriptionInfo();
+
+            // Setup profile UI
+            const email = localStorage.getItem('rr_user_email');
+            const pic = localStorage.getItem('rr_user_pic');
+            // We check this after loadLayout has run to ensure it's up to date
+            const isPremium = localStorage.getItem('rr_premium') === 'true';
+
+            if (!email) {
+                window.location.href = '/login.html';
+                return;
+            }
+
             const avatarImg = document.getElementById('acc-avatar');
             const nameEl = document.getElementById('acc-name');
             const emailEl = document.getElementById('acc-email');
@@ -119,82 +218,6 @@
                 badge.className = "absolute bottom-0 right-0 bg-yellow-500 text-black text-[10px] font-bold px-2 py-1 rounded-full border border-yellow-300 uppercase tracking-wider shadow-[0_0_15px_rgba(234,179,8,0.5)]";
             }
         });
-
-        // Funkce pro otevření Stripe portálu (Zůstává stejná)
-        async function manageSubscription() {
-            const btn = document.getElementById('btn-manage');
-            const msg = document.getElementById('status-msg');
-            const token = localStorage.getItem('rr_auth_token');
-
-            if (!token) return;
-
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
-            btn.disabled = true;
-
-            try {
-                const res = await fetch('/api/stripe?type=portal', {
-                    method: 'POST'
-                });
-
-                const data = await res.json();
-
-                if (res.status === 404) {
-                    msg.innerText = "You don't have an active subscription yet.";
-                    msg.classList.add("text-yellow-500");
-                } else if (data.url) {
-                    window.location.href = data.url;
-                } else {
-                    throw new Error("Unknown error");
-                }
-            } catch (e) {
-                console.error(e);
-                msg.innerText = "Connection failed. Try again.";
-                msg.classList.add("text-red-500");
-            } finally {
-                if (!window.location.href.includes('stripe.com')) {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }
-            }
-        }
-        async function exportCSV() {
-    // Okamžitá kontrola na frontendu (zda se tváří jako premium)
-    const isPremium = localStorage.getItem('rr_premium') === 'true';
-    if (!isPremium) {
-        if (window.MarketUI) MarketUI.showToast("Premium feature! Upgrade to export data.", "error");
-        else alert("Premium feature! Upgrade to export data.");
-        return;
-    }
-
-    try {
-        if (window.MarketUI) MarketUI.showToast("Generating CSV...", "info");
-
-        const res = await fetch('/api/export');
-        
-        if (!res.ok) {
-            const errData = await res.json();
-            if (window.MarketUI) MarketUI.showToast(errData.error || "Export failed", "error");
-            return;
-        }
-
-        // Stáhnutí jako soubor (Blob)
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `rigradar_export_${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        
-        if (window.MarketUI) MarketUI.showToast("Export successful!", "success");
-
-    } catch (e) {
-        console.error(e);
-        if (window.MarketUI) MarketUI.showToast("Connection failed.", "error");
-    }
-}
     </script>
 </body>
 </html>
