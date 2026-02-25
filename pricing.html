@@ -80,60 +80,63 @@
             await loadLayout();
         });
 
-        let stripe, elements;
+let stripe, elements;
 
-        async function startPremiumUpgrade() {
-            const email = localStorage.getItem('rr_user_email');
-            if (!email) { 
-                window.location.href = 'login.html'; 
-                return; 
-            }
+async function startPremiumUpgrade() {
+    const email = localStorage.getItem('rr_user_email');
+    if (!email) { 
+        window.location.href = 'login.html'; 
+        return; 
+    }
 
-            document.getElementById('payment-modal').classList.remove('hidden');
-            document.getElementById('button-text').innerText = "Loading secured UI...";
+    document.getElementById('payment-modal').classList.remove('hidden');
+    document.getElementById('button-text').innerText = "Loading secured UI...";
 
-            try {
-                const res = await fetch('/api/subscription?action=create', { method: 'POST' });
-                const data = await res.json();
-                
-                if (!res.ok) throw new Error(data.error);
+    try {
+        const res = await fetch('/api/subscription?action=create', { method: 'POST' });
+        const data = await res.json();
+        
+        if (!res.ok) throw new Error(data.error);
 
-                stripe = Stripe(data.publishableKey);
+        stripe = Stripe(data.publishableKey);
 
-                const appearance = { theme: 'night', variables: { colorPrimary: '#3b82f6', colorBackground: '#111' } };
-                elements = stripe.elements({ appearance, clientSecret: data.clientSecret });
+        const appearance = { 
+            theme: 'night', 
+            variables: { colorPrimary: '#3b82f6', colorBackground: '#111' } 
+        };
+        elements = stripe.elements({ appearance, clientSecret: data.clientSecret });
 
-                const paymentElement = elements.create('payment');
-                paymentElement.mount('#payment-element');
-                
-                document.getElementById('button-text').innerText = "Subscribe ($5.00/week)";
-                
-                document.getElementById('payment-form').addEventListener('submit', handlePaymentSubmit);
-            } catch (e) {
-                document.getElementById('payment-message').innerText = e.message;
-                document.getElementById('payment-message').classList.remove('hidden');
-            }
+        const paymentElement = elements.create('payment');
+        paymentElement.mount('#payment-element');
+        
+        document.getElementById('button-text').innerText = "Subscribe (100 Kč/week)";
+        
+        document.getElementById('payment-form').addEventListener('submit', handlePaymentSubmit);
+    } catch (e) {
+        document.getElementById('payment-message').innerText = e.message;
+        document.getElementById('payment-message').classList.remove('hidden');
+    }
+}
+
+async function handlePaymentSubmit(e) {
+    e.preventDefault();
+    document.getElementById('button-text').innerText = "Processing...";
+    document.getElementById('submit-btn').disabled = true;
+
+    const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+            return_url: window.location.origin + '/chat.html?success=true',
         }
+    });
 
-        async function handlePaymentSubmit(e) {
-            e.preventDefault();
-            document.getElementById('button-text').innerText = "Processing...";
-            document.getElementById('submit-btn').disabled = true;
-
-            const { error } = await stripe.confirmPayment({
-                elements,
-                confirmParams: {
-                    return_url: window.location.origin + '/chat.html?success=true',
-                }
-            });
-
-            if (error) {
-                document.getElementById('payment-message').innerText = error.message;
-                document.getElementById('payment-message').classList.remove('hidden');
-                document.getElementById('button-text').innerText = "Try Again";
-                document.getElementById('submit-btn').disabled = false;
-            }
-        }
+    if (error) {
+        document.getElementById('payment-message').innerText = error.message;
+        document.getElementById('payment-message').classList.remove('hidden');
+        document.getElementById('button-text').innerText = "Try Again";
+        document.getElementById('submit-btn').disabled = false;
+    }
+}
     </script>
 </body>
 </html>
