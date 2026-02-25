@@ -156,16 +156,8 @@
             };
 
             elements = stripe.elements({ appearance, clientSecret: data.clientSecret });
-            const paymentElementOptions = {
-               layout: 'tabs', 
-                defaultValues: {
-                    billingDetails: {
-                        name: '', 
-                        address: {
-                            country: 'US' // Předvyplníme, ale umožníme změnu
-                        }
-                    }
-                }
+const paymentElementOptions = {
+                layout: 'tabs' 
             };
 
             const paymentElement = elements.create('payment', paymentElementOptions);
