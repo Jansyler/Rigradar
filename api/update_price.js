@@ -177,7 +177,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ 
         latest: safeLatest,
-        history: uniqueHistory.slice(0, 15), 
+        history: uniqueHistory.slice(0, 50), 
         userHistory: userHistory,
         saved: savedItems,
         arbitrage: { target: arbitrageTarget, data: arbitrageData }, 
