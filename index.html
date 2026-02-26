@@ -381,12 +381,20 @@
 function filterHistory() {
             const input = document.getElementById('history-search').value.toLowerCase();
             const items = document.querySelectorAll('.history-item-card');
-            items.forEach(item => {
+            
+            items.forEach((item, index) => {
                 const title = item.getAttribute('data-title').toLowerCase();
-                item.style.display = title.includes(input) ? 'block' : 'none';
+                const matches = title.includes(input);
+
+                if (input.length > 0) {
+                    item.style.display = matches ? 'block' : 'none';
+                    item.style.opacity = "1"; // Při hledání vypneme efekt mizení
+                } else {
+                    item.style.display = index < 5 ? 'block' : 'none';
+                    item.style.opacity = index < 5 ? (1 - index * 0.15) : "1";
+                }
             });
         }
-
 async function fetchLatestDeal() {
             try {
                 const res = await fetch(`/api/update_price`);
@@ -441,8 +449,7 @@ async function fetchLatestDeal() {
                             } else if (deal.savingsPercent) {
                                 badgeHtml = `<span class="bg-green-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(34,197,94,0.5)]">Save ${deal.savingsPercent}%</span>`;
                             }
-                            let opacityStyle = index < 5 ? `style="opacity: ${1 - index*0.15}"` : `style="opacity: 0.3"`;
-
+                            const isHidden = index >= 5 ? 'style="display: none;"' : `style="opacity: ${1 - index * 0.15}"`;
                             htmlContent += `
                                 <div data-title="${deal.title.replace(/"/g, '&quot;')}" onclick="MarketUI.openDetail('${dealDataEscaped}')" class="history-item-card glass-panel p-5 rounded-xl transition-all border border-white/5 hover:border-blue-500/30 new-item cursor-pointer group relative" ${opacityStyle}>
                                     <div class="flex justify-between items-start mb-2">
