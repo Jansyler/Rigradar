@@ -6,7 +6,6 @@ const redis = new Redis({
   token: process.env.KV_REST_API_TOKEN,
 });
 
-// 🟢 OPRAVA 1: Vynucení moderní verze API (obejde staré nastavení tvého Stripe účtu)
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: '2023-10-16'
 });
@@ -38,7 +37,6 @@ export default async function handler(req, res) {
                 }
             }
 
-            // ÚKLID: Zruší staré nedokončené pokusy
             const incompleteSubs = await stripe.subscriptions.list({ customer: customerId, status: 'incomplete' });
             for (const sub of incompleteSubs.data) {
                 await stripe.subscriptions.cancel(sub.id);
@@ -51,7 +49,6 @@ export default async function handler(req, res) {
                 customer: customerId,
                 items: [{ price: 'price_1T4k69E8RZqAxyp4h2AyWV1W' }], 
                 payment_behavior: 'default_incomplete',
-                // 🟢 OPRAVA 2: Explicitní požadavek na platbu kartou
                 payment_settings: { 
                     save_default_payment_method: 'on_subscription',
                     payment_method_types: ['card'] 
@@ -59,7 +56,6 @@ export default async function handler(req, res) {
                 expand: ['latest_invoice.payment_intent', 'pending_setup_intent'],
             });
 
-            // ZÍSKÁNÍ KLÍČE Z NOVÉHO API
             let clientSecret = null;
 
             if (subscription.latest_invoice) {
