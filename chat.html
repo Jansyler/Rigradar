@@ -156,6 +156,9 @@
                         <button onclick="requestScan()" id="scan-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl transition-all uppercase tracking-[0.2em] text-xs shadow-[0_0_20px_rgba(37,99,235,0.3)] active:scale-[0.98] relative z-10 mt-2">
                             Deploy Scanner
                         </button>
+                        <button onclick="setWatchdog()" id="watchdog-btn" class="w-full bg-transparent border border-yellow-500/50 hover:bg-yellow-500/10 text-yellow-500 font-bold py-3 rounded-xl transition-all uppercase tracking-widest text-[10px] mt-2 flex items-center justify-center gap-2">
+                            <span>🔔</span> Set Price Watchdog
+                        </button>
                         <div id="scanStatus" class="text-center text-[11px] font-mono h-4 text-gray-500"></div>
                     </div>
 
@@ -187,9 +190,10 @@
         </main>
     </div>
 
-<div id="detail-modal" class="fixed inset-0 z-[300] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-all opacity-0">
-    <div class="glass-panel w-full max-w-lg rounded-[32px] p-8 relative shadow-2xl transform scale-95 transition-all duration-300 max-h-[90vh] overflow-y-auto">
-        <button onclick="MarketUI.closeModal()" class="absolute top-6 right-6 text-gray-500 hover:text-white text-2xl z-10">✕</button>
+<div id="detail-modal" class="fixed inset-0 z-[300] hidden overflow-y-auto bg-black/80 backdrop-blur-sm transition-all opacity-0">
+    <div class="min-h-screen flex items-start sm:items-center justify-center p-4 pt-16 sm:pt-4">
+        <div class="glass-panel w-full max-w-lg rounded-[32px] p-8 relative shadow-2xl transition-all duration-300">
+            <button onclick="MarketUI.closeModal()" class="absolute top-6 right-6 text-gray-500 hover:text-white text-2xl z-10">✕</button>
         
         <div class="w-full h-40 bg-white/5 rounded-2xl mb-6 flex items-center justify-center overflow-hidden border border-white/10 relative">
             <img id="modal-img" src="logo.png" alt="Product" class="h-full object-contain relative z-10 drop-shadow-lg">
@@ -219,7 +223,7 @@
         </div>
     </div>
 </div>
-
+</div>
     <script src="auth.js"></script>
     <script src="market.js"></script>
     <script>
@@ -414,16 +418,15 @@ function startNewChat() {
 
             const chatBox = document.getElementById('chat-box');
             
-            let userHtml = `<div class="msg-user flex flex-col p-4 rounded-2xl rounded-tr-none max-w-[85%] self-end ml-auto text-white text-sm shadow-md mb-2">`;            
+            let userHtml = `<div class="flex flex-col items-end w-full mb-2">`;            
             if (selectedImage) {
-                userHtml += `<img src="${selectedImage.url}" class="max-w-full h-auto rounded-lg mb-2 border border-white/20 max-h-48 object-contain bg-black/20" />`;
+                userHtml += `<img src="${selectedImage.url}" class="max-w-[70%] md:max-w-[50%] h-auto rounded-2xl mb-2 border border-white/10 shadow-lg object-contain bg-[#0a0a0a]" />`;
             }
             if (message) {
-                userHtml += `<p>${message}</p>`;
+                userHtml += `<div class="msg-user p-4 rounded-2xl rounded-tr-none max-w-[85%] text-white text-sm shadow-md">${message}</div>`;
             }
             userHtml += `</div>`;
             chatBox.innerHTML += userHtml;
-            
             input.value = '';
             input.style.height = 'auto';
             
@@ -607,6 +610,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error("Critical Init Error:", err);
     }
 });
+        async function setWatchdog() {
+            const query = document.getElementById('scanQuery').value;
+            const customStore = document.getElementById('custom-store').value.trim();
+            const maxPrice = document.getElementById('max-price').value.trim();
+            const condition = document.getElementById('condition-val').value;
+
+            if(!query || !maxPrice) {
+                alert("Please enter a Target Hardware and a Max Price to set a Watchdog.");
+                return;
+            }
+
+            const btn = document.getElementById('watchdog-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "Deploying Watchdog...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/watchdog', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, store: customStore || 'ebay', targetPrice: maxPrice, condition })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    btn.innerHTML = "✅ Watchdog Active";
+                    btn.className = "w-full bg-green-500/10 border border-green-500/50 text-green-500 font-bold py-3 rounded-xl transition-all uppercase tracking-widest text-[10px] mt-2 flex items-center justify-center gap-2";
+                } else {
+                    alert(data.error);
+                    btn.innerHTML = originalText;
+                }
+            } catch (e) {
+                alert("Connection failed.");
+                btn.innerHTML = originalText;
+            } finally {
+                setTimeout(() => { btn.disabled = false; }, 3000);
+            }
+        }
     </script>
 </body>
 </html>
