@@ -451,7 +451,7 @@ function startNewChat() {
             document.getElementById('image-preview-container').classList.add('hidden');
         }
 
-        async function sendMessage() {
+async function sendMessage() {
             const input = document.getElementById('user-input');
             const email = localStorage.getItem('rr_user_email');
             const message = input.value.trim();
@@ -479,8 +479,12 @@ function startNewChat() {
             chatBox.scrollTop = chatBox.scrollHeight;
 
             const typingId = "typing-" + Date.now();
-            chatBox.innerHTML += `<div id="${typingId}" class="msg-ai p-3 text-blue-400 text-xs animate-pulse inline-block rounded-lg mb-2">Analyzing data...</div>`;
+            chatBox.innerHTML += `
+                <div class="msg-ai p-4 rounded-2xl rounded-tl-none max-w-[85%] text-gray-300 text-sm mt-2 leading-relaxed shadow-md" id="container-${typingId}">
+                    <div id="${typingId}"><span class="w-2 h-4 bg-blue-500 inline-block animate-pulse"></span></div>
+                </div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
+            const typingContainer = document.getElementById(typingId);
 
             try {
                 const response = await fetch('/api/chat', {
@@ -488,31 +492,42 @@ function startNewChat() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message, email, chatId: activeChatId, lang: 'en', image: imagePayload })
                 });
-                const data = await response.json();
-                document.getElementById(typingId).remove();
-                
-                if (response.ok) {
-                    if (!activeChatId && data.chatId) activeChatId = data.chatId;
-                    
-                    chatBox.innerHTML += `
-                        <div class="msg-ai p-4 rounded-2xl rounded-tl-none max-w-[85%] text-gray-300 text-sm mt-2 leading-relaxed">
-                            ${formatAIResponse(data.text)}
-                        </div>`;
-                        
-                    loadSidebar(); 
-                } else {
+                if (!response.ok) {
+                    let errorData = {};
+                    try { errorData = await response.json(); } catch(e) {}
                     const errorTitle = response.status === 500 ? "⚠️ System Overload" : "👑 Premium Required";
-                    chatBox.innerHTML += `
-                        <div class="msg-ai p-4 border border-red-500/50 bg-red-500/10 text-red-400 text-sm rounded-2xl rounded-tl-none max-w-[85%] mt-2 shadow-lg">
-                            <span class="font-bold text-base block mb-1">${errorTitle}</span>
-                            ${data.text || data.error || "An unexpected error occurred."}
-                        </div>`;
+                    const containerBox = document.getElementById(`container-${typingId}`);
+                    containerBox.className = "msg-ai p-4 border border-red-500/50 bg-red-500/10 text-red-400 text-sm rounded-2xl rounded-tl-none max-w-[85%] mt-2 shadow-lg";
+                    typingContainer.innerHTML = `<span class="font-bold text-base block mb-1">${errorTitle}</span>${errorData.text || "Connection blocked."}`;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    return;
                 }
-                chatBox.scrollTop = chatBox.scrollHeight;
+
+                const newChatId = response.headers.get('X-Chat-Id');
+                if (!activeChatId && newChatId) activeChatId = newChatId;
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let accumulatedText = "";
+                let done = false;
+                
+                typingContainer.innerHTML = "";
+
+                while (!done) {
+                    const { value, done: readerDone } = await reader.read();
+                    done = readerDone;
+                    if (value) {
+                        const chunk = decoder.decode(value, { stream: true });
+                        accumulatedText += chunk;
+                        typingContainer.innerHTML = formatAIResponse(accumulatedText) + '<span class="w-2 h-4 bg-blue-500 inline-block animate-pulse ml-1 align-middle"></span>';
+                        chatBox.scrollTop = chatBox.scrollHeight;
+                    }
+                }
+                typingContainer.innerHTML = formatAIResponse(accumulatedText);
+                loadSidebar();
+
             } catch (e) {
-                const typingEl = document.getElementById(typingId);
-                if (typingEl) typingEl.remove();
-                if (window.MarketUI) MarketUI.showToast("Failed to connect to AI Advisor.", "error");
+                typingContainer.innerHTML = "<span class='text-red-400'>Connection to AI Advisor lost.</span>";
             }
         }
         async function requestScan() {
