@@ -16,7 +16,7 @@ const generateSession = async (email) => {
 };
 
 const setCookie = (res, token) => {
-    const maxAge = 60 * 60 * 24 * 7; // 7 Days
+    const maxAge = 60 * 60 * 24 * 7;
     const cookieStr = `rr_auth_token=${token}; HttpOnly; Secure; Path=/; Max-Age=${maxAge}; SameSite=Lax`;
     res.setHeader('Set-Cookie', cookieStr);
 };
