@@ -717,7 +717,7 @@ async function fetchLatestDeal() {
                     if (list && htmlContent) list.innerHTML = htmlContent;
 
                     const activeTitle = (data.latest && data.latest.title) ? data.latest.title : historyArray[0].title;
-                    const keywords = activeTitle.split(' ').slice(0, 3).join(' ').toLowerCase(); 
+                    const keywords = activeTitle.split(' ').slice(0, 4).join(' ').toLowerCase(); 
                     
                     const allDeals = data.latest ? [data.latest, ...historyArray] : historyArray;
                     const relevantDeals = allDeals.filter(d => d.title && d.title.toLowerCase().includes(keywords));
