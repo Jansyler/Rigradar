@@ -50,6 +50,7 @@ export default async function handler(req, res) {
             return res.status(200).json({ chats: {}, history: [] });
         }
     }
+
     const { message, lang, chatId, image } = req.body;
     
     const cleanMessage = sanitizeMessage(message) || "";
@@ -59,7 +60,7 @@ export default async function handler(req, res) {
     const currentChatId = chatId || `chat_${Date.now()}`;
     const chatHistoryKey = `chat_history:${email}:${currentChatId}`; 
 
-try {
+    try {
         let userData = await redis.get(userKey) || { chats: {} };
         if (Array.isArray(userData.chats)) userData.chats = {}; 
 
@@ -136,11 +137,15 @@ try {
 
         const chat = model.startChat({ history: formattedHistory });
         
-        let result;
+        let resultStream;
         const textPrompt = `Respond in ${lang || 'en'}. User: ${cleanMessage || "Please analyze this image."}`;
 
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.setHeader('Transfer-Encoding', 'chunked');
+        res.setHeader('X-Chat-Id', currentChatId);
+
         if (image && image.data && image.mimeType) {
-            result = await chat.sendMessage([
+            resultStream = await chat.sendMessageStream([
                 textPrompt,
                 {
                     inlineData: {
@@ -150,11 +155,18 @@ try {
                 }
             ]);
         } else {
-            result = await chat.sendMessage(textPrompt);
+            resultStream = await chat.sendMessageStream(textPrompt);
         }
 
-        const aiResponse = result.response.text();
-
+        let aiResponse = "";
+        
+        for await (const chunk of resultStream.stream) {
+            const chunkText = chunk.text();
+            aiResponse += chunkText;
+            res.write(chunkText);
+        }
+        
+        res.end(); 
         const histMessage = cleanMessage + (image ? "\n[System: User uploaded an image for analysis]" : "");
         chatHistory.push({ role: 'user', text: histMessage });
         chatHistory.push({ role: 'ai', text: aiResponse });
@@ -169,10 +181,12 @@ try {
 
         await transaction.exec();
 
-        res.status(200).json({ text: aiResponse, chatId: currentChatId });
-
     } catch (error) {
         console.error("AI Error:", error);
-        res.status(500).json({ text: "System overload. Try again later." });
+        if (!res.headersSent) {
+            res.status(500).json({ text: "System overload. Try again later." });
+        } else {
+            res.end("\n\n[Connection Error]");
+        }
     }
 }
