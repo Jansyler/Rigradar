@@ -35,9 +35,9 @@ export default async function handler(req, res) {
         id: Date.now().toString() 
     };
 
-try {
+    try {
         if (!ownerEmail || ownerEmail === 'system') {
-            await redis.set('latest_deal', newDeal);
+            await redis.set('latest_deal', JSON.stringify(newDeal));
             await redis.lpush('deal_history', JSON.stringify(newDeal));
             await redis.ltrim('deal_history', 0, 19); 
             
@@ -78,12 +78,12 @@ try {
 
     const promises = [
         redis.get('latest_deal'),            
-        redis.lrange('deal_history', 0, 9),  
+        redis.lrange('global_history', 0, 49),
         redis.get('system_status'),
         redis.get('frankenstein_build') 
     ];
     
-if (userEmail) {
+    if (userEmail) {
         promises.push(redis.lrange(`user_history:${userEmail}`, 0, 9)); 
         promises.push(redis.hvals(`saved_scans:${userEmail}`));
     }
@@ -100,7 +100,7 @@ if (userEmail) {
         }
     }).filter(item => item !== null && typeof item === 'object');
     
-    const publicHistory = parseItems(results[1]);
+    const globalHistory = parseItems(results[1]);
     const userHistory = results[4] ? parseItems(results[4]) : [];
     const savedItems = results[5] ? parseItems(results[5]) : [];
     
@@ -109,51 +109,82 @@ if (userEmail) {
         try { frankenstein = JSON.parse(frankenstein); } catch(e) {}
     }
     
-    let combinedHistory = [...userHistory, ...publicHistory];
-    combinedHistory.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-    
-    const storeSpread = combinedHistory.reduce((acc, item) => {
-        if (!acc[item.store] || item.timestamp > acc[item.store].timestamp) {
-            acc[item.store] = {
-                price: parseFloat(String(item.price).replace(/[^0-9.]/g, '')),
-                originalPrice: item.price,
-                title: item.title,
-                timestamp: item.timestamp
-            };
+    const processedHistory = globalHistory.map(deal => {
+        if (!deal.title) return deal;
+        
+        const keywords = deal.title.split(' ').slice(0, 3).join(' ').toLowerCase();
+        const similarDeals = globalHistory.filter(d => d.title && d.title.toLowerCase().includes(keywords));
+        
+        let prices = similarDeals.map(d => {
+            let pStr = d.price || "0";
+            if(pStr.includes(":")) pStr = pStr.split(":")[1];
+            return parseFloat(pStr.replace(/[^0-9.]/g, ''));
+        }).filter(p => !isNaN(p) && p > 0);
+
+        if (prices.length > 0) {
+            const minPrice = Math.min(...prices);
+            const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+            
+            let pStr = deal.price || "0";
+            if(pStr.includes(":")) pStr = pStr.split(":")[1];
+            let currentPrice = parseFloat(pStr.replace(/[^0-9.]/g, ''));
+            
+            if (prices.length > 1) {
+                if (currentPrice <= minPrice) {
+                    deal.bestDeal = true;
+                } else if (currentPrice < avgPrice) {
+                    const savings = Math.round(((avgPrice - currentPrice) / avgPrice) * 100);
+                    if (savings > 0) deal.savingsPercent = savings;
+                } else {
+                    deal.isOverpriced = true; 
+                }
+            }
         }
-        return acc;
-    }, {});
-
-    const pricesOnly = Object.values(storeSpread).map(s => s.price).filter(p => !isNaN(p));
-    const minPrice = pricesOnly.length > 0 ? Math.min(...pricesOnly) : null;
-
-    Object.keys(storeSpread).forEach(store => {
-        storeSpread[store].isBestDeal = storeSpread[store].price === minPrice;
+        return deal;
     });
-    
-    const chartData = combinedHistory.map(item => {
-      const safePrice = String(item.price || "0"); 
-      const numericPrice = parseFloat(safePrice.replace(',', '.').replace(/[^0-9.]/g, ''));
-      return {
-          x: new Date(item.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          y: isNaN(numericPrice) ? 0 : numericPrice,
-          title: item.title || "Unknown"
-      };
-    }).reverse();
-  
-    let safeLatest = results[0] || { price: "---", opinion: "No data", score: 50 };
-    if (typeof safeLatest === 'string') {
-        try { safeLatest = JSON.parse(safeLatest); } catch(e) {}
+    const bestDealsList = processedHistory.filter(d => d.bestDeal);
+    let safeLatest = bestDealsList.length > 0 ? bestDealsList[0] : (processedHistory[0] || null);
+
+    if (!safeLatest) {
+        safeLatest = results[0] || { price: "---", opinion: "No data", score: 50 };
+        if (typeof safeLatest === 'string') {
+            try { safeLatest = JSON.parse(safeLatest); } catch(e) {}
+        }
     }
+
+    let arbitrageData = [];
+    let arbitrageTarget = "";
+    
+    if (safeLatest && safeLatest.title && safeLatest.title !== "Unknown Product") {
+        arbitrageTarget = safeLatest.title.split(' ').slice(0, 3).join(' ');
+        const keywords = safeLatest.title.split(' ').slice(0, 3).join(' ').toLowerCase();
+        const similarDeals = processedHistory.filter(d => d.title && d.title.toLowerCase().includes(keywords));
+        
+        const storeMap = {};
+        similarDeals.forEach(item => {
+            if (!storeMap[item.store] || item.timestamp > storeMap[item.store].timestamp) {
+                storeMap[item.store] = item; 
+            }
+        });
+        
+        arbitrageData = Object.values(storeMap).sort((a, b) => {
+            const pA = parseFloat(String(a.price).replace(/[^0-9.]/g, ''));
+            const pB = parseFloat(String(b.price).replace(/[^0-9.]/g, ''));
+            return pA - pB;
+        }).slice(0, 3);
+    }
+
+    let combinedHistory = [...userHistory, ...processedHistory];
+    combinedHistory.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
     return res.status(200).json({ 
         latest: safeLatest,
-        history: combinedHistory.slice(0, 10), 
-        chartData: chartData,
+        history: combinedHistory.slice(0, 15), 
         userHistory: userHistory,
         saved: savedItems,
-        storeSpread: storeSpread, 
+        arbitrage: { target: arbitrageTarget, data: arbitrageData }, 
         systemStatus: results[2],
-        pusherKey: process.env.NEXT_PUBLIC_PUSHER_KEY,
+        pusherKey: process.env.NEXT_PUBLIC_PUSHER_KEY || process.env.PUSHER_KEY,
         frankenstein: frankenstein
     });
   } catch (error) {
