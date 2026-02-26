@@ -23,12 +23,39 @@ window.MarketUI = {
         });
     },
 
-    updateChart(chartPrices, chartLabels, chartTitle) {
+updateChart(chartPrices, chartLabels, chartTitle) {
         if (!this.priceChartInstance) return;
         
         const titleEl = document.getElementById('chart-title');
         if (titleEl && chartTitle) titleEl.innerText = chartTitle;
 
+        const ctx = this.priceChartInstance.canvas.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+
+        let lineColor = '#3b82f6';
+        if (chartPrices.length > 1) {
+            const firstPrice = chartPrices[0];
+            const lastPrice = chartPrices[chartPrices.length - 1];
+
+            if (lastPrice < firstPrice) {
+                lineColor = '#10b981'; 
+                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.5)');
+                gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+            } else if (lastPrice > firstPrice) {
+                lineColor = '#ef4444';
+                gradient.addColorStop(0, 'rgba(239, 68, 68, 0.5)');
+                gradient.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
+            } else {
+                gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)'); 
+                gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+            }
+        } else {
+            gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)'); 
+            gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+        }
+
+        this.priceChartInstance.data.datasets[0].borderColor = lineColor;
+        this.priceChartInstance.data.datasets[0].backgroundColor = gradient;
         this.priceChartInstance.data.datasets[0].data = chartPrices;
         this.priceChartInstance.data.labels = chartLabels;
         this.priceChartInstance.update();
