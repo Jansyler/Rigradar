@@ -1,4 +1,0 @@
-D.Porovnávání cen a „Best Deal“ //Tato funkce vyžaduje analýzu historie napříč obchody, kterou už částečně vracíš v storeSpread.
-
-1.Algoritmus porovnání: V api/update_price.js vytvoř logiku, která pro každé hledané slovo (query) projde posledních 50 záznamů v global_history a najde nejnižší cenu.
-2.Zobrazení: Na frontendu u každého výsledku zobraz bublinu: „Ušetříte X % oproti průměru“ nebo „Nejlevnější na trhu“.
