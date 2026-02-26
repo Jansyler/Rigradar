@@ -8,7 +8,6 @@ const redis = new Redis({
 export default async function handler(req, res) {
     if (req.method !== 'GET') return res.status(405).end();
 
-    // 1. ZÍSKÁNÍ TOKENU Z HTTP-ONLY COOKIE (Místo Authorization hlavičky!)
     const cookieHeader = req.headers.cookie || '';
     const tokenMatch = cookieHeader.match(/rr_auth_token=([^;]+)/);
     const token = tokenMatch ? tokenMatch[1] : null;
@@ -17,7 +16,6 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: "Unauthorized. No cookie found." });
     }
 
-    // 2. Ověření session v Redisu
     let verifiedEmail = null;
     try {
         verifiedEmail = await redis.get(`session:${token}`);
@@ -29,7 +27,6 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: "Session expired." });
     }
 
-    // 3. Kontrola Premium stavu z nového klíče
     try {
         const premiumData = await redis.get(`premium:${verifiedEmail}`);
         const isPremium = premiumData ? premiumData.isActive === true : false;
