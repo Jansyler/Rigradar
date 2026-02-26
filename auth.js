@@ -1,9 +1,7 @@
-// --- ZACHYCENÍ GITHUB LOGINU Z URL v auth.js ---
 const urlParams = new URLSearchParams(window.location.search);
 const urlEmail = urlParams.get('email');
 const urlPic = urlParams.get('pic'); 
 
-// 🛡️ Změna: Už nehledáme token v URL, spoléháme na HttpOnly cookie
 if (urlEmail) {
     localStorage.setItem('rr_user_email', urlEmail);
     
@@ -14,13 +12,11 @@ if (urlEmail) {
     window.history.replaceState({}, document.title, window.location.pathname);
 }
 
-// 1. Synchronizace Premium statusu se serverem
 async function syncPremiumStatus() {
     const email = localStorage.getItem('rr_user_email');
     if (!email) return;
 
     try {
-        // 🛡️ Změna: Prohlížeč automaticky pošle HttpOnly cookie, nepotřebujeme "Authorization" header
         const res = await fetch('/api/check-premium', {
             method: 'GET'
         });
@@ -30,12 +26,10 @@ async function syncPremiumStatus() {
             localStorage.setItem('rr_premium', data.isPremium ? 'true' : 'false');
             updateAuthUI();
         } else if (res.status === 401) {
-            // Cookie vypršela nebo je neplatná -> odhlásit uživatele
             logout(); 
         }
 } catch (e) {
         console.error("Failed to sync premium status (Network Error), keeping local state.", e);
-        // Hlavně tady NIKDY nevolej logout() při chybě připojení (catch blok)
     }
 }
 
@@ -46,14 +40,11 @@ async function logout() {
         console.error("Chyba při odhlašování na serveru:", e);
     }
     
-    // 2. Smažeme lokální stopy (email uživatele)
     localStorage.removeItem('rr_user_email');
     
-    // 3. Přesměrujeme na hlavní stranu
     window.location.href = 'index.html';
 }
 
-// 3. UI Update - "CHYTRÁ" VERZE S ČEKÁNÍM NA HEADER
 function updateAuthUI(retryCount = 0) {
     const email = localStorage.getItem('rr_user_email');
     let pic = localStorage.getItem('rr_user_pic');
@@ -110,7 +101,6 @@ function updateAuthUI(retryCount = 0) {
     }
 }
 
-// 4. OVLÁDÁNÍ MOBILNÍHO MENU
 function toggleMobileMenu() {
     const menu = document.getElementById('mobile-menu');
     const btn = document.getElementById('mobile-menu-btn');
@@ -128,7 +118,6 @@ function toggleMobileMenu() {
     }
 }
 
-// 5. TOAST NOTIFICATION SYSTEM
 function showToast(message, type = 'error') {
     const toast = document.getElementById('toast');
     if(!toast) { alert(message); return; }
@@ -145,7 +134,6 @@ function showToast(message, type = 'error') {
     setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
 }
 
-// 6. Logic for Cookie Banner
 function acceptCookies() { localStorage.setItem('rigradar_tos', 'true'); hideBanner(); }
 function hideBanner() { const b = document.getElementById('cookie-banner'); if(b) b.style.display = 'none'; }
 function declineCookies() { alert("You must accept the Terms of Service."); window.location.href = 'index.html'; }
@@ -154,7 +142,6 @@ function loginWithGoogle() {
     window.location.href = 'login.html';
 }
 
-// 7. Initialization
 function initGoogleAuth() {
     updateAuthUI();
 
@@ -165,7 +152,6 @@ function initGoogleAuth() {
     }
 }
 
-// 8. CENTRALIZOVANÉ NAČÍTÁNÍ LAYOUTU
 async function loadLayout() {
     try {
         const headerRes = await fetch('header.html');
@@ -183,13 +169,11 @@ async function loadLayout() {
         if (typeof initGoogleAuth === 'function') {
             initGoogleAuth();
             
-            // 🛡️ Změna: Už nehledáme token, ptáme se API rovnou
             const email = localStorage.getItem('rr_user_email');
             if (email) {
                 await syncPremiumStatus();
             }
         }
-
     } catch (e) {
         console.error("Layout loading error:", e);
     }
