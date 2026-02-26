@@ -58,6 +58,7 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Database save failed' });
     }
   }
+
   try {
     const cookieHeader = req.headers.cookie || '';
     const tokenMatch = cookieHeader.match(/rr_auth_token=([^;]+)/);
@@ -65,20 +66,12 @@ export default async function handler(req, res) {
 
     let userEmail = null;
     if (token) {
-        try {
-            userEmail = await redis.get(`session:${token}`);
-        } catch (e) {
-            console.error("Failed to get session from Redis");
-        }
-    }
-
-    if (!userEmail && req.query.user && req.query.user !== 'undefined') {
-        userEmail = req.query.user;
+        try { userEmail = await redis.get(`session:${token}`); } catch (e) {}
     }
 
     const promises = [
         redis.get('latest_deal'),            
-        redis.lrange('global_history', 0, 49),
+        redis.lrange('global_history', 0, 49),  
         redis.get('system_status'),
         redis.get('frankenstein_build') 
     ];
@@ -93,17 +86,13 @@ export default async function handler(req, res) {
     const parseItems = (items) => (items || []).map(item => {
         try { 
             let parsed = (typeof item === 'string') ? JSON.parse(item) : item; 
-            if (typeof parsed === 'string') parsed = JSON.parse(parsed);
-            return parsed; 
-        } catch (e) { 
-            return null; 
-        }
+            return typeof parsed === 'string' ? JSON.parse(parsed) : parsed; 
+        } catch (e) { return null; }
     }).filter(item => item !== null && typeof item === 'object');
     
     const globalHistory = parseItems(results[1]);
     const userHistory = results[4] ? parseItems(results[4]) : [];
     const savedItems = results[5] ? parseItems(results[5]) : [];
-    
     let frankenstein = results[3];
     if (typeof frankenstein === 'string') {
         try { frankenstein = JSON.parse(frankenstein); } catch(e) {}
@@ -112,7 +101,7 @@ export default async function handler(req, res) {
     const processedHistory = globalHistory.map(deal => {
         if (!deal.title) return deal;
         
-        const keywords = deal.title.split(' ').slice(0, 3).join(' ').toLowerCase();
+        const keywords = deal.title.split(' ').slice(0, 4).join(' ').toLowerCase();
         const similarDeals = globalHistory.filter(d => d.title && d.title.toLowerCase().includes(keywords));
         
         let prices = similarDeals.map(d => {
@@ -130,9 +119,8 @@ export default async function handler(req, res) {
             let currentPrice = parseFloat(pStr.replace(/[^0-9.]/g, ''));
             
             if (prices.length > 1) {
-                if (currentPrice <= minPrice) {
-                    deal.bestDeal = true;
-                } else if (currentPrice < avgPrice) {
+                if (currentPrice <= minPrice) deal.bestDeal = true;
+                else if (currentPrice < avgPrice) {
                     const savings = Math.round(((avgPrice - currentPrice) / avgPrice) * 100);
                     if (savings > 0) deal.savingsPercent = savings;
                 } else {
@@ -142,6 +130,7 @@ export default async function handler(req, res) {
         }
         return deal;
     });
+
     const bestDealsList = processedHistory.filter(d => d.bestDeal);
     let safeLatest = bestDealsList.length > 0 ? bestDealsList[0] : (processedHistory[0] || null);
 
@@ -156,8 +145,8 @@ export default async function handler(req, res) {
     let arbitrageTarget = "";
     
     if (safeLatest && safeLatest.title && safeLatest.title !== "Unknown Product") {
-        arbitrageTarget = safeLatest.title.split(' ').slice(0, 3).join(' ');
-        const keywords = safeLatest.title.split(' ').slice(0, 3).join(' ').toLowerCase();
+        arbitrageTarget = safeLatest.title.split(' ').slice(0, 4).join(' ');
+        const keywords = safeLatest.title.split(' ').slice(0, 4).join(' ').toLowerCase();
         const similarDeals = processedHistory.filter(d => d.title && d.title.toLowerCase().includes(keywords));
         
         const storeMap = {};
@@ -175,11 +164,20 @@ export default async function handler(req, res) {
     }
 
     let combinedHistory = [...userHistory, ...processedHistory];
-    combinedHistory.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    
+    const uniqueHistory = [];
+    const seenIds = new Set();
+    for (const item of combinedHistory) {
+        if (item && item.id && !seenIds.has(item.id)) {
+            seenIds.add(item.id);
+            uniqueHistory.push(item);
+        }
+    }
+    uniqueHistory.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
     return res.status(200).json({ 
         latest: safeLatest,
-        history: combinedHistory.slice(0, 15), 
+        history: uniqueHistory.slice(0, 15), 
         userHistory: userHistory,
         saved: savedItems,
         arbitrage: { target: arbitrageTarget, data: arbitrageData }, 
@@ -188,7 +186,6 @@ export default async function handler(req, res) {
         frankenstein: frankenstein
     });
   } catch (error) {
-    console.error("Fetch Error:", error);
     return res.status(500).json({ error: 'Error loading data' });
   }
 }
