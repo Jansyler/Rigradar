@@ -195,7 +195,7 @@
                 </div>
             </div>
 
-           <div class="glass-panel p-8 rounded-[32px] lg:col-span-1 flex flex-col justify-center relative overflow-hidden border border-white/5 group hover:border-blue-500/30 transition-colors cursor-pointer min-h-[350px]" onclick="location.href='chat.html'">
+<div class="glass-panel p-8 rounded-[32px] lg:col-span-1 flex flex-col justify-center relative overflow-hidden border border-white/5 group hover:border-blue-500/30 transition-colors cursor-pointer min-h-[350px]" onclick="location.href='chat.html'">
                 <div class="absolute right-0 top-0 w-full h-1/2 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none"></div>
                 <div class="flex justify-between items-center mb-6 relative z-10">
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
@@ -203,29 +203,16 @@
                     </h3>
                 </div>
                 
-                <div class="flex flex-col gap-4 relative z-10 w-full mt-2">
-                    <div class="bg-[#111] border border-blue-500/20 rounded-2xl p-4 flex items-center justify-between relative shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-                        <div class="absolute -top-2 left-3 bg-blue-600 text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shadow-lg">Best Deal</div>
-                        <span class="text-xs text-blue-200/50 font-mono uppercase">Amazon</span>
-                        <span class="text-xl font-black text-white">$899</span>
-                    </div>
-                    <div class="bg-[#111] border border-white/10 rounded-2xl p-4 flex items-center justify-between opacity-80">
-                        <span class="text-xs text-gray-500 font-mono uppercase">eBay (Used)</span>
-                        <span class="text-xl font-black text-gray-300">$849</span>
-                    </div>
-                    <div class="bg-[#111] border border-white/10 rounded-2xl p-4 flex items-center justify-between opacity-50 relative">
-                        <div class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-2xl backdrop-blur-[1px]">
-                            <span class="text-red-400 text-[9px] font-bold uppercase tracking-widest border border-red-500/30 bg-red-500/10 px-2 py-0.5 rounded">Overpriced</span>
-                        </div>
-                        <span class="text-xs text-gray-500 font-mono uppercase">Alza</span>
-                        <span class="text-xl font-black text-gray-500">$1,050</span>
-                    </div>
+                <div id="arb-target-title" class="text-sm font-bold text-white mb-3 truncate relative z-10">Analyzing market...</div>
+
+                <div id="arbitrage-list" class="flex flex-col gap-3 relative z-10 w-full">
+                    <div class="text-center text-xs text-gray-500 animate-pulse py-6">Connecting to nodes...</div>
                 </div>
-                <div class="mt-6 text-center text-[10px] text-blue-100/50 italic leading-relaxed">
-                    AI detected a <span class="text-white font-bold">$151 spread</span> on RTX 4080 Super.
+                
+                <div id="arbitrage-footer" class="mt-6 text-center text-[10px] text-blue-100/50 italic leading-relaxed relative z-10">
+                    Waiting for spread data...
                 </div>
             </div>
-
             <div id="frankenstein-card" class="glass-panel p-8 md:p-10 rounded-[32px] lg:col-span-3 hidden flex-col md:flex-row gap-8 relative overflow-hidden group border border-green-500/30 hover:border-green-400/60 transition-all min-h-[300px]">
                 </div>
 
@@ -390,99 +377,130 @@ async function fetchLatestDeal() {
             if(cleanPrice.includes(":")) cleanPrice = cleanPrice.split(":")[1].trim();
 
             if(priceEl) priceEl.innerText = cleanPrice;
-            if(opinionEl) opinionEl.innerText = `"${data.latest.opinion || "Scanning market..."}"`;
+            if(opinionEl) opinionEl.innerText = `"${data.latest.opinion || "Best value found on the market."}"`;
             if(titleEl) titleEl.innerText = data.latest.title || "Latest Catch";
-            if(storeEl) storeEl.innerText = data.latest.store || "WEB";
+            if(storeEl) {
+                storeEl.innerHTML = `🔥 BEST DEAL IN <span class="text-white">${data.latest.store || "WEB"}</span>`;
+                storeEl.className = "text-[10px] text-yellow-500 font-black uppercase tracking-widest bg-yellow-500/10 px-2 py-1 rounded";
+            }
+            
+            const latestPriceNum = parseFloat(cleanPrice.replace(/[^0-9.]/g, ''));
+            if (!isNaN(latestPriceNum) && window.MarketUI && MarketUI.generateRealisticHistory) {
+                const activeTitle = data.latest.title || "Unknown Product";
+                const chartTitle = activeTitle.split(' ').slice(0, 4).join(' ') + " (Price Trend)";
+                const mockData = MarketUI.generateRealisticHistory(latestPriceNum);
+                MarketUI.updateChart(mockData.prices, mockData.labels, chartTitle);
+            }
         }
         
         const historyArray = data.history || [];
         const list = document.getElementById('history-list');
         const savedIds = (data.saved || []).map(s => String(s.id));
 
-        if (historyArray.length > 0) {
+        if (historyArray.length > 0 && list) {
+            let htmlContent = '';
             
-            if (list) {
-                const limitedHistory = historyArray.slice(0, 5); 
-                let htmlContent = '';
-                
-                limitedHistory.forEach((deal, index) => {
-                    let timeText = "Now";
-                    if (deal.timestamp) {
-                        const diffMs = Date.now() - deal.timestamp;
-                        const minutes = Math.floor(diffMs / 60000);
-                        timeText = minutes < 1 ? "< 1 min" : `${minutes} min`;
-                    }
-                    const score = deal.score || 50; 
-                    let scoreColor = score >= 80 ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)]' : (score < 45 ? 'bg-red-600' : 'bg-blue-500');
-                    let listPrice = deal.price || "---";
-                    if(listPrice.includes(":")) listPrice = listPrice.split(":")[1].trim();
-                    
-                    const dealDataEscaped = encodeURIComponent(JSON.stringify(deal)).replace(/'/g, "%27").replace(/\(/g, "%28").replace(/\)/g, "%29"); 
-                    const isSaved = savedIds.includes(String(deal.id));
-                    
-                    let saveButtonHtml = isSaved 
-                        ? `<button class="text-green-500 border border-green-500/50 bg-green-500/10 p-2 rounded-lg z-10 cursor-default"><span class="font-bold text-xs">✓</span></button>`
-                        : `<button onclick="saveScanFromIndex(event, '${dealDataEscaped}', this)" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-all z-10"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>`;
-
-                    htmlContent += `
-                        <div onclick="MarketUI.openDetail('${dealDataEscaped}')" class="glass-panel p-5 rounded-xl transition-all border border-white/5 hover:border-blue-500/30 new-item cursor-pointer group relative" style="opacity: ${1 - index*0.15}">
-                            <div class="flex justify-between items-start mb-2">
-                                <div class="flex flex-col">
-                                    <span class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">${deal.store || 'WEB'}</span>
-                                    <h3 class="text-white font-bold text-sm leading-tight mt-1 group-hover:text-blue-400 transition-colors line-clamp-2 pr-8">${deal.title || 'Product'}</h3>
-                                </div>
-                                <div class="text-[9px] font-mono text-gray-600 pt-1 whitespace-nowrap">${timeText}</div>
-                            </div>
-                            <div class="flex justify-between items-end mt-4">
-                                <div class="flex flex-col">
-                                    <span class="text-2xl font-black text-white tracking-tighter">${listPrice}</span>
-                                    <p class="text-[10px] text-gray-500 italic mt-1 max-w-[150px] truncate">"${deal.opinion}"</p>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    ${saveButtonHtml}
-                                    <span class="text-blue-500 text-xs font-bold uppercase tracking-widest bg-blue-500/10 px-2 py-2 rounded border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all">Detail ↗</span>
-                                </div>
-                            </div>
-                            <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden mt-3">
-                                <div class="h-full ${scoreColor} transition-all duration-1000" style="width: ${score}%"></div>
-                            </div>
-                        </div>`;
-                });
-                list.innerHTML = htmlContent;
-            }
-
-            const activeTitle = (data.latest && data.latest.title) ? data.latest.title : historyArray[0].title;
-            const keywords = activeTitle.split(' ').slice(0, 3).join(' ').toLowerCase(); 
-            
-            const allDeals = data.latest ? [data.latest, ...historyArray] : historyArray;
-            const relevantDeals = allDeals.filter(d => d.title && d.title.toLowerCase().includes(keywords));
-
-            let chartPrices = [];
-            let chartLabels = [];
-
-            relevantDeals.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0)).forEach(d => {
-                let listPrice = d.price || "0";
-                if(listPrice.includes(":")) listPrice = listPrice.split(":")[1].trim();
-                const p = parseFloat(listPrice.replace(/[^0-9.]/g, ''));
-                
-                if (!isNaN(p)) {
-                    chartPrices.push(p);
-                    const date = new Date(d.timestamp || Date.now());
-                    chartLabels.push(date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
+            historyArray.slice(0, 5).forEach((deal, index) => {
+                let timeText = "Now";
+                if (deal.timestamp) {
+                    const diffMs = Date.now() - deal.timestamp;
+                    const minutes = Math.floor(diffMs / 60000);
+                    timeText = minutes < 1 ? "< 1 min" : `${minutes} min`;
                 }
+                const score = deal.score || 50; 
+                let scoreColor = score >= 80 ? 'bg-green-500' : (score < 45 ? 'bg-red-600' : 'bg-blue-500');
+                let listPrice = deal.price || "---";
+                if(listPrice.includes(":")) listPrice = listPrice.split(":")[1].trim();
+                
+                const dealDataEscaped = encodeURIComponent(JSON.stringify(deal)).replace(/'/g, "%27").replace(/\(/g, "%28").replace(/\)/g, "%29"); 
+                const isSaved = savedIds.includes(String(deal.id));
+                
+                let saveButtonHtml = isSaved 
+                    ? `<button class="text-green-500 border border-green-500/50 bg-green-500/10 p-2 rounded-lg z-10 cursor-default"><span class="font-bold text-xs">✓</span></button>`
+                    : `<button onclick="saveScanFromIndex(event, '${dealDataEscaped}', this)" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-all z-10"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>`;
+
+                let badgeHtml = '';
+                if (deal.bestDeal) {
+                    badgeHtml = `<span class="bg-yellow-500 text-black text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(234,179,8,0.5)]">🔥 Best Deal</span>`;
+                } else if (deal.savingsPercent) {
+                    badgeHtml = `<span class="bg-green-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(34,197,94,0.5)]">Save ${deal.savingsPercent}%</span>`;
+                }
+
+                htmlContent += `
+                    <div onclick="MarketUI.openDetail('${dealDataEscaped}')" class="glass-panel p-5 rounded-xl transition-all border border-white/5 hover:border-blue-500/30 new-item cursor-pointer group relative" style="opacity: ${1 - index*0.15}">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex flex-col">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">${deal.store || 'WEB'}</span>
+                                    ${badgeHtml}
+                                </div>
+                                <h3 class="text-white font-bold text-sm leading-tight mt-1 group-hover:text-blue-400 transition-colors line-clamp-2 pr-8">${deal.title || 'Product'}</h3>
+                            </div>
+                            <div class="text-[9px] font-mono text-gray-600 pt-1 whitespace-nowrap">${timeText}</div>
+                        </div>
+                        <div class="flex justify-between items-end mt-4">
+                            <div class="flex flex-col">
+                                <span class="text-2xl font-black text-white tracking-tighter">${listPrice}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                ${saveButtonHtml}
+                                <span class="text-blue-500 text-xs font-bold uppercase tracking-widest bg-blue-500/10 px-2 py-2 rounded border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all">Detail ↗</span>
+                            </div>
+                        </div>
+                        <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden mt-3">
+                            <div class="h-full ${scoreColor} transition-all duration-1000" style="width: ${score}%"></div>
+                        </div>
+                    </div>`;
+            });
+            list.innerHTML = htmlContent;
+        }
+
+        if (data.arbitrage && data.arbitrage.data && data.arbitrage.data.length > 0) {
+            document.getElementById('arb-target-title').innerText = data.arbitrage.target;
+            
+            let arbHtml = '';
+            let cheapest = 0;
+            let mostExpensive = 0;
+
+            data.arbitrage.data.forEach((storeData, i) => {
+                let pStr = storeData.price || "---";
+                if(String(pStr).includes(":")) pStr = pStr.split(":")[1].trim();
+                
+                const numPrice = parseFloat(String(pStr).replace(/[^0-9.]/g, ''));
+                if (i === 0) cheapest = numPrice;
+                if (numPrice > mostExpensive) mostExpensive = numPrice;
+
+                let styleClasses = "bg-[#111] border border-white/10 opacity-80";
+                let tag = "";
+                let textColor = "text-gray-300";
+
+                if (storeData.bestDeal || i === 0) {
+                    styleClasses = "bg-[#111] border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]";
+                    tag = `<div class="absolute -top-2 left-3 bg-blue-600 text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shadow-lg">Best Deal</div>`;
+                    textColor = "text-white";
+                } else if (storeData.isOverpriced || (i === data.arbitrage.data.length - 1 && data.arbitrage.data.length > 1)) {
+                    styleClasses = "bg-[#111] border border-red-500/20 opacity-60 relative";
+                    tag = `<div class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-2xl backdrop-blur-[1px]"><span class="text-red-400 text-[9px] font-bold uppercase tracking-widest border border-red-500/30 bg-red-500/10 px-2 py-0.5 rounded">Overpriced</span></div>`;
+                    textColor = "text-gray-500";
+                }
+
+                arbHtml += `
+                <div class="rounded-2xl p-4 flex items-center justify-between relative ${styleClasses}">
+                    ${tag}
+                    <span class="text-xs ${i === 0 ? 'text-blue-300' : 'text-gray-500'} font-mono uppercase z-10">${storeData.store}</span>
+                    <span class="text-xl font-black ${textColor} z-10">${storeData.originalPrice || pStr}</span>
+                </div>`;
             });
 
-            if (chartPrices.length === 1) {
-                chartPrices.unshift(chartPrices[0]);
-                chartLabels.unshift("Previous Scan");
-            }
+            document.getElementById('arbitrage-list').innerHTML = arbHtml;
 
-            if (chartPrices.length > 0 && window.MarketUI) {
-                const chartTitle = activeTitle.split(' ').slice(0, 4).join(' ');
-                MarketUI.updateChart(chartPrices, chartLabels, chartTitle);
+            if (mostExpensive > cheapest && cheapest > 0) {
+                const spread = Math.round(mostExpensive - cheapest);
+                document.getElementById('arbitrage-footer').innerHTML = `AI detected a <span class="text-white font-bold">$${spread} spread</span> on ${data.arbitrage.target}.`;
+            } else {
+                document.getElementById('arbitrage-footer').innerHTML = "Market spread is tight. Excellent time to buy.";
             }
         }
-        
         const fCard = document.getElementById('frankenstein-card');
         if (data.frankenstein && fCard) {
             fCard.classList.remove('hidden');
