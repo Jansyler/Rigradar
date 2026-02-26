@@ -640,7 +640,7 @@ function startNewChat() {
                 btn.disabled = false;
             }
         }
-        async function fetchLatestDeal() {
+async function fetchLatestDeal() {
             if (document.hidden) return; 
 
             try {
@@ -662,11 +662,13 @@ function startNewChat() {
                     }
                 }
 
-                if (data.history && Array.isArray(data.history) && data.history.length > 0) {
+                const historyArray = data.history || [];
+
+                if (historyArray.length > 0) {
                     const list = document.getElementById('history-list');
                     let htmlContent = '';
 
-                    data.history.slice(0, 5).forEach(deal => {
+                    historyArray.slice(0, 5).forEach(deal => {
                         let listPrice = deal.price || "---";
                         if(listPrice.includes(":")) listPrice = listPrice.split(":")[1].trim();
                         const dealEscaped = encodeURIComponent(JSON.stringify(deal)).replace(/'/g, "%27");
@@ -681,32 +683,35 @@ function startNewChat() {
                     });
                     if (list && htmlContent) list.innerHTML = htmlContent;
 
-                    const latestDeal = data.history[0];
-                    if (latestDeal && window.MarketUI) {
-                        const keywords = latestDeal.title.split(' ').slice(0, 3).join(' ').toLowerCase();
-                        
-                        const relevantDeals = data.history.filter(d => d.title && d.title.toLowerCase().includes(keywords));
-                        
-                        const chartPrices = [];
-                        const chartLabels = [];
+                    const activeTitle = (data.latest && data.latest.title) ? data.latest.title : historyArray[0].title;
+                    const keywords = activeTitle.split(' ').slice(0, 3).join(' ').toLowerCase(); 
+                    
+                    const allDeals = data.latest ? [data.latest, ...historyArray] : historyArray;
+                    const relevantDeals = allDeals.filter(d => d.title && d.title.toLowerCase().includes(keywords));
 
-                        relevantDeals.reverse().forEach(d => {
-                            let listPrice = d.price || "0";
-                            if(listPrice.includes(":")) listPrice = listPrice.split(":")[1].trim();
-                            const p = parseFloat(listPrice.replace(/[^0-9.]/g, ''));
-                            
-                            if (!isNaN(p)) {
-                                chartPrices.push(p);
-                                const date = new Date(d.timestamp || Date.now());
-                                const timeLabel = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                                chartLabels.push(timeLabel);
-                            }
-                        });
+                    let chartPrices = [];
+                    let chartLabels = [];
 
-                        if (chartPrices.length > 0) {
-                            const chartTitle = latestDeal.title.split(' ').slice(0, 4).join(' ') + " (Live History)";
-                            MarketUI.updateChart(chartPrices, chartLabels, chartTitle);
+                    relevantDeals.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0)).forEach(d => {
+                        let listPrice = d.price || "0";
+                        if(listPrice.includes(":")) listPrice = listPrice.split(":")[1].trim();
+                        const p = parseFloat(listPrice.replace(/[^0-9.]/g, ''));
+                        
+                        if (!isNaN(p)) {
+                            chartPrices.push(p);
+                            const date = new Date(d.timestamp || Date.now());
+                            chartLabels.push(date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
                         }
+                    });
+
+                    if (chartPrices.length === 1) {
+                        chartPrices.unshift(chartPrices[0]);
+                        chartLabels.unshift("Previous Scan");
+                    }
+
+                    if (chartPrices.length > 0 && window.MarketUI) {
+                        const chartTitle = activeTitle.split(' ').slice(0, 4).join(' ');
+                        MarketUI.updateChart(chartPrices, chartLabels, chartTitle);
                     }
                 }
                 return data;
