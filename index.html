@@ -387,7 +387,7 @@ function filterHistory() {
             });
         }
 
-        async function fetchLatestDeal() {
+async function fetchLatestDeal() {
             try {
                 const res = await fetch(`/api/update_price`);
                 const data = await res.json();
@@ -409,7 +409,6 @@ function filterHistory() {
                         storeEl.className = "text-[10px] text-yellow-500 font-black uppercase tracking-widest bg-yellow-500/10 px-2 py-1 rounded";
                     }   
                 }  
-                
                 const historyArray = data.history || [];
                 const list = document.getElementById('history-list');
                 const savedIds = (data.saved || []).map(s => String(s.id));
@@ -417,7 +416,7 @@ function filterHistory() {
                 if (historyArray.length > 0) {
                     if (list) {
                         let htmlContent = '';
-                        historyArray.slice(0, 5).forEach((deal, index) => {
+                        historyArray.forEach((deal, index) => {
                             let timeText = "Now";
                             if (deal.timestamp) {
                                 const diffMs = Date.now() - deal.timestamp;
@@ -442,9 +441,10 @@ function filterHistory() {
                             } else if (deal.savingsPercent) {
                                 badgeHtml = `<span class="bg-green-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(34,197,94,0.5)]">Save ${deal.savingsPercent}%</span>`;
                             }
+                            let opacityStyle = index < 5 ? `style="opacity: ${1 - index*0.15}"` : `style="opacity: 0.3"`;
 
                             htmlContent += `
-                                <div data-title="${deal.title.replace(/"/g, '&quot;')}" onclick="MarketUI.openDetail('${dealDataEscaped}')" class="history-item-card glass-panel p-5 rounded-xl transition-all border border-white/5 hover:border-blue-500/30 new-item cursor-pointer group relative" style="opacity: ${1 - index*0.15}">
+                                <div data-title="${deal.title.replace(/"/g, '&quot;')}" onclick="MarketUI.openDetail('${dealDataEscaped}')" class="history-item-card glass-panel p-5 rounded-xl transition-all border border-white/5 hover:border-blue-500/30 new-item cursor-pointer group relative" ${opacityStyle}>
                                     <div class="flex justify-between items-start mb-2">
                                         <div class="flex flex-col">
                                             <div class="flex items-center gap-2">
@@ -504,7 +504,6 @@ function filterHistory() {
                 }
                 if (data.arbitrage && data.arbitrage.data && data.arbitrage.data.length > 0) {
                     document.getElementById('arb-target-title').innerText = data.arbitrage.target;
-                    
                     let arbHtml = '';
                     let cheapest = 0;
                     let mostExpensive = 0;
@@ -512,7 +511,6 @@ function filterHistory() {
                     data.arbitrage.data.forEach((storeData, i) => {
                         let pStr = storeData.price || "---";
                         if(String(pStr).includes(":")) pStr = pStr.split(":")[1].trim();
-                        
                         const numPrice = parseFloat(String(pStr).replace(/[^0-9.]/g, ''));
                         if (i === 0) cheapest = numPrice;
                         if (numPrice > mostExpensive) mostExpensive = numPrice;
@@ -583,12 +581,10 @@ function filterHistory() {
                 } else if (fCard) {
                     fCard.classList.add('hidden');
                 }
-
                 return data; 
 
             } catch (e) { 
                 console.error("Fetch Error:", e); 
-                if (window.MarketUI) MarketUI.showToast("Connection lost. Radar offline.", "error");
                 return null;
             }
         }
