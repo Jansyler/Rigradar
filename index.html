@@ -136,12 +136,19 @@
 
             <div class="glass-panel p-8 md:p-10 rounded-[32px] lg:col-span-2 flex flex-col min-h-[400px] border border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.05)] relative overflow-hidden group">
                 <div class="absolute inset-0 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none"></div>
-                <div class="flex justify-between items-center mb-6 relative z-10 px-1 border-b border-white/5 pb-4">
+                <div class="flex justify-between items-center mb-4 relative z-10 px-1 border-b border-white/5 pb-4">
                     <h3 class="text-base md:text-lg font-bold text-blue-400 uppercase tracking-widest flex items-center gap-3">
                         <span class="text-xl">📡</span> Live Market Feed
                     </h3>
                     <span class="w-2.5 h-2.5 bg-green-500 rounded-full animate-ping"></span>
                 </div>
+                <div class="mb-4 relative z-10 px-1">
+                    <div class="bg-[#111] border border-white/10 focus-within:border-blue-500/50 rounded-xl flex items-center px-4 py-2 transition-all">
+                        <span class="text-gray-500 mr-2">🔍</span>
+                        <input type="text" id="history-search" onkeyup="filterHistory()" placeholder="Search components..." class="w-full bg-transparent outline-none text-white text-xs placeholder-gray-600">
+                    </div>
+                </div>
+                <div id="history-list" class="flex-1 overflow-y-auto space-y-4 pr-3 relative z-10 custom-scrollbar">
                 <div id="history-list" class="flex-1 overflow-y-auto space-y-4 pr-3 relative z-10 custom-scrollbar">
                     <div class="text-center text-blue-200/50 text-sm py-10 animate-pulse">Intercepting signals...</div>
                 </div>
@@ -362,6 +369,14 @@
                 chat.innerHTML += `<div class="msg-supp-ai p-3 text-red-400">Connection failed.</div>`;
             }
         }
+    function filterHistory() {
+            const input = document.getElementById('history-search').value.toLowerCase();
+            const items = document.querySelectorAll('.history-item-card');
+            items.forEach(item => {
+                const title = item.getAttribute('data-title').toLowerCase();
+                item.style.display = title.includes(input) ? 'block' : 'none';
+            });
+        }
 async function fetchLatestDeal() {
     try {
         const res = await fetch(`/api/update_price`);
@@ -382,17 +397,8 @@ async function fetchLatestDeal() {
             if(storeEl) {
                 storeEl.innerHTML = `🔥 BEST DEAL IN <span class="text-white">${data.latest.store || "WEB"}</span>`;
                 storeEl.className = "text-[10px] text-yellow-500 font-black uppercase tracking-widest bg-yellow-500/10 px-2 py-1 rounded";
-            }
-            
-            const latestPriceNum = parseFloat(cleanPrice.replace(/[^0-9.]/g, ''));
-            if (!isNaN(latestPriceNum) && window.MarketUI && MarketUI.generateRealisticHistory) {
-                const activeTitle = data.latest.title || "Unknown Product";
-                const chartTitle = activeTitle.split(' ').slice(0, 4).join(' ') + " (Price Trend)";
-                const mockData = MarketUI.generateRealisticHistory(latestPriceNum);
-                MarketUI.updateChart(mockData.prices, mockData.labels, chartTitle);
-            }
-        }
-        
+            }   
+        }  
         const historyArray = data.history || [];
         const list = document.getElementById('history-list');
         const savedIds = (data.saved || []).map(s => String(s.id));
@@ -427,8 +433,7 @@ async function fetchLatestDeal() {
                 }
 
                 htmlContent += `
-                    <div onclick="MarketUI.openDetail('${dealDataEscaped}')" class="glass-panel p-5 rounded-xl transition-all border border-white/5 hover:border-blue-500/30 new-item cursor-pointer group relative" style="opacity: ${1 - index*0.15}">
-                        <div class="flex justify-between items-start mb-2">
+                        <div data-title="${deal.title.replace(/"/g, '&quot;')}" onclick="MarketUI.openDetail('${dealDataEscaped}')" class="history-item-card glass-panel p-5 rounded-xl transition-all border border-white/5 hover:border-blue-500/30 new-item cursor-pointer group relative" style="opacity: ${1 - index*0.15}">                        <div class="flex justify-between items-start mb-2">
                             <div class="flex flex-col">
                                 <div class="flex items-center gap-2">
                                     <span class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">${deal.store || 'WEB'}</span>
