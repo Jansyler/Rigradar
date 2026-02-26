@@ -137,12 +137,21 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="bg-black/60 border border-white/5 rounded-2xl p-2 flex items-center gap-2 focus-within:border-blue-500/50 transition-colors">
                                     <span class="pl-2 text-gray-500">🏪</span>
-                                    <input type="text" id="custom-store" placeholder="Store" class="w-full bg-transparent text-white px-1 py-1.5 focus:outline-none text-xs placeholder-gray-600">
+                                    <input type="text" id="custom-store" placeholder="Stores (e.g. ebay, amazon)" class="w-full bg-transparent text-white px-1 py-1.5 focus:outline-none text-xs placeholder-gray-600" title="Comma separated stores">
                                 </div>
                                 <div class="flex bg-black/60 border border-white/5 rounded-2xl overflow-hidden focus-within:border-blue-500/50 transition-colors">
                                     <input type="number" id="min-price" placeholder="Min $" class="w-1/2 bg-transparent text-white px-2 py-2.5 focus:outline-none text-xs text-center border-r border-white/5 placeholder-gray-600">
                                     <input type="number" id="max-price" placeholder="Max $" class="w-1/2 bg-transparent text-white px-2 py-2.5 focus:outline-none text-xs text-center placeholder-gray-600">
                                 </div>
+                            </div>
+
+                            <div class="bg-black/60 border border-white/5 rounded-2xl p-1 focus-within:border-blue-500/50 transition-colors mt-1">
+                                <select id="wd-interval" class="w-full bg-transparent text-gray-400 px-3 py-2 text-xs focus:outline-none appearance-none cursor-pointer text-center font-bold tracking-widest uppercase">
+                                    <option value="3600">Scan Every 1 Hour</option>
+                                    <option value="21600">Scan Every 6 Hours</option>
+                                    <option value="43200">Scan Every 12 Hours</option>
+                                    <option value="86400">Scan Every 24 Hours</option>
+                                </select>
                             </div>
                             
                             <div class="bg-black/40 border border-white/5 p-1 rounded-xl flex gap-1 relative mt-1">
@@ -610,16 +619,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error("Critical Init Error:", err);
     }
 });
-        async function setWatchdog() {
+async function setWatchdog() {
             const query = document.getElementById('scanQuery').value;
-            const customStore = document.getElementById('custom-store').value.trim();
+            const customStoreInput = document.getElementById('custom-store').value.trim();
             const maxPrice = document.getElementById('max-price').value.trim();
             const condition = document.getElementById('condition-val').value;
+            const interval = document.getElementById('wd-interval') ? document.getElementById('wd-interval').value : 3600;
 
             if(!query || !maxPrice) {
-                alert("Please enter a Target Hardware and a Max Price to set a Watchdog.");
+                alert("Please enter Target Hardware and a Max Price.");
                 return;
             }
+            const stores = customStoreInput ? customStoreInput.split(',').map(s => s.trim().toLowerCase()) : ['ebay'];
 
             const btn = document.getElementById('watchdog-btn');
             const originalText = btn.innerHTML;
@@ -630,7 +641,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const res = await fetch('/api/watchdog', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query, store: customStore || 'ebay', targetPrice: maxPrice, condition })
+                    body: JSON.stringify({ query, stores, targetPrice: maxPrice, condition, interval })
                 });
                 
                 const data = await res.json();
@@ -646,7 +657,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert("Connection failed.");
                 btn.innerHTML = originalText;
             } finally {
-                setTimeout(() => { btn.disabled = false; }, 3000);
+                setTimeout(() => { 
+                    btn.disabled = false; 
+                    btn.innerHTML = originalText;
+                    btn.className = "w-full bg-transparent border border-yellow-500/50 hover:bg-yellow-500/10 text-yellow-500 font-bold py-3 rounded-xl transition-all uppercase tracking-widest text-[10px] mt-2 flex items-center justify-center gap-2";
+                }, 3000);
             }
         }
     </script>
