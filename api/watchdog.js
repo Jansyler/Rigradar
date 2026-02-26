@@ -70,7 +70,6 @@ export default async function handler(req, res) {
             const userWatchdogs = [];
             for (const [id, dataStr] of Object.entries(allWatchdogs)) {
                 const data = typeof dataStr === 'string' ? JSON.parse(dataStr) : dataStr;
-                // Vyfiltrujeme jen ty psy, kteří patří aktuálnímu uživateli
                 if (data.email === email) {
                     userWatchdogs.push({ id, ...data });
                 }
