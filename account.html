@@ -66,7 +66,19 @@
         </button>
     </div>
 </div>
-
+<div class="glass-panel p-6 rounded-3xl mt-8 border border-white/5">
+    <h3 class="text-lg font-bold text-white mb-4 text-center md:text-left">Subscription Management</h3>
+    </div>
+                    <div class="glass-panel p-6 rounded-3xl border border-white/5 mt-8 hidden" id="watchdog-section">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="text-xl">🐕</span>
+                            <h3 class="text-white font-bold text-lg tracking-tight">Active Watchdogs</h3>
+                        </div>
+                            <p class="text-sm text-gray-400 mb-4">Satellites currently monitoring price drops for you.</p>
+                                <div id="watchdog-list" class="space-y-3">
+                            <div class="text-center text-xs text-gray-500 animate-pulse py-2">Loading satellites...</div>
+                        </div>
+                    </div>
                     <div class="glass-panel p-6 rounded-3xl border border-white/5 mt-8">
                         <div class="flex items-center gap-3 mb-4">
                             <span class="text-xl">📊</span>
@@ -115,7 +127,7 @@
 </div>
 
     <script src="auth.js"></script>
-    <script>
+  <script>
         async function loadSubscriptionInfo() {
             try {
                 const res = await fetch('/api/subscription');
@@ -147,43 +159,44 @@
             }
         }
 
-let currentSubIdToDelete = null;
+        let currentSubIdToDelete = null;
 
-async function cancelSubscription(subId) {
-    currentSubIdToDelete = subId;
-    document.getElementById('cancel-modal').classList.remove('hidden');
-    
-    document.getElementById('confirm-cancel-btn').onclick = async () => {
-        const modal = document.getElementById('cancel-modal');
-        const btn = document.getElementById('cancel-sub-btn');
-        const confirmBtn = document.getElementById('confirm-cancel-btn');
-        
-        confirmBtn.innerText = "Processing...";
-        confirmBtn.disabled = true;
-
-        try {
-            const res = await fetch('/api/subscription?action=cancel', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ subscriptionId: currentSubIdToDelete })
-            });
+        async function cancelSubscription(subId) {
+            currentSubIdToDelete = subId;
+            document.getElementById('cancel-modal').classList.remove('hidden');
             
-            if(res.ok) {
-                modal.classList.add('hidden');
-                await loadSubscriptionInfo(); 
-                if (window.MarketUI) MarketUI.showToast("Subscription cancelled successfully.", "success");
-            } else {
-                throw new Error("Failed to cancel");
-            }
-        } catch(e) {
-            console.error(e);
-            alert("Error canceling subscription. Please try again.");
-        } finally {
-            confirmBtn.innerText = "Yes, Cancel Premium";
-            confirmBtn.disabled = false;
+            document.getElementById('confirm-cancel-btn').onclick = async () => {
+                const modal = document.getElementById('cancel-modal');
+                const btn = document.getElementById('cancel-sub-btn');
+                const confirmBtn = document.getElementById('confirm-cancel-btn');
+                
+                confirmBtn.innerText = "Processing...";
+                confirmBtn.disabled = true;
+
+                try {
+                    const res = await fetch('/api/subscription?action=cancel', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ subscriptionId: currentSubIdToDelete })
+                    });
+                    
+                    if(res.ok) {
+                        modal.classList.add('hidden');
+                        await loadSubscriptionInfo(); 
+                        if (window.MarketUI) MarketUI.showToast("Subscription cancelled successfully.", "success");
+                    } else {
+                        throw new Error("Failed to cancel");
+                    }
+                } catch(e) {
+                    console.error(e);
+                    alert("Error canceling subscription. Please try again.");
+                } finally {
+                    confirmBtn.innerText = "Yes, Cancel Premium";
+                    confirmBtn.disabled = false;
+                }
+            };
         }
-    };
-}
+
         async function exportCSV() {
             const isPremium = localStorage.getItem('rr_premium') === 'true';
             if (!isPremium) {
@@ -219,11 +232,66 @@ async function cancelSubscription(subId) {
                 if (window.MarketUI) MarketUI.showToast("Connection failed.", "error");
             }
         }
+        async function loadWatchdogs() {
+            const isPremium = localStorage.getItem('rr_premium') === 'true';
+            if (!isPremium) return;
+
+            const wdSection = document.getElementById('watchdog-section');
+            if (wdSection) wdSection.classList.remove('hidden');
+            
+            const list = document.getElementById('watchdog-list');
+            if (!list) return;
+
+            try {
+                const res = await fetch('/api/watchdog');
+                const data = await res.json();
+
+                if (!data.watchdogs || data.watchdogs.length === 0) {
+                    list.innerHTML = '<div class="text-xs text-gray-500 bg-black/20 p-4 rounded-xl border border-white/5 text-center">No active watchdogs. Set them up in the Radar panel.</div>';
+                    return;
+                }
+
+                list.innerHTML = data.watchdogs.map(wd => {
+                    const storesText = Array.isArray(wd.stores) ? wd.stores.join(', ') : (wd.store || 'ebay');
+                    const intervalText = wd.interval ? (wd.interval / 3600) + "h" : "1h";
+                    return `
+                    <div class="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
+                        <div>
+                            <div class="text-sm font-bold text-white">${wd.query}</div>
+                            <div class="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5">Stores: ${storesText} • Target: $${wd.targetPrice}</div>
+                            <div class="text-[9px] text-blue-500 font-mono mt-1">Runs every ${intervalText}</div>
+                        </div>
+                        <button onclick="deleteWatchdog('${wd.id}')" class="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white p-2 rounded-lg transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                `}).join('');
+            } catch (e) {
+                list.innerHTML = '<div class="text-xs text-red-500 text-center">Failed to load watchdogs.</div>';
+            }
+        }
+        async function deleteWatchdog(id) {
+            try {
+                const res = await fetch('/api/watchdog', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ watchdogId: id })
+                });
+                if (res.ok) {
+                    loadWatchdogs();
+                } else {
+                    alert("Failed to delete watchdog.");
+                }
+            } catch (e) {
+                alert("Connection failed.");
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', async () => {
             await loadLayout();
             
             loadSubscriptionInfo();
+            loadWatchdogs(); 
 
             const email = localStorage.getItem('rr_user_email');
             const pic = localStorage.getItem('rr_user_pic');
@@ -233,7 +301,6 @@ async function cancelSubscription(subId) {
                 window.location.href = '/login.html';
                 return;
             }
-
             const avatarImg = document.getElementById('acc-avatar');
             const nameEl = document.getElementById('acc-name');
             const emailEl = document.getElementById('acc-email');
