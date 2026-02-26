@@ -640,24 +640,6 @@ function startNewChat() {
                 btn.disabled = false;
             }
         }
-        function generateRealisticHistory(currentPrice) {
-            let p = parseFloat(currentPrice);
-            if (isNaN(p)) return { prices: [], labels: [] };
-            
-            let history = [];
-            let labels = ["7d ago", "6d ago", "5d ago", "4d ago", "3d ago", "Yesterday", "Today"];
-            
-            let currentMultiplier = 1.15; 
-            for (let i = 0; i < 6; i++) {
-                let noise = (Math.random() * 0.04) - 0.02; 
-                let val = p * (currentMultiplier + noise);
-                history.push(Math.round(val));
-                currentMultiplier -= 0.025; 
-            }
-            history.push(Math.round(p)); 
-            return { prices: history, labels: labels };
-        }
-
         async function fetchLatestDeal() {
             if (document.hidden) return; 
 
@@ -700,14 +682,31 @@ function startNewChat() {
                     if (list && htmlContent) list.innerHTML = htmlContent;
 
                     const latestDeal = data.history[0];
-                    let listPrice = latestDeal.price || "0";
-                    if(listPrice.includes(":")) listPrice = listPrice.split(":")[1].trim();
-                    const latestPriceNum = parseFloat(listPrice.replace(/[^0-9.]/g, ''));
+                    if (latestDeal && window.MarketUI) {
+                        const keywords = latestDeal.title.split(' ').slice(0, 3).join(' ').toLowerCase();
+                        
+                        const relevantDeals = data.history.filter(d => d.title && d.title.toLowerCase().includes(keywords));
+                        
+                        const chartPrices = [];
+                        const chartLabels = [];
 
-                    if (!isNaN(latestPriceNum) && window.MarketUI) {
-                        const chartTitle = latestDeal.title.split(' ').slice(0, 4).join(' ') + " (Price Drop)";
-                        const mockData = generateRealisticHistory(latestPriceNum);
-                        MarketUI.updateChart(mockData.prices, mockData.labels, chartTitle);
+                        relevantDeals.reverse().forEach(d => {
+                            let listPrice = d.price || "0";
+                            if(listPrice.includes(":")) listPrice = listPrice.split(":")[1].trim();
+                            const p = parseFloat(listPrice.replace(/[^0-9.]/g, ''));
+                            
+                            if (!isNaN(p)) {
+                                chartPrices.push(p);
+                                const date = new Date(d.timestamp || Date.now());
+                                const timeLabel = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                                chartLabels.push(timeLabel);
+                            }
+                        });
+
+                        if (chartPrices.length > 0) {
+                            const chartTitle = latestDeal.title.split(' ').slice(0, 4).join(' ') + " (Live History)";
+                            MarketUI.updateChart(chartPrices, chartLabels, chartTitle);
+                        }
                     }
                 }
                 return data;
