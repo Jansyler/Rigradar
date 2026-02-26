@@ -687,10 +687,21 @@ async function fetchLatestDeal() {
                         let listPrice = deal.price || "---";
                         if(listPrice.includes(":")) listPrice = listPrice.split(":")[1].trim();
                         const dealEscaped = encodeURIComponent(JSON.stringify(deal)).replace(/'/g, "%27");
+                        
+                        let badgeHtml = '';
+                        if (deal.bestDeal) {
+                            badgeHtml = `<span class="bg-yellow-500 text-black text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(234,179,8,0.5)] ml-2">🔥 Best Deal</span>`;
+                        } else if (deal.savingsPercent) {
+                            badgeHtml = `<span class="bg-green-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(34,197,94,0.5)] ml-2">Save ${deal.savingsPercent}%</span>`;
+                        }
+
                         htmlContent += `
                             <div onclick="MarketUI.openDetail('${dealEscaped}')" class="glass-panel p-4 rounded-xl cursor-pointer hover:border-blue-500/30 transition-all border border-white/5">
                                 <div class="flex justify-between items-center mb-1">
-                                    <span class="text-[10px] text-blue-400 font-bold uppercase">${deal.store || 'WEB'}</span>
+                                    <div class="flex items-center">
+                                        <span class="text-[10px] text-blue-400 font-bold uppercase">${deal.store || 'WEB'}</span>
+                                        ${badgeHtml}
+                                    </div>
                                     <span class="text-sm font-black text-white">${listPrice}</span>
                                 </div>
                                 <h3 class="text-gray-300 text-xs truncate">${deal.title || 'Product'}</h3>
