@@ -15,10 +15,8 @@ const generateSession = async (email) => {
     return sessionToken;
 };
 
-// 🛡️ NEW: Helper function to set the HttpOnly cookie
 const setCookie = (res, token) => {
     const maxAge = 60 * 60 * 24 * 7; // 7 Days
-    // HttpOnly prevents JS access. Secure requires HTTPS. SameSite=Lax allows redirects.
     const cookieStr = `rr_auth_token=${token}; HttpOnly; Secure; Path=/; Max-Age=${maxAge}; SameSite=Lax`;
     res.setHeader('Set-Cookie', cookieStr);
 };
@@ -27,7 +25,6 @@ export default async function handler(req, res) {
     const { action } = req.query;
 
     try {
-        // --- 1. GITHUB LOGIN ---
         if (req.method === 'GET' && action === 'github_callback') {
             const { code } = req.query;
             if (!code) return res.status(400).send("No code provided by GitHub.");
@@ -74,17 +71,13 @@ export default async function handler(req, res) {
             const email = primaryEmailObj.email;
             const sessionToken = await generateSession(email);
 
-            // 🛡️ FIX: Attach session securely to the browser!
             setCookie(res, sessionToken);
 
-            // 🛡️ FIX: Redirect WITHOUT the token in the URL! (Only email & pic for UI purposes)
             return res.redirect(`/chat.html?email=${encodeURIComponent(email)}&pic=${encodeURIComponent(githubPic)}`);
         }
 
-        // --- ALL OTHER ACTIONS MUST BE POST ---
         if (req.method !== 'POST') return res.status(405).end();
 
-        // --- 2. GOOGLE LOGIN ---
         if (action === 'google') {
             const { idToken } = req.body;
             const ticket = await authClient.verifyIdToken({
@@ -95,12 +88,10 @@ export default async function handler(req, res) {
             
             const sessionToken = await generateSession(email);
             
-            // 🛡️ FIX: Attach session securely
             setCookie(res, sessionToken);
             return res.status(200).json({ success: true, email });
         }
         
-        // --- 3. CUSTOM REGISTER ---
         if (action === 'register') {
             const { email, password } = req.body;
             if (!email || !password || password.length < 6) {
@@ -117,12 +108,10 @@ export default async function handler(req, res) {
             
             const sessionToken = await generateSession(email);
             
-            // 🛡️ FIX: Attach session securely
             setCookie(res, sessionToken);
             return res.status(200).json({ success: true, email });
         }
 
-        // --- 4. CUSTOM LOGIN ---
         if (action === 'login') {
             const { email, password } = req.body;
             
@@ -138,7 +127,6 @@ export default async function handler(req, res) {
             
             const sessionToken = await generateSession(email);
             
-            // 🛡️ FIX: Attach session securely
             setCookie(res, sessionToken);
             return res.status(200).json({ success: true, email });
         }
