@@ -477,8 +477,8 @@ window.fetchLatestDeal = async function() {
                 const isSaved = savedIds.includes(String(deal.id));
                 
                 let saveButtonHtml = isSaved 
-                    ? `<button class="text-green-500 border border-green-500/50 bg-green-500/10 p-2 rounded-lg z-10 cursor-default"><span class="font-bold text-xs">✓</span></button>`
-                    : `<button onclick="saveScanFromIndex(event, '${dealDataEscaped}', this)" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-all z-10"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg></button>`;
+                    ? `<span class="text-green-500 text-xs font-bold flex items-center gap-1 border border-green-500/30 px-2 py-1.5 rounded-lg bg-green-500/10 cursor-default z-10 transition-all">✓ Saved</span>`
+                    : `<button onclick="saveScanFromIndex(event, '${dealDataEscaped}', this)" class="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-2 z-10"><span>💾</span> SAVE</button>`;
 
                 let badgeHtml = '';
                 if (deal.bestDeal) {
@@ -567,17 +567,19 @@ window.saveScanFromIndex = async function(event, dealDataEscaped, btn) {
 
     const email = localStorage.getItem('rr_user_email');
     if (!email) { 
-        if (window.MarketUI) MarketUI.showToast("Please log in to save scans!", "error");
+        if (window.MarketUI && typeof window.MarketUI.showToast === 'function') {
+            MarketUI.showToast("Please log in to save scans!", "error");
+        } else {
+            alert("⚠️ Please log in to save scans!");
+        }
         return; 
     }
 
     const deal = JSON.parse(decodeURIComponent(dealDataEscaped));
-    
-    const originalContent = btn.outerHTML; 
+    const originalContent = btn.innerHTML; 
     
     btn.innerHTML = "...";
-    btn.style.pointerEvents = "none";
-    btn.style.opacity = "0.7";
+    btn.disabled = true;
 
     try {
         const res = await fetch('/api/scans?action=save', {
@@ -588,19 +590,22 @@ window.saveScanFromIndex = async function(event, dealDataEscaped, btn) {
         
         if (res.ok) {
             const savedSpan = document.createElement('span');
-            savedSpan.className = "text-green-500 text-xs font-bold flex items-center gap-1 border border-green-500/30 px-2 py-1.5 rounded-lg bg-green-500/10 cursor-default z-10 transition-all";
+            savedSpan.className = "text-green-500 text-xs font-bold flex items-center gap-1 border border-green-500/30 px-2 py-1.5 rounded-lg bg-green-500/10 z-10 cursor-default transition-all";
             savedSpan.innerHTML = "✓ Saved";
             
             btn.replaceWith(savedSpan);
             
-            if (window.MarketUI) MarketUI.showToast("Scan saved to collection!", "success");
+            if (window.MarketUI && typeof window.MarketUI.showToast === 'function') {
+                MarketUI.showToast("Scan saved to collection!", "success");
+            }
         } else {
             throw new Error(res.status === 401 ? "Unauthorized" : "Failed to save");
         }
     } catch (e) {
         console.error(e);
-        btn.outerHTML = originalContent;
-        if (window.MarketUI) {
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+        if (window.MarketUI && typeof window.MarketUI.showToast === 'function') {
             MarketUI.showToast(e.message === "Unauthorized" ? "Session expired. Log in again." : "Failed to save", "error");
         }
     }
