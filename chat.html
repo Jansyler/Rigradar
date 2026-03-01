@@ -675,12 +675,22 @@ async function sendMessage() {
         function filterHistory() {
             const input = document.getElementById('history-search').value.toLowerCase();
             const items = document.querySelectorAll('.history-item-card');
-            items.forEach(item => {
+
+            items.forEach((item, index) => {
                 const title = item.getAttribute('data-title').toLowerCase();
-                item.style.display = title.includes(input) ? 'block' : 'none';
+                const matches = title.includes(input);
+
+                if (input.length > 0) {
+                    item.style.display = matches ? 'block' : 'none';
+                    item.style.opacity = "1"; 
+                } else {
+                    item.style.display = index < 5 ? 'block' : 'none';
+                    item.style.opacity = index < 5 ? (1 - index * 0.15) : "1";
+                }
             });
         }
-async function fetchLatestDeal() {
+
+        async function fetchLatestDeal() {
             if (document.hidden) return; 
 
             try {
@@ -703,12 +713,12 @@ async function fetchLatestDeal() {
                 }
 
                 const historyArray = data.history || [];
+                const list = document.getElementById('history-list');
 
-                if (historyArray.length > 0) {
-                    const list = document.getElementById('history-list');
+                if (historyArray.length > 0 && list) {
                     let htmlContent = '';
 
-                    historyArray.forEach(deal => {
+                    historyArray.forEach((deal, index) => {
                         let listPrice = deal.price || "---";
                         if(listPrice.includes(":")) listPrice = listPrice.split(":")[1].trim();
                         const dealEscaped = encodeURIComponent(JSON.stringify(deal)).replace(/'/g, "%27");
@@ -720,8 +730,11 @@ async function fetchLatestDeal() {
                             badgeHtml = `<span class="bg-green-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(34,197,94,0.5)] ml-2">Save ${deal.savingsPercent}%</span>`;
                         }
 
+                        const isHidden = index >= 5 ? 'style="display: none;"' : `style="opacity: ${1 - index * 0.15}"`;
+
                         htmlContent += `
-                            <div data-title="${deal.title.replace(/"/g, '&quot;')}" onclick="MarketUI.openDetail('${dealEscaped}')" class="history-item-card glass-panel p-4 rounded-xl cursor-pointer hover:border-blue-500/30 transition-all border border-white/5">                                <div class="flex justify-between items-center mb-1">
+                            <div data-title="${deal.title.replace(/"/g, '&quot;')}" onclick="MarketUI.openDetail('${dealEscaped}')" class="history-item-card glass-panel p-4 rounded-xl cursor-pointer hover:border-blue-500/30 transition-all border border-white/5" ${isHidden}>
+                                <div class="flex justify-between items-center mb-1">
                                     <div class="flex items-center">
                                         <span class="text-[10px] text-blue-400 font-bold uppercase">${deal.store || 'WEB'}</span>
                                         ${badgeHtml}
@@ -731,38 +744,8 @@ async function fetchLatestDeal() {
                                 <h3 class="text-gray-300 text-xs truncate">${deal.title || 'Product'}</h3>
                             </div>`;
                     });
-                    if (list && htmlContent) list.innerHTML = htmlContent;
-
-                    const activeTitle = (data.latest && data.latest.title) ? data.latest.title : historyArray[0].title;
-                    const keywords = activeTitle.split(' ').slice(0, 4).join(' ').toLowerCase(); 
                     
-                    const allDeals = data.latest ? [data.latest, ...historyArray] : historyArray;
-                    const relevantDeals = allDeals.filter(d => d.title && d.title.toLowerCase().includes(keywords));
-
-                    let chartPrices = [];
-                    let chartLabels = [];
-
-                    relevantDeals.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0)).forEach(d => {
-                        let listPrice = d.price || "0";
-                        if(listPrice.includes(":")) listPrice = listPrice.split(":")[1].trim();
-                        const p = parseFloat(listPrice.replace(/[^0-9.]/g, ''));
-                        
-                        if (!isNaN(p)) {
-                            chartPrices.push(p);
-                            const date = new Date(d.timestamp || Date.now());
-                            chartLabels.push(date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
-                        }
-                    });
-
-                    if (chartPrices.length === 1) {
-                        chartPrices.unshift(chartPrices[0]);
-                        chartLabels.unshift("Previous Scan");
-                    }
-
-                    if (chartPrices.length > 0 && window.MarketUI) {
-                        const chartTitle = activeTitle.split(' ').slice(0, 4).join(' ');
-                        MarketUI.updateChart(chartPrices, chartLabels, chartTitle);
-                    }
+                    list.innerHTML = htmlContent;
                 }
                 return data;
             } catch (e) { 
