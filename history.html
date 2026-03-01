@@ -94,21 +94,41 @@
     <script>
         let userData = { history: [], saved: [] };
         let currentTab = 'history';
+        
+async function loadData() {
+    const email = localStorage.getItem('rr_user_email');
+    if(!email) { window.location.href = '/'; return; }
 
-        async function loadData() {
-            const email = localStorage.getItem('rr_user_email');
-            if(!email) { window.location.href = '/'; return; }
+    const cacheKey = `rr_archive_cache_${email}`;
+    const cachedData = localStorage.getItem(cacheKey);
+    if (cachedData) {
+        try {
+            const parsed = JSON.parse(cachedData);
+            userData.history = parsed.history || [];
+            userData.saved = parsed.saved || [];
+            render(); 
+        } catch(e){}
+    } else {
+        document.getElementById('loading').classList.remove('hidden');
+    }
 
-            try {
-                const res = await fetch(`/api/update_price?user=${email}`);
-                const data = await res.json();
-                
-                userData.history = data.userHistory || [];
-                userData.saved = data.saved || [];
-                render();
-            } catch (e) { console.error(e); }
-        }
-
+    try {
+        const res = await fetch(`/api/update_price?user=${email}`);
+        const data = await res.json();
+        
+        userData.history = data.userHistory || [];
+        userData.saved = data.saved || [];
+        
+        localStorage.setItem(cacheKey, JSON.stringify({
+            history: userData.history,
+            saved: userData.saved
+        }));
+        
+        render(); 
+    } catch (e) { 
+        console.error("Failed to sync fresh data:", e); 
+    }
+}
         function render() {
             document.getElementById('loading').classList.add('hidden');
             const grid = document.getElementById('content-grid');
