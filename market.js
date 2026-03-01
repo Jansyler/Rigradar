@@ -577,13 +577,13 @@ window.saveScanFromIndex = async function(event, dealDataEscaped, btn) {
 
     const deal = JSON.parse(decodeURIComponent(dealDataEscaped));
     
-    // 🟢 OKAMŽITÁ VIZUÁLNÍ ZMĚNA TLAČÍTKA
-    const originalContent = btn.innerHTML;
-    const originalClasses = btn.className;
+    const originalContent = btn.outerHTML; 
     
-    // Změníme ikonku na fajfku a přepíšeme css třídy tak, aby odpovídaly uloženému stavu
-    btn.innerHTML = `<span class="font-bold text-xs">✓</span>`;
-    btn.className = "text-green-500 border border-green-500/50 bg-green-500/10 p-2 rounded-lg z-10 cursor-default transition-all";
+    const savedSpan = document.createElement('span');
+    savedSpan.className = "text-green-500 text-xs font-bold flex items-center gap-1 border border-green-500/30 px-2 py-1.5 rounded-lg bg-green-500/10 cursor-default z-10 transition-all";
+    savedSpan.innerHTML = "✓ Saved";
+    
+    btn.replaceWith(savedSpan);
 
     try {
         const res = await fetch('/api/scans?action=save', {
@@ -593,32 +593,19 @@ window.saveScanFromIndex = async function(event, dealDataEscaped, btn) {
         });
         
         if(!res.ok) {
-            btn.innerHTML = "❌";
-            btn.className = "text-red-500 border border-red-500/50 bg-red-500/10 p-2 rounded-lg z-10 transition-all";
-            
-            if (res.status === 401) {
-                if (window.MarketUI) MarketUI.showToast("Session expired. Log in again.", "error");
+            savedSpan.outerHTML = originalContent;
+            if (res.status === 401 && window.MarketUI) {
+                MarketUI.showToast("Session expired. Log in again.", "error");
             }
-            
-            setTimeout(() => {
-                btn.innerHTML = originalContent;
-                btn.className = originalClasses;
-            }, 2000);
         } else {
-            btn.onclick = null;
-            btn.title = "Saved";
             if (window.MarketUI && typeof window.MarketUI.showToast === 'function') {
-                window.MarketUI.showToast("Deal saved to your Database!", "success");
+                window.MarketUI.showToast("Scan saved to collection!", "success");
             }
         }
     } catch (e) {
         console.error(e);
-        btn.innerHTML = "❌";
-        btn.className = "text-red-500 border border-red-500/50 bg-red-500/10 p-2 rounded-lg z-10 transition-all";
-        setTimeout(() => {
-            btn.innerHTML = originalContent;
-            btn.className = originalClasses;
-        }, 2000);
+        savedSpan.outerHTML = originalContent;
+        if (window.MarketUI) MarketUI.showToast("Connection failed.", "error");
     }
 };
 
