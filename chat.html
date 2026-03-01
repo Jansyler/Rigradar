@@ -446,26 +446,49 @@ function startNewChat() {
 }
         let selectedImage = null;
 
-        function handleImageSelect(event) {
+function handleImageSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
             
-            if (file.size > 5 * 1024 * 1024) {
-                if(window.MarketUI) MarketUI.showToast("Image is too large. Max 5MB.", "error");
-                return;
-            }
-
             const reader = new FileReader();
             reader.onload = function(e) {
-                const base64String = e.target.result.split(',')[1];
-                selectedImage = {
-                    data: base64String,
-                    mimeType: file.type,
-                    url: e.target.result
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    const MAX_DIM = 1200;
+                    if (width > height) {
+                        if (width > MAX_DIM) {
+                            height *= MAX_DIM / width;
+                            width = MAX_DIM;
+                        }
+                    } else {
+                        if (height > MAX_DIM) {
+                            width *= MAX_DIM / height;
+                            height = MAX_DIM;
+                        }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+                    const base64String = dataUrl.split(',')[1];
+                    
+                    selectedImage = {
+                        data: base64String,
+                        mimeType: 'image/jpeg',
+                        url: dataUrl
+                    };
+                    
+                    document.getElementById('image-preview').src = dataUrl;
+                    document.getElementById('image-preview-container').classList.remove('hidden');
                 };
-                
-                document.getElementById('image-preview').src = e.target.result;
-                document.getElementById('image-preview-container').classList.remove('hidden');
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
