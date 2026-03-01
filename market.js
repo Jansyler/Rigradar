@@ -567,11 +567,7 @@ window.saveScanFromIndex = async function(event, dealDataEscaped, btn) {
 
     const email = localStorage.getItem('rr_user_email');
     if (!email) { 
-        if (window.MarketUI && typeof window.MarketUI.showToast === 'function') {
-            window.MarketUI.showToast("Please log in to save scans!", "error");
-        } else {
-            alert("⚠️ Please log in to save scans!");
-        }
+        if (window.MarketUI) MarketUI.showToast("Please log in to save scans!", "error");
         return; 
     }
 
@@ -579,11 +575,9 @@ window.saveScanFromIndex = async function(event, dealDataEscaped, btn) {
     
     const originalContent = btn.outerHTML; 
     
-    const savedSpan = document.createElement('span');
-    savedSpan.className = "text-green-500 text-xs font-bold flex items-center gap-1 border border-green-500/30 px-2 py-1.5 rounded-lg bg-green-500/10 cursor-default z-10 transition-all";
-    savedSpan.innerHTML = "✓ Saved";
-    
-    btn.replaceWith(savedSpan);
+    btn.innerHTML = "...";
+    btn.style.pointerEvents = "none";
+    btn.style.opacity = "0.7";
 
     try {
         const res = await fetch('/api/scans?action=save', {
@@ -592,20 +586,23 @@ window.saveScanFromIndex = async function(event, dealDataEscaped, btn) {
             body: JSON.stringify({ deal }) 
         });
         
-        if(!res.ok) {
-            savedSpan.outerHTML = originalContent;
-            if (res.status === 401 && window.MarketUI) {
-                MarketUI.showToast("Session expired. Log in again.", "error");
-            }
+        if (res.ok) {
+            const savedSpan = document.createElement('span');
+            savedSpan.className = "text-green-500 text-xs font-bold flex items-center gap-1 border border-green-500/30 px-2 py-1.5 rounded-lg bg-green-500/10 cursor-default z-10 transition-all";
+            savedSpan.innerHTML = "✓ Saved";
+            
+            btn.replaceWith(savedSpan);
+            
+            if (window.MarketUI) MarketUI.showToast("Scan saved to collection!", "success");
         } else {
-            if (window.MarketUI && typeof window.MarketUI.showToast === 'function') {
-                window.MarketUI.showToast("Scan saved to collection!", "success");
-            }
+            throw new Error(res.status === 401 ? "Unauthorized" : "Failed to save");
         }
     } catch (e) {
         console.error(e);
-        savedSpan.outerHTML = originalContent;
-        if (window.MarketUI) MarketUI.showToast("Connection failed.", "error");
+        btn.outerHTML = originalContent;
+        if (window.MarketUI) {
+            MarketUI.showToast(e.message === "Unauthorized" ? "Session expired. Log in again." : "Failed to save", "error");
+        }
     }
 };
 
