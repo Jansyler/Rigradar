@@ -44,53 +44,54 @@
 </button>
     </div>
 
-<div id="mobile-menu" class="hidden fixed inset-0 top-[60px] left-0 w-full h-[calc(100vh-60px)] bg-[#050505]/90 backdrop-blur-2xl z-[90] flex flex-col justify-between overflow-y-auto animate-in slide-in-from-top-2 fade-in duration-300">
+<div id="mobile-menu" class="hidden fixed inset-0 top-[60px] left-0 w-full h-[calc(100vh-60px)] bg-[#020202]/98 backdrop-blur-3xl z-[90] flex flex-col justify-between overflow-y-auto animate-in slide-in-from-top-2 fade-in duration-300">
         
-        <nav class="flex flex-col gap-3 px-5 pt-6">
+        <nav class="flex flex-col gap-4 px-5 pt-8">
             
-            <a href="index.html" onclick="toggleMobileMenu()" class="group flex items-center justify-between bg-white/5 border border-white/5 hover:bg-white/10 hover:border-blue-500/30 p-4 rounded-2xl active:scale-95 transition-all">
+            <a href="index.html" onclick="toggleMobileMenu()" class="group flex items-center justify-between bg-[#0a0a0a] border border-white/5 hover:border-blue-500/50 p-4 rounded-2xl active:scale-95 transition-all shadow-lg">
                 <div class="flex items-center gap-4">
-                    <div class="bg-blue-500/10 text-blue-400 p-2.5 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+                    <div class="bg-blue-500/10 text-blue-400 p-2.5 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors shadow-[0_0_15px_rgba(59,130,246,0.15)] group-hover:shadow-[0_0_20px_rgba(59,130,246,0.5)]">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
                     </div>
-                    <span class="text-sm font-black text-gray-200 group-hover:text-white uppercase tracking-widest">Radar</span>
+                    <span class="text-sm font-black text-gray-300 group-hover:text-blue-400 uppercase tracking-widest transition-colors">Overview</span>
                 </div>
-                <svg class="w-5 h-5 text-gray-600 group-hover:text-blue-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                <svg class="w-5 h-5 text-gray-700 group-hover:text-blue-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
             </a>
 
-            <a href="compare.html" onclick="toggleMobileMenu()" class="group flex items-center justify-between bg-white/5 border border-white/5 hover:bg-white/10 hover:border-red-500/30 p-4 rounded-2xl active:scale-95 transition-all">
+            <a href="chat.html" onclick="toggleMobileMenu()" class="group flex items-center justify-between bg-[#0a0a0a] border border-white/5 hover:border-purple-500/50 p-4 rounded-2xl active:scale-95 transition-all shadow-lg">
                 <div class="flex items-center gap-4">
-                    <div class="bg-red-500/10 text-red-400 p-2.5 rounded-xl group-hover:bg-red-600 group-hover:text-white transition-colors shadow-[0_0_15px_rgba(239,68,68,0.1)]">
+                    <div class="bg-purple-500/10 text-purple-400 p-2.5 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition-colors shadow-[0_0_15px_rgba(168,85,247,0.15)] group-hover:shadow-[0_0_20px_rgba(168,85,247,0.5)]">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                    </div>
+                    <span class="text-sm font-black text-gray-300 group-hover:text-purple-400 uppercase tracking-widest transition-colors">Workspace</span>
+                </div>
+                <svg class="w-5 h-5 text-gray-700 group-hover:text-purple-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </a>
+
+            <a href="compare.html" onclick="toggleMobileMenu()" class="group flex items-center justify-between bg-[#0a0a0a] border border-white/5 hover:border-red-500/30 p-4 rounded-2xl active:scale-95 transition-all shadow-lg relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div class="flex items-center gap-4 relative z-10">
+                    <div class="bg-[#111] text-gray-400 p-2.5 rounded-xl border border-white/5 group-hover:border-transparent group-hover:bg-gradient-to-br group-hover:from-blue-600 group-hover:to-red-600 group-hover:text-white transition-all shadow-lg group-hover:shadow-[0_0_20px_rgba(239,68,68,0.4)]">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                     </div>
-                    <span class="text-sm font-black text-gray-200 group-hover:text-white uppercase tracking-widest">Hardware Battle</span>
+                    <span class="text-sm font-black text-gray-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:via-purple-400 group-hover:to-red-500 uppercase tracking-widest transition-all duration-300">Hardware Battle</span>
                 </div>
-                <svg class="w-5 h-5 text-gray-600 group-hover:text-red-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                <svg class="w-5 h-5 text-gray-700 group-hover:text-red-400 transition-colors relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
             </a>
 
-            <a href="history.html" onclick="toggleMobileMenu()" class="group flex items-center justify-between bg-white/5 border border-white/5 hover:bg-white/10 hover:border-purple-500/30 p-4 rounded-2xl active:scale-95 transition-all">
+            <a href="pricing.html" onclick="toggleMobileMenu()" class="group flex items-center justify-between bg-[#0a0a0a] border border-white/5 hover:border-yellow-500/50 p-4 rounded-2xl active:scale-95 transition-all shadow-lg">
                 <div class="flex items-center gap-4">
-                    <div class="bg-purple-500/10 text-purple-400 p-2.5 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition-colors shadow-[0_0_15px_rgba(168,85,247,0.1)]">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>
-                    </div>
-                    <span class="text-sm font-black text-gray-200 group-hover:text-white uppercase tracking-widest">Memory</span>
-                </div>
-                <svg class="w-5 h-5 text-gray-600 group-hover:text-purple-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-            </a>
-
-            <a href="pricing.html" onclick="toggleMobileMenu()" class="group flex items-center justify-between bg-white/5 border border-white/5 hover:bg-white/10 hover:border-yellow-500/30 p-4 rounded-2xl active:scale-95 transition-all">
-                <div class="flex items-center gap-4">
-                    <div class="bg-yellow-500/10 text-yellow-500 p-2.5 rounded-xl group-hover:bg-yellow-500 group-hover:text-white transition-colors shadow-[0_0_15px_rgba(234,179,8,0.1)]">
+                    <div class="bg-yellow-500/10 text-yellow-500 p-2.5 rounded-xl group-hover:bg-yellow-500 group-hover:text-black transition-colors shadow-[0_0_15px_rgba(234,179,8,0.15)] group-hover:shadow-[0_0_20px_rgba(234,179,8,0.5)]">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>
                     </div>
-                    <span class="text-sm font-black text-gray-200 group-hover:text-white uppercase tracking-widest">Premium</span>
+                    <span class="text-sm font-black text-gray-300 group-hover:text-yellow-500 uppercase tracking-widest transition-colors">Pricing</span>
                 </div>
-                <svg class="w-5 h-5 text-gray-600 group-hover:text-yellow-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                <svg class="w-5 h-5 text-gray-700 group-hover:text-yellow-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
             </a>
 
         </nav>
         
-        <div class="px-5 pb-8 pt-6 mt-auto border-t border-white/5 bg-gradient-to-t from-black to-transparent">
+        <div class="px-5 pb-8 pt-6 mt-auto bg-[#020202] border-t border-white/5 relative z-20">
             <div id="auth-section-mobile" class="w-full flex justify-center">
                 <button onclick="loginWithGoogle(); toggleMobileMenu()" class="text-white text-sm font-black border border-white/10 px-8 py-4 rounded-2xl w-full bg-[#111] hover:bg-white/10 active:scale-95 transition-all uppercase tracking-widest shadow-2xl">Log In</button>
             </div>
