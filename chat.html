@@ -730,7 +730,7 @@ async function sendMessage() {
                             badgeHtml = `<span class="bg-green-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(34,197,94,0.5)] ml-2">Save ${deal.savingsPercent}%</span>`;
                         }
 
-                        const isHidden = index >= 5 ? 'style="display: none;"' : `style="opacity: ${1 - index * 0.15}"`;
+                        const isHidden = index >= 50 ? 'style="display: none;"' : `style="opacity: ${1 - index * 0.15}"`;
 
                         htmlContent += `
                             <div data-title="${deal.title.replace(/"/g, '&quot;')}" onclick="MarketUI.openDetail('${dealEscaped}')" class="history-item-card glass-panel p-4 rounded-xl cursor-pointer hover:border-blue-500/30 transition-all border border-white/5" ${isHidden}>
