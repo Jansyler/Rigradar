@@ -66,35 +66,43 @@ export default async function handler(req, res) {
 
                 if (bestDeal && lowestPrice <= parseFloat(wd.targetPrice)) {
                     if (!wd.lastEmailedPrice || lowestPrice < wd.lastEmailedPrice) {
-                        if (RESEND_API_KEY) {
-                            await fetch('https://api.resend.com/emails', {
-                                method: 'POST',
-                                headers: {
-                                    'Authorization': `Bearer ${RESEND_API_KEY}`,
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    from: 'RigRadar Alerts <alerts@rigradarai.com>', 
-                                    to: wd.email,
-                                    subject: `🚨 Price Drop: ${wd.query} is now $${lowestPrice}!`,
-                                    html: `
-                                        <div style="font-family: Arial, sans-serif; background: #050505; color: white; padding: 30px; border-radius: 10px;">
-                                            <h2 style="color: #3b82f6;">RigRadar Watchdog Triggered! 🐕</h2>
-                                            <p>Your target hardware dropped below your target price of $${wd.targetPrice}.</p>
-                                            <div style="background: #111; padding: 20px; border-radius: 10px; border: 1px solid #222; margin: 20px 0;">
-                                                <h3 style="margin: 0 0 10px 0;">${bestDeal.title}</h3>
-                                                <p style="font-size: 24px; color: #10b981; font-weight: bold; margin: 0;">$${lowestPrice}</p>
-                                                <p style="color: #888; font-size: 12px; text-transform: uppercase;">Store: ${bestDeal.store}</p>
-                                            </div>
-                                            <a href="https://rigradarai.com/?dealId=${bestDeal.id}" style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Grab the Deal ↗</a>
-                                            <br><br>
-                                            <a href="https://rigradarai.com/api/watchdog?action=unsubscribe&id=${wdId}" style="color: #888; font-size: 10px;">Turn off this alert</a>
-                                        </div>
-                                    `
-                                })
-                            });
-                        }
-                        wd.lastEmailedPrice = lowestPrice;
+if (RESEND_API_KEY) {
+    const resendRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            from: 'RigRadar Alerts <alerts@rigradarai.com>', 
+            to: wd.email,
+            subject: `🚨 Price Drop: ${wd.query} is now $${lowestPrice}!`,
+            html: `
+                <div style="font-family: Arial, sans-serif; background: #050505; color: white; padding: 30px; border-radius: 10px;">
+                    <h2 style="color: #3b82f6;">RigRadar Watchdog Triggered! 🐕</h2>
+                    <p>Your target hardware dropped below your target price of $${wd.targetPrice}.</p>
+                    <div style="background: #111; padding: 20px; border-radius: 10px; border: 1px solid #222; margin: 20px 0;">
+                        <h3 style="margin: 0 0 10px 0;">${bestDeal.title}</h3>
+                        <p style="font-size: 24px; color: #10b981; font-weight: bold; margin: 0;">$${lowestPrice}</p>
+                        <p style="color: #888; font-size: 12px; text-transform: uppercase;">Store: ${bestDeal.store}</p>
+                    </div>
+                    <a href="https://rigradarai.com/?dealId=${bestDeal.id}" style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Grab the Deal ↗</a>
+                    <br><br>
+                    <a href="https://rigradarai.com/api/watchdog?action=unsubscribe&id=${wdId}" style="color: #888; font-size: 10px;">Turn off this alert</a>
+                </div>
+            `
+        })
+    });
+        const resendData = await resendRes.json();
+    if (!resendRes.ok) {
+        console.error("❌ RESEND ERROR pro email", wd.email, ":", resendData);
+    } else {
+        console.log("✅ EMAIL ODESLÁN ÚSPĚŠNĚ pro:", wd.email);
+        wd.lastEmailedPrice = lowestPrice; 
+    }
+} else {
+    console.error("❌ CHYBÍ RESEND_API_KEY ve Vercel env variables!");
+}
                     }
                 } else {
                     const task = JSON.stringify({
