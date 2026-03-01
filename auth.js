@@ -35,16 +35,16 @@ async function syncPremiumStatus() {
 
 async function logout() {
     try {
-        await fetch('/api/logout', { method: 'POST' });
+        await fetch('/api/auth', { method: 'DELETE' });
     } catch (e) {
         console.error("Chyba při odhlašování na serveru:", e);
     }
     
     localStorage.removeItem('rr_user_email');
+    localStorage.removeItem('rr_user_pic');
     
     window.location.href = 'index.html';
 }
-
 function updateAuthUI(retryCount = 0) {
     const email = localStorage.getItem('rr_user_email');
     let pic = localStorage.getItem('rr_user_pic');
