@@ -23,7 +23,7 @@ window.MarketUI = {
         });
     },
 
-updateChart(chartPrices, chartLabels, chartTitle) {
+    updateChart(chartPrices, chartLabels, chartTitle) {
         if (!this.priceChartInstance) return;
         
         const titleEl = document.getElementById('chart-title');
@@ -61,12 +61,15 @@ updateChart(chartPrices, chartLabels, chartTitle) {
         this.priceChartInstance.update();
     },
 
-openDetail(dealDataEscaped) {
+    openDetail(dealDataEscaped) {
         try {
             const deal = JSON.parse(decodeURIComponent(dealDataEscaped));
             const modal = document.getElementById('detail-modal');
             const modalContent = modal.querySelector('div');
             
+            const shareBtn = document.getElementById('modal-share');
+            if (shareBtn) shareBtn.setAttribute('data-id', deal.id || '');
+
             document.getElementById('modal-title').innerText = deal.title || "Detail";
             document.getElementById('modal-price').innerText = deal.price || "---";
             document.getElementById('modal-opinion').innerText = deal.opinion || "No analysis.";
@@ -114,7 +117,7 @@ openDetail(dealDataEscaped) {
             const link = document.getElementById('modal-link');
             const productUrl = deal.url || deal.link || "#";
             if (productUrl !== "#") { 
-                link.href = productUrl; 
+                link.href = window.getAffiliateUrl ? window.getAffiliateUrl(productUrl, deal.store) : productUrl; 
                 link.classList.remove('hidden'); 
             } else { 
                 link.classList.add('hidden'); 
@@ -133,6 +136,7 @@ openDetail(dealDataEscaped) {
 
     closeModal() {
         const modal = document.getElementById('detail-modal');
+        if(!modal) return;
         const modalContent = modal.querySelector('div');
         modal.classList.add('opacity-0');
         if(modalContent) { 
@@ -176,8 +180,8 @@ openDetail(dealDataEscaped) {
             if (container) container.classList.remove('scanning');
             if (scanBtn) scanBtn.disabled = false;
 
-            if (typeof fetchLatestDeal === 'function') {
-                fetchLatestDeal();
+            if (typeof window.fetchLatestDeal === 'function') {
+                window.fetchLatestDeal();
             }
         });
     },
@@ -259,6 +263,24 @@ openDetail(dealDataEscaped) {
             setTimeout(() => toast.remove(), 500);
         }, 7000);
     }
+};
+window.getAffiliateUrl = function(originalUrl, storeName) {
+    const url = String(originalUrl || "");
+    const store = String(storeName || "").toLowerCase();
+
+    if (store.includes('amazon')) {
+        const separator = url.includes('?') ? '&' : '?';
+        return `${url}${separator}tag=TVUJ_AMAZON_TAG-20`;
+    }
+    
+    if (store.includes('alza')) {
+        const separator = url.includes('?') ? '&' : '?';
+        return `${url}${separator}idp=TVOJE_ALZA_ID`;
+    }
+
+    return url; 
+};
+
 window.globalHistoryData = [];
 
 window.updateDashboardPanels = function(targetTitle) {
@@ -333,7 +355,7 @@ window.updateDashboardPanels = function(targetTitle) {
                 let tag = i === 0 ? `<div class="absolute -top-2 left-3 bg-blue-600 text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shadow-lg">Best Deal</div>` : "";
                 
                 if (i === arbitrageData.length - 1 && arbitrageData.length > 1) {
-                     tag = `<div class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-2xl backdrop-blur-[1px]"><span class="text-red-400 text-[9px] font-bold uppercase tracking-widest border border-red-500/30 bg-red-500/10 px-2 py-0.5 rounded">Overpriced</span></div>`;
+                    tag = `<div class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-2xl backdrop-blur-[1px]"><span class="text-red-400 text-[9px] font-bold uppercase tracking-widest border border-red-500/30 bg-red-500/10 px-2 py-0.5 rounded">Overpriced</span></div>`;
                 }
 
                 arbHtml += `
@@ -611,5 +633,4 @@ window.shareDeal = function() {
     }).catch(err => {
         console.error('Failed to copy text: ', err);
     });
-};
 };
