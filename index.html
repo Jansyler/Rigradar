@@ -399,6 +399,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             MarketUI.initRealtime(res.pusherKey);
         }
 
+        const autoScan = sessionStorage.getItem('autoScanTarget');
+        if (autoScan) {
+            sessionStorage.removeItem('autoScanTarget');
+            setTimeout(() => {
+                const searchInput = document.getElementById('search-input');
+                const scanBtn = document.getElementById('scan-btn');
+                if (searchInput && scanBtn) {
+                    searchInput.value = autoScan;
+                    scanBtn.click();
+                }
+            }, 300); 
+        }
+
         const params = new URLSearchParams(window.location.search);
         const dealId = params.get('dealId');
 
