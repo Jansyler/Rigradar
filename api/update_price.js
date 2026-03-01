@@ -97,7 +97,6 @@ export default async function handler(req, res) {
     if (typeof frankenstein === 'string') {
         try { frankenstein = JSON.parse(frankenstein); } catch(e) {}
     }
-    
     const processedHistory = globalHistory.map(deal => {
         if (!deal.title) return deal;
         
@@ -131,8 +130,12 @@ export default async function handler(req, res) {
         return deal;
     });
 
-    const bestDealsList = processedHistory.filter(d => d.bestDeal);
-    let safeLatest = bestDealsList.length > 0 ? bestDealsList[0] : (processedHistory[0] || null);
+    const visibleDeals = processedHistory.filter(deal => {
+        return !deal.ownerEmail || deal.ownerEmail === 'system' || deal.ownerEmail === userEmail;
+    });
+
+    const bestDealsList = visibleDeals.filter(d => d.bestDeal);
+    let safeLatest = bestDealsList.length > 0 ? bestDealsList[0] : (visibleDeals[0] || null);
 
     if (!safeLatest) {
         safeLatest = results[0] || { price: "---", opinion: "No data", score: 50 };
@@ -147,7 +150,7 @@ export default async function handler(req, res) {
     if (safeLatest && safeLatest.title && safeLatest.title !== "Unknown Product") {
         arbitrageTarget = safeLatest.title.split(' ').slice(0, 4).join(' ');
         const keywords = safeLatest.title.split(' ').slice(0, 4).join(' ').toLowerCase();
-        const similarDeals = processedHistory.filter(d => d.title && d.title.toLowerCase().includes(keywords));
+        const similarDeals = processedHistory.filter(d => d.title && d.title.toLowerCase().includes(keywords)); // Tady chceme processedHistory pro přesnou arbitráž
         
         const storeMap = {};
         similarDeals.forEach(item => {
@@ -163,7 +166,7 @@ export default async function handler(req, res) {
         }).slice(0, 3);
     }
 
-    let combinedHistory = [...userHistory, ...processedHistory];
+    let combinedHistory = [...userHistory, ...visibleDeals];
     
     const uniqueHistory = [];
     const seenIds = new Set();
