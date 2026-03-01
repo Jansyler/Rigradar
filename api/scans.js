@@ -61,17 +61,21 @@ export default async function handler(req, res) {
             const isPremium = premiumData ? premiumData.isActive === true : false;
 
             if (!isPremium) {
-                const totalScansKey = `total_scans_count:${verifiedEmail}`;
-                const totalScans = await redis.get(totalScansKey) || 0;
+                const today = new Date().toISOString().slice(0, 10); 
+                const dailyKey = `daily_scans:${verifiedEmail}:${today}`;
+                
+                const currentScans = await redis.incr(dailyKey);
+                
+                if (currentScans === 1) {
+                    await redis.expire(dailyKey, 172800); 
+                }
 
-                if (totalScans >= 3) {
-                    return res.status(403).json({ 
-                        error: 'Free plan limit reached (3 scans). Upgrade to Premium for unlimited satellite deployments.' 
+                if (currentScans > 10) {
+                    return res.status(429).json({ 
+                        error: 'Free plan limit reached (10 scans/day). Upgrade to Premium for unlimited deployments.' 
                     });
                 }
-                await redis.incr(totalScansKey);
-            }
-            if (!isPremium) {
+                
                 const premiumStores = ['amazon', 'alza'];
                 const wantsPremiumStore = cleanStores.some(store => premiumStores.includes(store));
                 if (wantsPremiumStore) {
