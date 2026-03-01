@@ -255,8 +255,7 @@
         </div>
         
         <div class="mt-8 flex gap-3">
-            <button id="modal-share" onclick="shareDeal()" class="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-blue-500/30 text-gray-300 hover:text-white font-bold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-all">
-                <span class="text-lg">🔗</span>
+            <button id="modal-share" data-id="" onclick="shareDeal()" class="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-blue-500/30 text-gray-300 hover:text-white font-bold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-all">                <span class="text-lg">🔗</span>
             </button>
             <a id="modal-link" href="#" target="_blank" class="flex-grow bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl text-center uppercase text-sm tracking-wider">GO TO STORE ↗</a>
         </div>
@@ -767,12 +766,15 @@ async function requestScan() {
             modalContent.classList.add('scale-95');
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
-        function shareDeal() {
+function shareDeal() {
             const title = document.getElementById('modal-title').innerText;
             const price = document.getElementById('modal-price').innerText;
             const store = document.getElementById('modal-badge').innerText;
+            const dealId = document.getElementById('modal-share').getAttribute('data-id');
             
-            const shareText = `🔥 Crazy deal on RigRadar!\n\n${title}\n💰 ${price} at ${store}\n\nScanner: https://rigradarai.com`;
+            const shareUrl = dealId ? `https://rigradarai.com/api/share?id=${dealId}` : `https://rigradarai.com`;
+            
+            const shareText = `🔥 Crazy deal on RigRadar!\n\n${title}\n💰 ${price} at ${store}\n\nScanner: ${shareUrl}`;
             
             navigator.clipboard.writeText(shareText).then(() => {
                 const shareBtn = document.getElementById('modal-share');
