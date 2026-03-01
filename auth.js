@@ -17,8 +17,8 @@ async function syncPremiumStatus() {
     if (!email) return;
 
     try {
-        const res = await fetch('/api/check-premium', {
-            method: 'GET'
+        const res = await fetch('/api/auth', { 
+            method: 'GET' 
         });
 
         if (res.ok) {
