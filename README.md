@@ -1,9 +1,4 @@
-Here is a professional and comprehensive `README.md` for your GitHub repository, incorporating the details from your codebase:
-
-```markdown
 # 📡 RigRadar AI
-
-![RigRadar Preview](social-preview.png)
 
 **RigRadar AI** is an autonomous hardware market scanner and AI-powered PC building assistant. It monitors hardware prices across multiple platforms (eBay, Amazon, Alza, Bazos) 24/7, providing users with real-time deal alerts, market analytics, and intelligent hardware consultations. 
 
