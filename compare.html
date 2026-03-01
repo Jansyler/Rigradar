@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RigRadar AI | Compare</title>
+    <title>RigRadar AI | Hardware Compare</title>
     <link rel="icon" type="image/png" href="logo.png">
-    <link href="style.css" rel="stylesheet">
+    <link href="input.css" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://js.pusher.com/8.0.1/pusher.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
         body { 
@@ -42,91 +42,133 @@
 
     <div id="header-placeholder"></div>
 
-    <main class="flex-grow max-w-5xl mx-auto w-full px-4 pt-32 pb-20">
-        <div class="text-center mb-16">
+    <main class="flex-grow max-w-6xl mx-auto w-full px-4 pt-32 pb-20">
+        <div class="text-center mb-12">
             <h1 class="text-5xl md:text-7xl font-black tracking-tighter uppercase mb-4 italic">
                 HARDWARE <span class="vs-gradient">BATTLE</span>
             </h1>
-            <p class="text-gray-400 font-medium tracking-widest uppercase text-xs">Gemini 2.0 AI Comparison Engine</p>
+            <p class="text-gray-400 font-medium tracking-widest uppercase text-xs">Gemini 2.0 Deep Analysis</p>
         </div>
 
-        <div class="glass-panel p-6 rounded-3xl mb-16 relative z-10">
-            <div class="flex flex-col md:flex-row items-center gap-6">
-                <input id="gpu1" type="text" placeholder="e.g. RTX 4070 Ti" class="w-full bg-black/50 border border-white/10 p-5 rounded-2xl focus:border-blue-500 outline-none transition-all font-bold text-center text-xl md:text-2xl uppercase">
-                
-                <div class="text-5xl font-black italic text-gray-700 select-none">VS</div>
-                
-                <input id="gpu2" type="text" placeholder="e.g. RX 7900 XT" class="w-full bg-black/50 border border-white/10 p-5 rounded-2xl focus:border-red-500 outline-none transition-all font-bold text-center text-xl md:text-2xl uppercase">
+        <div class="glass-panel p-6 rounded-3xl mb-16 relative z-10 max-w-4xl mx-auto border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
+            <div class="flex flex-col md:flex-row items-center gap-6 mb-6">
+                <input id="hw1" type="text" placeholder="Component 1 (e.g. i5-13600K)" class="w-full bg-black/50 border border-white/10 p-5 rounded-2xl focus:border-blue-500 outline-none transition-all font-bold text-center text-xl uppercase">
+                <div class="text-4xl font-black italic text-gray-700 select-none">VS</div>
+                <input id="hw2" type="text" placeholder="Component 2 (e.g. Ryzen 5 7600X)" class="w-full bg-black/50 border border-white/10 p-5 rounded-2xl focus:border-red-500 outline-none transition-all font-bold text-center text-xl uppercase">
             </div>
-            <button onclick="startBattle()" id="battle-btn" class="mt-6 w-full bg-white text-black font-black px-12 py-5 rounded-2xl hover:bg-blue-600 hover:text-white transition-all text-xl uppercase tracking-widest shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+            
+            <div class="mb-6">
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-2">Context for AI (Optional)</label>
+                <input id="user-context" type="text" placeholder="What will you use it for? (e.g., 4K Gaming, Video Editing, Budget Build...)" class="w-full bg-black/50 border border-white/10 p-4 rounded-xl focus:border-blue-500 outline-none transition-all text-sm text-gray-300">
+            </div>
+
+            <button onclick="startBattle()" id="battle-btn" class="w-full bg-blue-600 text-white font-black px-12 py-5 rounded-2xl hover:bg-blue-500 transition-all text-xl uppercase tracking-widest shadow-[0_0_20px_rgba(59,130,246,0.4)]">
                 ANALYZE MATCHUP
             </button>
         </div>
 
-        <div id="results" class="hidden relative opacity-0 transition-opacity duration-1000">
+        <div id="results" class="hidden relative opacity-0 transition-opacity duration-1000 space-y-8">
             
-            <div id="winner-badge" class="absolute -top-6 left-1/2 -translate-x-1/2 bg-green-500 text-black px-8 py-2 rounded-full font-black uppercase tracking-widest z-20 shadow-[0_0_20px_rgba(34,197,94,0.6)] transition-all duration-700 hidden">
-                🏆 WINNER
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 relative z-10">
-                <div id="card1" class="glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden group">
-                    <div class="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
+                <div id="card1" class="glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden flex flex-col h-full">
                     <div class="text-blue-500 text-[10px] font-black uppercase tracking-widest mb-2">Contender A</div>
-                    <h2 id="name1" class="text-3xl md:text-4xl font-black mb-8 tracking-tight">---</h2>
+                    <h2 id="name1" class="text-3xl font-black mb-6 tracking-tight">---</h2>
                     
-                    <div class="space-y-5">
-                        <div class="flex justify-between items-end border-b border-white/5 pb-3">
-                            <span class="text-gray-500 text-sm font-bold uppercase tracking-widest">VRAM</span>
-                            <span id="vram1" class="font-black text-xl">---</span>
+                    <div class="space-y-4 flex-grow">
+                        <div class="flex justify-between border-b border-white/5 pb-2">
+                            <span class="text-gray-500 text-xs font-bold uppercase">Specs</span>
+                            <span id="specs1" class="font-bold text-sm text-right">---</span>
                         </div>
-                        <div class="flex justify-between items-end border-b border-white/5 pb-3">
-                            <span class="text-gray-500 text-sm font-bold uppercase tracking-widest">TDP</span>
-                            <span id="tdp1" class="font-black text-xl text-yellow-500">---</span>
+                        <div class="flex justify-between border-b border-white/5 pb-2">
+                            <span class="text-gray-500 text-xs font-bold uppercase">Est. Avg Price</span>
+                            <span id="price1" class="font-black text-green-400">---</span>
                         </div>
-                        <div class="pt-6">
-                            <div class="flex justify-between mb-2">
-                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Overall Score</span>
-                                <span id="score1-text" class="text-blue-500 font-black">0</span>
+                        
+                        <div class="pt-4 grid grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="text-[10px] text-green-500 font-bold uppercase tracking-widest mb-2">Pros</h4>
+                                <ul id="pros1" class="text-xs text-gray-400 space-y-1 list-disc pl-4"></ul>
                             </div>
-                            <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden">
-                                <div id="score1-bar" class="h-full bg-blue-500 transition-all duration-1000 w-0"></div>
+                            <div>
+                                <h4 class="text-[10px] text-red-500 font-bold uppercase tracking-widest mb-2">Cons</h4>
+                                <ul id="cons1" class="text-xs text-gray-400 space-y-1 list-disc pl-4"></ul>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-white/10">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Match Score</span>
+                            <span id="score1-text" class="text-blue-500 font-black">0%</span>
+                        </div>
+                        <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                            <div id="score1-bar" class="h-full bg-blue-500 transition-all duration-1000 w-0"></div>
                         </div>
                     </div>
                 </div>
 
-                <div id="card2" class="glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden group">
-                    <div class="absolute inset-0 bg-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div id="card2" class="glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden flex flex-col h-full">
                     <div class="text-red-500 text-[10px] font-black uppercase tracking-widest mb-2">Contender B</div>
-                    <h2 id="name2" class="text-3xl md:text-4xl font-black mb-8 tracking-tight">---</h2>
+                    <h2 id="name2" class="text-3xl font-black mb-6 tracking-tight">---</h2>
                     
-                    <div class="space-y-5">
-                        <div class="flex justify-between items-end border-b border-white/5 pb-3">
-                            <span class="text-gray-500 text-sm font-bold uppercase tracking-widest">VRAM</span>
-                            <span id="vram2" class="font-black text-xl">---</span>
+                    <div class="space-y-4 flex-grow">
+                        <div class="flex justify-between border-b border-white/5 pb-2">
+                            <span class="text-gray-500 text-xs font-bold uppercase">Specs</span>
+                            <span id="specs2" class="font-bold text-sm text-right">---</span>
                         </div>
-                        <div class="flex justify-between items-end border-b border-white/5 pb-3">
-                            <span class="text-gray-500 text-sm font-bold uppercase tracking-widest">TDP</span>
-                            <span id="tdp2" class="font-black text-xl text-yellow-500">---</span>
+                        <div class="flex justify-between border-b border-white/5 pb-2">
+                            <span class="text-gray-500 text-xs font-bold uppercase">Est. Avg Price</span>
+                            <span id="price2" class="font-black text-green-400">---</span>
                         </div>
-                        <div class="pt-6">
-                            <div class="flex justify-between mb-2">
-                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Overall Score</span>
-                                <span id="score2-text" class="text-red-500 font-black">0</span>
+
+                        <div class="pt-4 grid grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="text-[10px] text-green-500 font-bold uppercase tracking-widest mb-2">Pros</h4>
+                                <ul id="pros2" class="text-xs text-gray-400 space-y-1 list-disc pl-4"></ul>
                             </div>
-                            <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden">
-                                <div id="score2-bar" class="h-full bg-red-500 transition-all duration-1000 w-0"></div>
+                            <div>
+                                <h4 class="text-[10px] text-red-500 font-bold uppercase tracking-widest mb-2">Cons</h4>
+                                <ul id="cons2" class="text-xs text-gray-400 space-y-1 list-disc pl-4"></ul>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-white/10">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Match Score</span>
+                            <span id="score2-text" class="text-red-500 font-black">0%</span>
+                        </div>
+                        <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                            <div id="score2-bar" class="h-full bg-red-500 transition-all duration-1000 w-0"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="mt-8 glass-panel p-8 rounded-3xl text-center border-t border-white/10 bg-[#0a0a0a]">
-                <h3 class="text-xs font-black mb-4 uppercase tracking-widest text-gray-500">AI Verdict</h3>
-                <p id="verdict-text" class="text-gray-200 leading-relaxed text-lg md:text-xl font-medium">...</p>
+            <div class="glass-panel p-8 rounded-3xl border-t border-blue-500/30">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="md:col-span-2">
+                        <h3 class="text-sm font-black mb-4 uppercase tracking-widest text-blue-400 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                            AI Verdict & Bottleneck
+                        </h3>
+                        <p id="verdict-text" class="text-gray-300 leading-relaxed text-sm"></p>
+                    </div>
+                    
+                    <div class="flex flex-col justify-center space-y-4 border-t md:border-t-0 md:border-l border-white/10 pt-6 md:pt-0 md:pl-8">
+                        <div class="text-center">
+                            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Recommended Choice</p>
+                            <p id="winner-name" class="text-xl font-black text-white">---</p>
+                        </div>
+                        
+                        <button onclick="scanMarket()" id="scan-winner-btn" class="w-full bg-[#111] border border-white/20 hover:border-blue-500 hover:bg-blue-600/20 text-white font-bold py-3 rounded-xl transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            Find Deals
+                        </button>
+                    </div>
+                </div>
             </div>
+
         </div>
     </main>
 
@@ -137,75 +179,79 @@
             try {
                 const hRes = await fetch('header.html');
                 if(hRes.ok) document.getElementById('header-placeholder').innerHTML = await hRes.text();
+                // Důležité: Re-inicializace auth modulu po načtení hlavičky
+                if (typeof window.initAuth === 'function') {
+                    window.initAuth();
+                }
             } catch(e) {}
         }
         document.addEventListener('DOMContentLoaded', loadLayout);
 
+        let currentWinner = "";
+
         async function startBattle() {
-            const g1 = document.getElementById('gpu1').value.trim();
-            const g2 = document.getElementById('gpu2').value.trim();
+            const hw1 = document.getElementById('hw1').value.trim();
+            const hw2 = document.getElementById('hw2').value.trim();
+            const context = document.getElementById('user-context').value.trim();
+            
             const btn = document.getElementById('battle-btn');
             const results = document.getElementById('results');
             
-            if(!g1 || !g2) return alert("Please enter two components to compare!");
+            if(!hw1 || !hw2) return alert("Please enter two components to compare!");
 
-            // Reset UI
             btn.disabled = true;
             btn.innerHTML = '<span class="analyzing">⚡ RUNNING AI BENCHMARKS...</span>';
             results.classList.add('hidden');
             results.classList.remove('opacity-100');
             
-            document.getElementById('card1').className = "glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden group";
-            document.getElementById('card2').className = "glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden group";
-            document.getElementById('winner-badge').classList.add('hidden');
+            document.getElementById('card1').className = "glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden flex flex-col h-full";
+            document.getElementById('card2').className = "glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden flex flex-col h-full";
 
             try {
                 const res = await fetch('/api/compare', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ gpu1: g1, gpu2: g2 })
+                    body: JSON.stringify({ hw1, hw2, context })
                 });
                 
                 if (!res.ok) throw new Error("Comparison failed");
                 const data = await res.json();
 
-                // Populate UI
-                document.getElementById('name1').innerText = data.gpu1.name;
-                document.getElementById('vram1').innerText = data.gpu1.vram;
-                document.getElementById('tdp1').innerText = data.gpu1.tdp;
-                document.getElementById('score1-text').innerText = data.gpu1.score;
+                document.getElementById('name1').innerText = data.hw1.name;
+                document.getElementById('specs1').innerText = data.hw1.keySpecs;
+                document.getElementById('price1').innerText = data.hw1.avgPrice;
+                document.getElementById('pros1').innerHTML = data.hw1.pros.map(p => `<li>${p}</li>`).join('');
+                document.getElementById('cons1').innerHTML = data.hw1.cons.map(c => `<li>${c}</li>`).join('');
+                document.getElementById('score1-text').innerText = data.hw1.score + "%";
                 
-                document.getElementById('name2').innerText = data.gpu2.name;
-                document.getElementById('vram2').innerText = data.gpu2.vram;
-                document.getElementById('tdp2').innerText = data.gpu2.tdp;
-                document.getElementById('score2-text').innerText = data.gpu2.score;
+                document.getElementById('name2').innerText = data.hw2.name;
+                document.getElementById('specs2').innerText = data.hw2.keySpecs;
+                document.getElementById('price2').innerText = data.hw2.avgPrice;
+                document.getElementById('pros2').innerHTML = data.hw2.pros.map(p => `<li>${p}</li>`).join('');
+                document.getElementById('cons2').innerHTML = data.hw2.cons.map(c => `<li>${c}</li>`).join('');
+                document.getElementById('score2-text').innerText = data.hw2.score + "%";
 
-                document.getElementById('verdict-text').innerText = data.verdict;
+                document.getElementById('verdict-text').innerHTML = data.verdict.replace(/\n/g, '<br><br>');
+                
+                currentWinner = data.hw1.score >= data.hw2.score ? data.hw1.name : data.hw2.name;
+                document.getElementById('winner-name').innerText = currentWinner;
 
-                // Show Results Block
                 results.classList.remove('hidden');
                 setTimeout(() => {
                     results.classList.add('opacity-100');
-                    document.getElementById('score1-bar').style.width = data.gpu1.score + "%";
-                    document.getElementById('score2-bar').style.width = data.gpu2.score + "%";
+                    document.getElementById('score1-bar').style.width = data.hw1.score + "%";
+                    document.getElementById('score2-bar').style.width = data.hw2.score + "%";
                 }, 100);
 
-                // Highlight Winner
                 setTimeout(() => {
                     const c1 = document.getElementById('card1');
                     const c2 = document.getElementById('card2');
-                    const badge = document.getElementById('winner-badge');
-                    
-                    badge.classList.remove('hidden');
-
-                    if (data.gpu1.score >= data.gpu2.score) {
-                        c1.classList.add('win-glow', 'scale-[1.02]', 'z-20');
-                        c2.classList.add('lose-glow', 'scale-95');
-                        badge.style.left = "25%";
+                    if (data.hw1.score >= data.hw2.score) {
+                        c1.classList.add('win-glow', 'border-green-500/50');
+                        c2.classList.add('lose-glow');
                     } else {
-                        c2.classList.add('win-glow', 'scale-[1.02]', 'z-20');
-                        c1.classList.add('lose-glow', 'scale-95');
-                        badge.style.left = "75%";
+                        c2.classList.add('win-glow', 'border-green-500/50');
+                        c1.classList.add('lose-glow');
                     }
                 }, 800);
 
@@ -215,6 +261,12 @@
                 btn.disabled = false;
                 btn.innerHTML = "ANALYZE MATCHUP";
             }
+        }
+
+        function scanMarket() {
+            if(!currentWinner) return;
+            sessionStorage.setItem('autoScanTarget', currentWinner);
+            window.location.href = "index.html";
         }
     </script>
 </body>
