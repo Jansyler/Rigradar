@@ -50,7 +50,7 @@
             <p class="text-gray-400 font-medium tracking-widest uppercase text-xs">Gemini 2.0 Deep Analysis</p>
         </div>
 
-        <div class="glass-panel p-6 rounded-3xl mb-16 relative z-10 max-w-4xl mx-auto border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
+        <div class="glass-panel p-6 rounded-3xl mb-12 relative z-10 max-w-4xl mx-auto border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
             <div class="flex flex-col md:flex-row items-center gap-6 mb-6">
                 <input id="hw1" type="text" placeholder="Component 1 (e.g. i5-13600K)" class="w-full bg-black/50 border border-white/10 p-5 rounded-2xl focus:border-blue-500 outline-none transition-all font-bold text-center text-xl uppercase">
                 <div class="text-4xl font-black italic text-gray-700 select-none">VS</div>
@@ -67,17 +67,16 @@
             </button>
         </div>
 
-        <div id="results" class="hidden relative opacity-0 transition-opacity duration-1000 space-y-8">
-            
+        <div id="results" class="hidden relative opacity-0 transition-opacity duration-1000 space-y-8 mb-16">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
-                <div id="card1" class="glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden flex flex-col h-full">
+                <div id="card1" class="glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden flex flex-col h-full border-2 border-transparent">
                     <div class="text-blue-500 text-[10px] font-black uppercase tracking-widest mb-2">Contender A</div>
                     <h2 id="name1" class="text-3xl font-black mb-6 tracking-tight">---</h2>
                     
                     <div class="space-y-4 flex-grow">
                         <div class="flex justify-between border-b border-white/5 pb-2">
                             <span class="text-gray-500 text-xs font-bold uppercase">Specs</span>
-                            <span id="specs1" class="font-bold text-sm text-right">---</span>
+                            <span id="specs1" class="font-bold text-sm text-right text-blue-200">---</span>
                         </div>
                         <div class="flex justify-between border-b border-white/5 pb-2">
                             <span class="text-gray-500 text-xs font-bold uppercase">Est. Avg Price</span>
@@ -107,14 +106,14 @@
                     </div>
                 </div>
 
-                <div id="card2" class="glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden flex flex-col h-full">
+                <div id="card2" class="glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden flex flex-col h-full border-2 border-transparent">
                     <div class="text-red-500 text-[10px] font-black uppercase tracking-widest mb-2">Contender B</div>
                     <h2 id="name2" class="text-3xl font-black mb-6 tracking-tight">---</h2>
                     
                     <div class="space-y-4 flex-grow">
                         <div class="flex justify-between border-b border-white/5 pb-2">
                             <span class="text-gray-500 text-xs font-bold uppercase">Specs</span>
-                            <span id="specs2" class="font-bold text-sm text-right">---</span>
+                            <span id="specs2" class="font-bold text-sm text-right text-red-200">---</span>
                         </div>
                         <div class="flex justify-between border-b border-white/5 pb-2">
                             <span class="text-gray-500 text-xs font-bold uppercase">Est. Avg Price</span>
@@ -160,34 +159,49 @@
                             <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Recommended Choice</p>
                             <p id="winner-name" class="text-xl font-black text-white">---</p>
                         </div>
-                        
-                        <button onclick="scanMarket()" id="scan-winner-btn" class="w-full bg-[#111] border border-white/20 hover:border-blue-500 hover:bg-blue-600/20 text-white font-bold py-3 rounded-xl transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                        <button onclick="scanItem('winner')" id="scan-winner-btn" class="w-full bg-[#111] border border-white/20 hover:border-blue-500 hover:bg-blue-600/20 text-white font-bold py-3 rounded-xl transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                            Find Deals
+                            Find Winner
                         </button>
                     </div>
                 </div>
             </div>
-
         </div>
+
+        <div id="history-section" class="hidden">
+            <h3 class="text-xl font-black mb-4 uppercase tracking-widest italic text-gray-500">Recent Battles</h3>
+            <div class="glass-panel p-4 md:p-6 rounded-3xl">
+                <div id="history-list" class="space-y-3">
+                    </div>
+            </div>
+        </div>
+
     </main>
+
+    <div id="footer-placeholder" class="mt-auto"></div>
 
     <script src="auth.js"></script>
     <script src="market.js"></script>
     <script>
+        let currentWinnerName = "";
+
         async function loadLayout() {
             try {
                 const hRes = await fetch('header.html');
                 if(hRes.ok) document.getElementById('header-placeholder').innerHTML = await hRes.text();
-                // Důležité: Re-inicializace auth modulu po načtení hlavičky
+                
+                const fRes = await fetch('footer.html');
+                if(fRes.ok) document.getElementById('footer-placeholder').innerHTML = await fRes.text();
+                
                 if (typeof window.initAuth === 'function') {
                     window.initAuth();
                 }
-            } catch(e) {}
+                
+                renderHistory();
+
+            } catch(e) { console.error("Layout load error", e); }
         }
         document.addEventListener('DOMContentLoaded', loadLayout);
-
-        let currentWinner = "";
 
         async function startBattle() {
             const hw1 = document.getElementById('hw1').value.trim();
@@ -204,8 +218,8 @@
             results.classList.add('hidden');
             results.classList.remove('opacity-100');
             
-            document.getElementById('card1').className = "glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden flex flex-col h-full";
-            document.getElementById('card2').className = "glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden flex flex-col h-full";
+            document.getElementById('card1').className = "glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden flex flex-col h-full border-2 border-transparent";
+            document.getElementById('card2').className = "glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden flex flex-col h-full border-2 border-transparent";
 
             try {
                 const res = await fetch('/api/compare', {
@@ -219,22 +233,24 @@
 
                 document.getElementById('name1').innerText = data.hw1.name;
                 document.getElementById('specs1').innerText = data.hw1.keySpecs;
-                document.getElementById('price1').innerText = data.hw1.avgPrice;
+                document.getElementById('price1').innerText = "$" + String(data.hw1.avgPrice).replace('$', '');
                 document.getElementById('pros1').innerHTML = data.hw1.pros.map(p => `<li>${p}</li>`).join('');
                 document.getElementById('cons1').innerHTML = data.hw1.cons.map(c => `<li>${c}</li>`).join('');
                 document.getElementById('score1-text').innerText = data.hw1.score + "%";
                 
                 document.getElementById('name2').innerText = data.hw2.name;
                 document.getElementById('specs2').innerText = data.hw2.keySpecs;
-                document.getElementById('price2').innerText = data.hw2.avgPrice;
+                document.getElementById('price2').innerText = "$" + String(data.hw2.avgPrice).replace('$', '');
                 document.getElementById('pros2').innerHTML = data.hw2.pros.map(p => `<li>${p}</li>`).join('');
                 document.getElementById('cons2').innerHTML = data.hw2.cons.map(c => `<li>${c}</li>`).join('');
                 document.getElementById('score2-text').innerText = data.hw2.score + "%";
 
                 document.getElementById('verdict-text').innerHTML = data.verdict.replace(/\n/g, '<br><br>');
                 
-                currentWinner = data.hw1.score >= data.hw2.score ? data.hw1.name : data.hw2.name;
-                document.getElementById('winner-name').innerText = currentWinner;
+                currentWinnerName = data.hw1.score >= data.hw2.score ? data.hw1.name : data.hw2.name;
+                document.getElementById('winner-name').innerText = currentWinnerName;
+
+                saveToHistory(data.hw1.name, data.hw2.name);
 
                 results.classList.remove('hidden');
                 setTimeout(() => {
@@ -247,10 +263,10 @@
                     const c1 = document.getElementById('card1');
                     const c2 = document.getElementById('card2');
                     if (data.hw1.score >= data.hw2.score) {
-                        c1.classList.add('win-glow', 'border-green-500/50');
+                        c1.classList.add('win-glow');
                         c2.classList.add('lose-glow');
                     } else {
-                        c2.classList.add('win-glow', 'border-green-500/50');
+                        c2.classList.add('win-glow');
                         c1.classList.add('lose-glow');
                     }
                 }, 800);
@@ -263,9 +279,51 @@
             }
         }
 
-        function scanMarket() {
-            if(!currentWinner) return;
-            sessionStorage.setItem('autoScanTarget', currentWinner);
+        function saveToHistory(hw1, hw2) {
+            let history = JSON.parse(localStorage.getItem('rr_compare_history') || '[]');
+            history = history.filter(h => !(h.hw1 === hw1 && h.hw2 === hw2));
+            
+            history.unshift({ hw1, hw2, date: Date.now() });
+            if (history.length > 10) history.pop();
+            
+            localStorage.setItem('rr_compare_history', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const history = JSON.parse(localStorage.getItem('rr_compare_history') || '[]');
+            const section = document.getElementById('history-section');
+            const list = document.getElementById('history-list');
+            
+            if (history.length === 0) {
+                section.classList.add('hidden');
+                return;
+            }
+            
+            section.classList.remove('hidden');
+            list.innerHTML = history.map(h => `
+                <div class="bg-black/30 border border-white/5 p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 transition hover:bg-black/50">
+                    <div class="flex items-center gap-3 w-full md:w-auto text-center md:text-left justify-center">
+                        <span class="font-bold text-blue-400 text-sm md:text-base truncate max-w-[120px] md:max-w-none">${h.hw1}</span>
+                        <span class="text-[10px] text-gray-500 italic font-black uppercase">VS</span>
+                        <span class="font-bold text-red-400 text-sm md:text-base truncate max-w-[120px] md:max-w-none">${h.hw2}</span>
+                    </div>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <button onclick="scanItem('${h.hw1}')" class="flex-1 md:flex-none text-[10px] md:text-xs font-bold uppercase tracking-widest bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-xl transition-all">Scan A</button>
+                        <button onclick="scanItem('${h.hw2}')" class="flex-1 md:flex-none text-[10px] md:text-xs font-bold uppercase tracking-widest bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white px-4 py-2 rounded-xl transition-all">Scan B</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function scanItem(target) {
+            let scanTarget = target;
+            if (target === 'winner') {
+                if(!currentWinnerName) return;
+                scanTarget = currentWinnerName;
+            }
+            
+            sessionStorage.setItem('autoScanTarget', scanTarget);
             window.location.href = "index.html";
         }
     </script>
