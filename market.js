@@ -567,15 +567,23 @@ window.saveScanFromIndex = async function(event, dealDataEscaped, btn) {
 
     const email = localStorage.getItem('rr_user_email');
     if (!email) { 
-        alert("⚠️ Please log in to save scans!");
+        if (window.MarketUI && typeof window.MarketUI.showToast === 'function') {
+            window.MarketUI.showToast("Please log in to save scans!", "error");
+        } else {
+            alert("⚠️ Please log in to save scans!");
+        }
         return; 
     }
 
     const deal = JSON.parse(decodeURIComponent(dealDataEscaped));
     
+    // 🟢 OKAMŽITÁ VIZUÁLNÍ ZMĚNA TLAČÍTKA
     const originalContent = btn.innerHTML;
-    btn.innerHTML = `✓`;
-    btn.classList.add("text-green-500", "border-green-500/50");
+    const originalClasses = btn.className;
+    
+    // Změníme ikonku na fajfku a přepíšeme css třídy tak, aby odpovídaly uloženému stavu
+    btn.innerHTML = `<span class="font-bold text-xs">✓</span>`;
+    btn.className = "text-green-500 border border-green-500/50 bg-green-500/10 p-2 rounded-lg z-10 cursor-default transition-all";
 
     try {
         const res = await fetch('/api/scans?action=save', {
@@ -586,26 +594,30 @@ window.saveScanFromIndex = async function(event, dealDataEscaped, btn) {
         
         if(!res.ok) {
             btn.innerHTML = "❌";
-            btn.classList.remove("text-green-500", "border-green-500/50");
-            btn.classList.add("text-red-500");
-            if (res.status === 401) alert("Session expired. Log in again.");
+            btn.className = "text-red-500 border border-red-500/50 bg-red-500/10 p-2 rounded-lg z-10 transition-all";
+            
+            if (res.status === 401) {
+                if (window.MarketUI) MarketUI.showToast("Session expired. Log in again.", "error");
+            }
             
             setTimeout(() => {
                 btn.innerHTML = originalContent;
-                btn.classList.remove("text-red-500");
+                btn.className = originalClasses;
             }, 2000);
         } else {
             btn.onclick = null;
             btn.title = "Saved";
+            if (window.MarketUI && typeof window.MarketUI.showToast === 'function') {
+                window.MarketUI.showToast("Deal saved to your Database!", "success");
+            }
         }
     } catch (e) {
         console.error(e);
         btn.innerHTML = "❌";
-        btn.classList.remove("text-green-500", "border-green-500/50");
-        btn.classList.add("text-red-500");
+        btn.className = "text-red-500 border border-red-500/50 bg-red-500/10 p-2 rounded-lg z-10 transition-all";
         setTimeout(() => {
             btn.innerHTML = originalContent;
-            btn.classList.remove("text-red-500");
+            btn.className = originalClasses;
         }, 2000);
     }
 };
