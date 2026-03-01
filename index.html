@@ -110,9 +110,8 @@
                 </div>
             </div>
 
-            <div class="glass-panel p-8 rounded-[32px] lg:col-span-1 flex flex-col justify-between relative overflow-hidden group cursor-pointer border border-blue-500/20 hover:border-blue-400/50 transition-all min-h-[380px]" onclick="location.href='chat.html'">
-                <div class="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                
+        <div id="top-catch-card" class="glass-panel p-8 rounded-[32px] lg:col-span-1 flex flex-col justify-between relative overflow-hidden group cursor-pointer border border-blue-500/20 hover:border-blue-400/50 transition-all min-h-[380px]">                
+            <div class="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div class="relative z-10">
                     <div class="flex flex-wrap items-center gap-2 mb-6">
                         <span class="text-xs md:text-sm font-bold uppercase tracking-widest bg-blue-500/20 text-blue-400 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-blue-500/30 flex items-center gap-2">
@@ -133,8 +132,8 @@
                     </div>
                 </div>
             </div>
-
-<div class="glass-panel p-8 md:p-10 rounded-[32px] lg:col-span-2 flex flex-col min-h-[400px] border border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.05)] relative overflow-hidden group">
+            
+            <div class="glass-panel p-8 md:p-10 rounded-[32px] lg:col-span-2 flex flex-col min-h-[400px] border border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.05)] relative overflow-hidden group">
                 <div class="absolute inset-0 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none"></div>
                 <div class="flex justify-between items-center mb-4 relative z-10 px-1 border-b border-white/5 pb-4">
                     <h3 class="text-base md:text-lg font-bold text-blue-400 uppercase tracking-widest flex items-center gap-3">
@@ -155,31 +154,25 @@
                 </div>
                 <div class="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-[#050505] to-transparent z-20 pointer-events-none rounded-b-[32px]"></div>
             </div>
-
-            <div class="glass-panel p-6 rounded-[32px] lg:col-span-1 flex flex-col h-full min-h-[400px] relative overflow-hidden border border-white/5 bg-[#0a0a0a]">
-                <div class="flex items-center gap-2 mb-4 px-2 relative z-10">
-                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                    <span class="ml-2 text-[10px] font-mono text-gray-600 uppercase">satellite_log.sh</span>
+            <div class="glass-panel p-8 rounded-[32px] lg:col-span-1 flex flex-col justify-center relative overflow-hidden border border-white/5 group hover:border-blue-500/30 transition-colors cursor-pointer min-h-[350px]" onclick="location.href='chat.html'">
+                <div class="absolute right-0 top-0 w-full h-1/2 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none"></div>
+                <div class="flex justify-between items-center mb-6 relative z-10">
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                        <span class="text-blue-400 text-base">⚖️</span> Arbitrage
+                    </h3>
                 </div>
-                <div class="flex-1 font-mono text-xs text-blue-400/80 leading-relaxed overflow-hidden relative z-10">
-                    <div class="absolute bottom-0 w-full h-12 bg-gradient-to-t from-[#0a0a0a] to-transparent z-20"></div>
-                    <div class="space-y-2 opacity-70">
-                        <p>> Target: Amazon DE API.</p>
-                        <p>> Bypassing captcha [OK]</p>
-                        <p>> Extracted 42 new listings.</p>
-                        <p>> Running AI evaluation...</p>
-                        <p class="text-white">> Anomaly found: 7800X3D</p>
-                        <p>> Pushing to global Redis...</p>
-                        <p>> Connecting to eBay Node...</p>
-                        <p>> Scraping auctions [OK]</p>
-                        <p class="animate-pulse">_</p>
-                    </div>
+                
+                <div id="arb-target-title" class="text-sm font-bold text-white mb-3 truncate relative z-10">Analyzing market...</div>
+
+                <div id="arbitrage-list" class="flex flex-col gap-3 relative z-10 w-full">
+                    <div class="text-center text-xs text-gray-500 animate-pulse py-6">Connecting to nodes...</div>
+                </div>
+                
+                <div id="arbitrage-footer" class="mt-6 text-center text-[10px] text-blue-100/50 italic leading-relaxed relative z-10">
+                    Waiting for spread data...
                 </div>
             </div>
-
-            <div class="glass-panel p-8 md:p-10 rounded-[32px] lg:col-span-2 flex flex-col justify-center relative overflow-hidden group border border-blue-500/10 hover:border-blue-500/40 transition-all cursor-pointer min-h-[350px]" onclick="location.href='chat.html'">
+          <div class="glass-panel p-8 md:p-10 rounded-[32px] lg:col-span-2 flex flex-col justify-center relative overflow-hidden group border border-blue-500/10 hover:border-blue-500/40 transition-all cursor-pointer min-h-[350px]" onclick="location.href='chat.html'">
                 <div class="absolute inset-0 bg-gradient-to-r from-blue-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 
                 <div class="relative z-10 w-full flex flex-col lg:flex-row items-center justify-between gap-8 md:gap-12">
@@ -202,23 +195,26 @@
                     </div>
                 </div>
             </div>
-
-<div class="glass-panel p-8 rounded-[32px] lg:col-span-1 flex flex-col justify-center relative overflow-hidden border border-white/5 group hover:border-blue-500/30 transition-colors cursor-pointer min-h-[350px]" onclick="location.href='chat.html'">
-                <div class="absolute right-0 top-0 w-full h-1/2 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none"></div>
-                <div class="flex justify-between items-center mb-6 relative z-10">
-                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                        <span class="text-blue-400 text-base">⚖️</span> Arbitrage
-                    </h3>
+                        <div class="glass-panel p-6 rounded-[32px] lg:col-span-1 flex flex-col h-full min-h-[400px] relative overflow-hidden border border-white/5 bg-[#0a0a0a]">
+                <div class="flex items-center gap-2 mb-4 px-2 relative z-10">
+                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span class="ml-2 text-[10px] font-mono text-gray-600 uppercase">satellite_log.sh</span>
                 </div>
-                
-                <div id="arb-target-title" class="text-sm font-bold text-white mb-3 truncate relative z-10">Analyzing market...</div>
-
-                <div id="arbitrage-list" class="flex flex-col gap-3 relative z-10 w-full">
-                    <div class="text-center text-xs text-gray-500 animate-pulse py-6">Connecting to nodes...</div>
-                </div>
-                
-                <div id="arbitrage-footer" class="mt-6 text-center text-[10px] text-blue-100/50 italic leading-relaxed relative z-10">
-                    Waiting for spread data...
+                <div class="flex-1 font-mono text-xs text-blue-400/80 leading-relaxed overflow-hidden relative z-10">
+                    <div class="absolute bottom-0 w-full h-12 bg-gradient-to-t from-[#0a0a0a] to-transparent z-20"></div>
+                    <div class="space-y-2 opacity-70">
+                        <p>> Target: Amazon DE API.</p>
+                        <p>> Bypassing captcha [OK]</p>
+                        <p>> Extracted 42 new listings.</p>
+                        <p>> Running AI evaluation...</p>
+                        <p class="text-white">> Anomaly found: 7800X3D</p>
+                        <p>> Pushing to global Redis...</p>
+                        <p>> Connecting to eBay Node...</p>
+                        <p>> Scraping auctions [OK]</p>
+                        <p class="animate-pulse">_</p>
+                    </div>
                 </div>
             </div>
             <div id="frankenstein-card" class="glass-panel p-8 md:p-10 rounded-[32px] lg:col-span-3 hidden flex-col md:flex-row gap-8 relative overflow-hidden group border border-green-500/30 hover:border-green-400/60 transition-all min-h-[300px]">
@@ -370,32 +366,128 @@
                 chat.innerHTML += `<div class="msg-supp-ai p-3 text-red-400">Connection failed.</div>`;
             }
         }
-    function filterHistory() {
-            const input = document.getElementById('history-search').value.toLowerCase();
-            const items = document.querySelectorAll('.history-item-card');
-            items.forEach(item => {
-                const title = item.getAttribute('data-title').toLowerCase();
-                item.style.display = title.includes(input) ? 'block' : 'none';
-            });
-        }
-function filterHistory() {
-            const input = document.getElementById('history-search').value.toLowerCase();
-            const items = document.querySelectorAll('.history-item-card');
+window.globalHistoryData = []; 
+
+        function updateDashboardPanels(targetTitle) {
+            if (!targetTitle || !window.globalHistoryData.length) return;
             
+            const keywords = targetTitle.split(' ').slice(0, 4).join(' ').toLowerCase();
+            const relevantDeals = window.globalHistoryData.filter(d => d.title && d.title.toLowerCase().includes(keywords));
+
+            let chartPrices = [];
+            let chartLabels = [];
+            const graphDeals = [...relevantDeals].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+            
+            graphDeals.forEach(d => {
+                let listPrice = d.price || "0";
+                if(listPrice.includes(":")) listPrice = listPrice.split(":")[1].trim();
+                const p = parseFloat(listPrice.replace(/[^0-9.]/g, ''));
+                if (!isNaN(p)) {
+                    chartPrices.push(p);
+                    const date = new Date(d.timestamp || Date.now());
+                    chartLabels.push(date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
+                }
+            });
+
+            if (chartPrices.length === 1) {
+                chartPrices.unshift(chartPrices[0]);
+                chartLabels.unshift("Previous Scan");
+            }
+
+            if (chartPrices.length > 0 && window.MarketUI) {
+                const chartTitle = targetTitle.split(' ').slice(0, 4).join(' ');
+                MarketUI.updateChart(chartPrices, chartLabels, chartTitle);
+            }
+
+            const arbTitleEl = document.getElementById('arb-target-title');
+            if (arbTitleEl) arbTitleEl.innerText = targetTitle.split(' ').slice(0, 4).join(' ');
+            
+            const storeMap = {};
+            relevantDeals.forEach(item => {
+                if (!storeMap[item.store] || item.timestamp > storeMap[item.store].timestamp) {
+                    storeMap[item.store] = item;
+                }
+            });
+
+            let arbitrageData = Object.values(storeMap).sort((a, b) => {
+                const pA = parseFloat(String(a.price).replace(/[^0-9.]/g, ''));
+                const pB = parseFloat(String(b.price).replace(/[^0-9.]/g, ''));
+                return pA - pB;
+            }).slice(0, 3);
+
+            const arbListEl = document.getElementById('arbitrage-list');
+            const arbFooterEl = document.getElementById('arbitrage-footer');
+            
+            if (arbListEl) {
+                if(arbitrageData.length === 0) {
+                    arbListEl.innerHTML = '<div class="text-center text-xs text-gray-500 py-4">No spread data found.</div>';
+                    if(arbFooterEl) arbFooterEl.innerHTML = "Waiting for more scans...";
+                } else {
+                    let arbHtml = '';
+                    let cheapest = 0;
+                    let mostExpensive = 0;
+
+                    arbitrageData.forEach((storeData, i) => {
+                        let pStr = storeData.price || "---";
+                        if(String(pStr).includes(":")) pStr = pStr.split(":")[1].trim();
+                        const numPrice = parseFloat(String(pStr).replace(/[^0-9.]/g, ''));
+                        
+                        if (i === 0) cheapest = numPrice;
+                        if (numPrice > mostExpensive) mostExpensive = numPrice;
+
+                        const textColor = i === 0 ? "text-white" : "text-gray-500";
+                        const styleClasses = i === 0 ? "bg-[#111] border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]" : "bg-[#0a0a0a] border-white/5 opacity-60";
+                        let tag = i === 0 ? `<div class="absolute -top-2 left-3 bg-blue-600 text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shadow-lg">Best Deal</div>` : "";
+                        
+                        if (i === arbitrageData.length - 1 && arbitrageData.length > 1) {
+                             tag = `<div class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-2xl backdrop-blur-[1px]"><span class="text-red-400 text-[9px] font-bold uppercase tracking-widest border border-red-500/30 bg-red-500/10 px-2 py-0.5 rounded">Overpriced</span></div>`;
+                        }
+
+                        arbHtml += `
+                        <div class="rounded-2xl p-4 flex items-center justify-between relative border ${styleClasses}">
+                            ${tag}
+                            <span class="text-xs ${i === 0 ? 'text-blue-300' : 'text-gray-500'} font-mono uppercase z-10">${storeData.store}</span>
+                            <span class="text-xl font-black ${textColor} z-10">${pStr}</span>
+                        </div>`;
+                    });
+                    arbListEl.innerHTML = arbHtml;
+
+                    if (arbFooterEl) {
+                        if (mostExpensive > cheapest && cheapest > 0) {
+                            const spread = Math.round(mostExpensive - cheapest);
+                            arbFooterEl.innerHTML = `AI detected a <span class="text-white font-bold">$${spread} spread</span> on this item.`;
+                        } else {
+                            arbFooterEl.innerHTML = "Market spread is tight. Excellent time to buy.";
+                        }
+                    }
+                }
+            }
+        }
+        function filterHistory() {
+            const input = document.getElementById('history-search').value.toLowerCase();
+            const items = document.querySelectorAll('.history-item-card');
+            let firstMatchTitle = null;
+
             items.forEach((item, index) => {
                 const title = item.getAttribute('data-title').toLowerCase();
                 const matches = title.includes(input);
 
                 if (input.length > 0) {
                     item.style.display = matches ? 'block' : 'none';
-                    item.style.opacity = "1"; // Při hledání vypneme efekt mizení
+                    item.style.opacity = "1";
+                    if (matches && !firstMatchTitle) firstMatchTitle = item.getAttribute('data-title');
                 } else {
                     item.style.display = index < 5 ? 'block' : 'none';
                     item.style.opacity = index < 5 ? (1 - index * 0.15) : "1";
+                    if (index === 0) firstMatchTitle = item.getAttribute('data-title');
                 }
             });
+
+            if (firstMatchTitle) {
+                updateDashboardPanels(firstMatchTitle);
+            }
         }
-async function fetchLatestDeal() {
+        async function fetchLatestDeal() {
             try {
                 const res = await fetch(`/api/update_price`);
                 const data = await res.json();
@@ -405,6 +497,7 @@ async function fetchLatestDeal() {
                     const opinionEl = document.getElementById('top-catch-opinion');
                     const titleEl = document.getElementById('top-catch-title');
                     const storeEl = document.getElementById('top-catch-store');
+                    const topCatchCard = document.getElementById('top-catch-card');
 
                     let cleanPrice = data.latest.price || "---";
                     if(cleanPrice.includes(":")) cleanPrice = cleanPrice.split(":")[1].trim();
@@ -415,9 +508,16 @@ async function fetchLatestDeal() {
                     if(storeEl) {
                         storeEl.innerHTML = `<span class="mr-1 text-sm md:text-base leading-none">🔥</span> BEST DEAL IN <span class="text-white ml-1 font-black">${data.latest.store || "WEB"}</span>`;
                         storeEl.className = "flex items-center text-[10px] md:text-xs font-bold uppercase tracking-widest bg-yellow-500/10 text-yellow-500 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-yellow-500/30 shadow-[0_0_10px_rgba(234,179,8,0.2)] whitespace-nowrap";
-                    }  
+                    }   
+
+                    if (topCatchCard) {
+                        const dealDataEscaped = encodeURIComponent(JSON.stringify(data.latest)).replace(/'/g, "%27");
+                        topCatchCard.onclick = () => MarketUI.openDetail(dealDataEscaped);
+                    }
                 }  
+                
                 const historyArray = data.history || [];
+                window.globalHistoryData = historyArray; 
                 const list = document.getElementById('history-list');
                 const savedIds = (data.saved || []).map(s => String(s.id));
 
@@ -479,82 +579,9 @@ async function fetchLatestDeal() {
                     });
                     list.innerHTML = htmlContent;
 
-                    const activeTitle = (data.latest && data.latest.title) ? data.latest.title : historyArray[0].title;
-                    const keywords = activeTitle.split(' ').slice(0, 4).join(' ').toLowerCase(); 
-                    
-                    const allDeals = data.latest ? [data.latest, ...historyArray] : historyArray;
-                    const relevantDeals = allDeals.filter(d => d.title && d.title.toLowerCase().includes(keywords));
-
-                    let chartPrices = [];
-                    let chartLabels = [];
-
-                    relevantDeals.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0)).forEach(d => {
-                        let listPrice = d.price || "0";
-                        if(listPrice.includes(":")) listPrice = listPrice.split(":")[1].trim();
-                        const p = parseFloat(listPrice.replace(/[^0-9.]/g, ''));
-                        
-                        if (!isNaN(p)) {
-                            chartPrices.push(p);
-                            const date = new Date(d.timestamp || Date.now());
-                            chartLabels.push(date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
-                        }
-                    });
-
-                    if (chartPrices.length === 1) {
-                        chartPrices.unshift(chartPrices[0]);
-                        chartLabels.unshift("Previous Scan");
-                    }
-
-                    if (chartPrices.length > 0 && window.MarketUI) {
-                        const chartTitle = activeTitle.split(' ').slice(0, 4).join(' ');
-                        MarketUI.updateChart(chartPrices, chartLabels, chartTitle);
-                    }
+                    updateDashboardPanels(historyArray[0].title);
                 }
-                
-                if (data.arbitrage && data.arbitrage.data && data.arbitrage.data.length > 0) {
-                    document.getElementById('arb-target-title').innerText = data.arbitrage.target;
-                    let arbHtml = '';
-                    let cheapest = 0;
-                    let mostExpensive = 0;
 
-                    data.arbitrage.data.forEach((storeData, i) => {
-                        let pStr = storeData.price || "---";
-                        if(String(pStr).includes(":")) pStr = pStr.split(":")[1].trim();
-                        const numPrice = parseFloat(String(pStr).replace(/[^0-9.]/g, ''));
-                        if (i === 0) cheapest = numPrice;
-                        if (numPrice > mostExpensive) mostExpensive = numPrice;
-
-                        let styleClasses = "bg-[#111] border border-white/10 opacity-80";
-                        let tag = "";
-                        let textColor = "text-gray-300";
-
-                        if (storeData.bestDeal || i === 0) {
-                            styleClasses = "bg-[#111] border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]";
-                            tag = `<div class="absolute -top-2 left-3 bg-blue-600 text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shadow-lg">Best Deal</div>`;
-                            textColor = "text-white";
-                        } else if (storeData.isOverpriced || (i === data.arbitrage.data.length - 1 && data.arbitrage.data.length > 1)) {
-                            styleClasses = "bg-[#111] border border-red-500/20 opacity-60 relative";
-                            tag = `<div class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-2xl backdrop-blur-[1px]"><span class="text-red-400 text-[9px] font-bold uppercase tracking-widest border border-red-500/30 bg-red-500/10 px-2 py-0.5 rounded">Overpriced</span></div>`;
-                            textColor = "text-gray-500";
-                        }
-
-                        arbHtml += `
-                        <div class="rounded-2xl p-4 flex items-center justify-between relative ${styleClasses}">
-                            ${tag}
-                            <span class="text-xs ${i === 0 ? 'text-blue-300' : 'text-gray-500'} font-mono uppercase z-10">${storeData.store}</span>
-                            <span class="text-xl font-black ${textColor} z-10">${storeData.originalPrice || pStr}</span>
-                        </div>`;
-                    });
-
-                    document.getElementById('arbitrage-list').innerHTML = arbHtml;
-
-                    if (mostExpensive > cheapest && cheapest > 0) {
-                        const spread = Math.round(mostExpensive - cheapest);
-                        document.getElementById('arbitrage-footer').innerHTML = `AI detected a <span class="text-white font-bold">$${spread} spread</span> on ${data.arbitrage.target}.`;
-                    } else {
-                        document.getElementById('arbitrage-footer').innerHTML = "Market spread is tight. Excellent time to buy.";
-                    }
-                }
                 const fCard = document.getElementById('frankenstein-card');
                 if (data.frankenstein && fCard) {
                     fCard.classList.remove('hidden');
@@ -564,6 +591,7 @@ async function fetchLatestDeal() {
                     if (data.frankenstein.parts && Array.isArray(data.frankenstein.parts)) {
                         partsHtml = data.frankenstein.parts.map(p => `<li class="text-xs text-green-200/70 font-mono border-b border-green-500/10 py-2">${p}</li>`).join('');
                     }
+                    
                     fCard.innerHTML = `
                         <div class="absolute inset-0 bg-gradient-to-r from-green-900/10 to-purple-900/10 opacity-50 pointer-events-none"></div>
                         <div class="flex-1 relative z-10 space-y-4">
@@ -589,6 +617,7 @@ async function fetchLatestDeal() {
                 } else if (fCard) {
                     fCard.classList.add('hidden');
                 }
+                
                 return data; 
 
             } catch (e) { 
