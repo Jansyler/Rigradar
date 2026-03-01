@@ -684,14 +684,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         await loadLayout();
         
-        if (window.MarketUI) {
+        if (window.MarketUI && document.getElementById('priceChart')) {
             MarketUI.initChart('priceChart');
         }
 
-        const res = await fetchLatestDeal(); 
-                if (res && res.pusherKey) {
+        const res = await window.fetchLatestDeal(); 
+        
+        if (res && res.pusherKey && window.MarketUI) {
             MarketUI.initRealtime(res.pusherKey);
         }
+
+        const params = new URLSearchParams(window.location.search);
+        const dealId = params.get('dealId');
+
+        if (dealId && window.globalHistoryData) {
+            const foundDeal = window.globalHistoryData.find(d => String(d.id) === String(dealId));
+
+            if (foundDeal && window.MarketUI) {
+                const dealDataEscaped = encodeURIComponent(JSON.stringify(foundDeal)).replace(/'/g, "%27");
+                
+                setTimeout(() => {
+                    MarketUI.openDetail(dealDataEscaped);
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }, 500);
+            }
+        }
+
         await loadSidebar();
         
         const chatBox = document.getElementById('chat-box');
