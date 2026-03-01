@@ -6,10 +6,6 @@
     {
       "path": "/api/cron_frankenstein",
       "schedule": "0 8 * * *"
-    },
-    {
-      "path": "/api/watchdog?action=cron",
-      "schedule": "0 * * * *"
     }
   ],
   "rewrites": [
