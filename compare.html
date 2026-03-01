@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RigRadar AI | Compare</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="style.css" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://js.pusher.com/8.0.1/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        body { 
+            background-color: #050505; 
+            color: white; 
+            font-family: 'Inter', sans-serif; 
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .vs-gradient { background: linear-gradient(45deg, #3b82f6, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .win-glow { box-shadow: 0 0 40px rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.5); }
+        .lose-glow { opacity: 0.6; }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        .analyzing { animation: glitch 0.3s infinite; color: #3b82f6; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <div id="header-placeholder"></div>
+
+    <main class="flex-grow max-w-5xl mx-auto w-full px-4 pt-32 pb-20">
+        <div class="text-center mb-16">
+            <h1 class="text-5xl md:text-7xl font-black tracking-tighter uppercase mb-4 italic">
+                HARDWARE <span class="vs-gradient">BATTLE</span>
+            </h1>
+            <p class="text-gray-400 font-medium tracking-widest uppercase text-xs">Gemini 2.0 AI Comparison Engine</p>
+        </div>
+
+        <div class="glass-panel p-6 rounded-3xl mb-16 relative z-10">
+            <div class="flex flex-col md:flex-row items-center gap-6">
+                <input id="gpu1" type="text" placeholder="e.g. RTX 4070 Ti" class="w-full bg-black/50 border border-white/10 p-5 rounded-2xl focus:border-blue-500 outline-none transition-all font-bold text-center text-xl md:text-2xl uppercase">
+                
+                <div class="text-5xl font-black italic text-gray-700 select-none">VS</div>
+                
+                <input id="gpu2" type="text" placeholder="e.g. RX 7900 XT" class="w-full bg-black/50 border border-white/10 p-5 rounded-2xl focus:border-red-500 outline-none transition-all font-bold text-center text-xl md:text-2xl uppercase">
+            </div>
+            <button onclick="startBattle()" id="battle-btn" class="mt-6 w-full bg-white text-black font-black px-12 py-5 rounded-2xl hover:bg-blue-600 hover:text-white transition-all text-xl uppercase tracking-widest shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                ANALYZE MATCHUP
+            </button>
+        </div>
+
+        <div id="results" class="hidden relative opacity-0 transition-opacity duration-1000">
+            
+            <div id="winner-badge" class="absolute -top-6 left-1/2 -translate-x-1/2 bg-green-500 text-black px-8 py-2 rounded-full font-black uppercase tracking-widest z-20 shadow-[0_0_20px_rgba(34,197,94,0.6)] transition-all duration-700 hidden">
+                🏆 WINNER
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 relative z-10">
+                <div id="card1" class="glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="text-blue-500 text-[10px] font-black uppercase tracking-widest mb-2">Contender A</div>
+                    <h2 id="name1" class="text-3xl md:text-4xl font-black mb-8 tracking-tight">---</h2>
+                    
+                    <div class="space-y-5">
+                        <div class="flex justify-between items-end border-b border-white/5 pb-3">
+                            <span class="text-gray-500 text-sm font-bold uppercase tracking-widest">VRAM</span>
+                            <span id="vram1" class="font-black text-xl">---</span>
+                        </div>
+                        <div class="flex justify-between items-end border-b border-white/5 pb-3">
+                            <span class="text-gray-500 text-sm font-bold uppercase tracking-widest">TDP</span>
+                            <span id="tdp1" class="font-black text-xl text-yellow-500">---</span>
+                        </div>
+                        <div class="pt-6">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Overall Score</span>
+                                <span id="score1-text" class="text-blue-500 font-black">0</span>
+                            </div>
+                            <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                                <div id="score1-bar" class="h-full bg-blue-500 transition-all duration-1000 w-0"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="card2" class="glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="text-red-500 text-[10px] font-black uppercase tracking-widest mb-2">Contender B</div>
+                    <h2 id="name2" class="text-3xl md:text-4xl font-black mb-8 tracking-tight">---</h2>
+                    
+                    <div class="space-y-5">
+                        <div class="flex justify-between items-end border-b border-white/5 pb-3">
+                            <span class="text-gray-500 text-sm font-bold uppercase tracking-widest">VRAM</span>
+                            <span id="vram2" class="font-black text-xl">---</span>
+                        </div>
+                        <div class="flex justify-between items-end border-b border-white/5 pb-3">
+                            <span class="text-gray-500 text-sm font-bold uppercase tracking-widest">TDP</span>
+                            <span id="tdp2" class="font-black text-xl text-yellow-500">---</span>
+                        </div>
+                        <div class="pt-6">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Overall Score</span>
+                                <span id="score2-text" class="text-red-500 font-black">0</span>
+                            </div>
+                            <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                                <div id="score2-bar" class="h-full bg-red-500 transition-all duration-1000 w-0"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 glass-panel p-8 rounded-3xl text-center border-t border-white/10 bg-[#0a0a0a]">
+                <h3 class="text-xs font-black mb-4 uppercase tracking-widest text-gray-500">AI Verdict</h3>
+                <p id="verdict-text" class="text-gray-200 leading-relaxed text-lg md:text-xl font-medium">...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function loadLayout() {
+            try {
+                const hRes = await fetch('header.html');
+                if(hRes.ok) document.getElementById('header-placeholder').innerHTML = await hRes.text();
+            } catch(e) {}
+        }
+        document.addEventListener('DOMContentLoaded', loadLayout);
+
+        async function startBattle() {
+            const g1 = document.getElementById('gpu1').value.trim();
+            const g2 = document.getElementById('gpu2').value.trim();
+            const btn = document.getElementById('battle-btn');
+            const results = document.getElementById('results');
+            
+            if(!g1 || !g2) return alert("Please enter two components to compare!");
+
+            // Reset UI
+            btn.disabled = true;
+            btn.innerHTML = '<span class="analyzing">⚡ RUNNING AI BENCHMARKS...</span>';
+            results.classList.add('hidden');
+            results.classList.remove('opacity-100');
+            
+            document.getElementById('card1').className = "glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden group";
+            document.getElementById('card2').className = "glass-panel p-8 rounded-3xl transition-all duration-700 relative overflow-hidden group";
+            document.getElementById('winner-badge').classList.add('hidden');
+
+            try {
+                const res = await fetch('/api/compare', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ gpu1: g1, gpu2: g2 })
+                });
+                
+                if (!res.ok) throw new Error("Comparison failed");
+                const data = await res.json();
+
+                // Populate UI
+                document.getElementById('name1').innerText = data.gpu1.name;
+                document.getElementById('vram1').innerText = data.gpu1.vram;
+                document.getElementById('tdp1').innerText = data.gpu1.tdp;
+                document.getElementById('score1-text').innerText = data.gpu1.score;
+                
+                document.getElementById('name2').innerText = data.gpu2.name;
+                document.getElementById('vram2').innerText = data.gpu2.vram;
+                document.getElementById('tdp2').innerText = data.gpu2.tdp;
+                document.getElementById('score2-text').innerText = data.gpu2.score;
+
+                document.getElementById('verdict-text').innerText = data.verdict;
+
+                // Show Results Block
+                results.classList.remove('hidden');
+                setTimeout(() => {
+                    results.classList.add('opacity-100');
+                    document.getElementById('score1-bar').style.width = data.gpu1.score + "%";
+                    document.getElementById('score2-bar').style.width = data.gpu2.score + "%";
+                }, 100);
+
+                // Highlight Winner
+                setTimeout(() => {
+                    const c1 = document.getElementById('card1');
+                    const c2 = document.getElementById('card2');
+                    const badge = document.getElementById('winner-badge');
+                    
+                    badge.classList.remove('hidden');
+
+                    if (data.gpu1.score >= data.gpu2.score) {
+                        c1.classList.add('win-glow', 'scale-[1.02]', 'z-20');
+                        c2.classList.add('lose-glow', 'scale-95');
+                        badge.style.left = "25%";
+                    } else {
+                        c2.classList.add('win-glow', 'scale-[1.02]', 'z-20');
+                        c1.classList.add('lose-glow', 'scale-95');
+                        badge.style.left = "75%";
+                    }
+                }, 800);
+
+            } catch(e) {
+                alert("Battle failed. The AI engine is busy.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "ANALYZE MATCHUP";
+            }
+        }
+    </script>
+</body>
+</html>
