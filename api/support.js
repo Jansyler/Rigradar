@@ -1,5 +1,6 @@
 import { Redis } from '@upstash/redis'
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { Resend } from 'resend';
 
 const redis = new Redis({
   url: process.env.KV_REST_API_URL,
@@ -7,6 +8,7 @@ const redis = new Redis({
 })
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).end();
@@ -41,12 +43,29 @@ const systemPrompt = `
     `;
 
     try {
-        if (message.toLowerCase().includes("kontakt") || message.toLowerCase().includes("problem")) {
+        const isContactRequest = message.startsWith("CONTACT_ADMIN:");
+
+        if (isContactRequest || message.toLowerCase().includes("kontakt") || message.toLowerCase().includes("problem")) {
+            
+            const ticketContent = isContactRequest ? message.replace("CONTACT_ADMIN:", "").trim() : message;
+
             await redis.lpush('support_tickets', JSON.stringify({
-                text: message,
+                text: ticketContent,
                 date: new Date().toISOString(),
                 ip: ip
             }));
+            if (isContactRequest && process.env.RESEND_API_KEY) {
+                await resend.emails.send({
+                    from: 'RigRadar Support <support@rigradarai.com>',
+                    to: 'sylerjan@gmail.com',
+                    subject: `🚨 New Support Ticket!`,
+                    html: `
+                        <h3>New message from Support Bot</h3>
+                        <p><strong>Message:</strong> ${ticketContent}</p>
+                        <p><strong>User IP:</strong> ${ip}</p>
+                    `
+                });
+            }
         }
 
         const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
