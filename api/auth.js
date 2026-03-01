@@ -25,110 +25,101 @@ export default async function handler(req, res) {
     const { action } = req.query;
 
     try {
+        if (req.method === 'DELETE' || action === 'logout') {
+            res.setHeader('Set-Cookie', 'rr_auth_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Expires=Thu, 01 Jan 1970 00:00:00 GMT');
+            return res.status(200).json({ success: true, message: 'Logged out successfully' });
+        }
+
+        if (req.method === 'GET' && !action) {
+            const cookieHeader = req.headers.cookie || '';
+            const tokenMatch = cookieHeader.match(/rr_auth_token=([^;]+)/);
+            if (!tokenMatch) return res.status(401).json({ isPremium: false });
+
+            const email = await redis.get(`session:${tokenMatch[1]}`);
+            if (!email) return res.status(401).json({ isPremium: false, error: "Session expired." });
+
+            const premiumData = await redis.get(`premium:${email}`);
+            const isPremium = premiumData ? premiumData.isActive === true : false;
+            
+            return res.status(200).json({ 
+                isPremium, 
+                email: email,
+                customerId: premiumData?.customerId || null 
+            });
+        }
+
         if (req.method === 'GET' && action === 'github_callback') {
             const { code } = req.query;
-            if (!code) return res.status(400).send("No code provided by GitHub.");
+            if (!code) return res.status(400).send("No code provided.");
 
             const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({
                     client_id: process.env.GITHUB_CLIENT_ID,
                     client_secret: process.env.GITHUB_CLIENT_SECRET,
                     code: code
                 })
             });
-            
             const tokenData = await tokenResponse.json();
             const accessToken = tokenData.access_token;
-            if (!accessToken) return res.status(400).send("GitHub authentication failed.");
 
             const userResponse = await fetch('https://api.github.com/user', {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'User-Agent': 'RigRadar-App'
-                }
+                headers: { 'Authorization': `Bearer ${accessToken}`, 'User-Agent': 'RigRadar-App' }
             });
             const userData = await userResponse.json();
-            const githubPic = userData.avatar_url; 
 
             const emailResponse = await fetch('https://api.github.com/user/emails', {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'User-Agent': 'RigRadar-App'
-                }
+                headers: { 'Authorization': `Bearer ${accessToken}`, 'User-Agent': 'RigRadar-App' }
             });
-            
             const emails = await emailResponse.json();
             const primaryEmailObj = emails.find(e => e.primary && e.verified) || emails[0];
-            if (!primaryEmailObj || !primaryEmailObj.email) {
-                return res.status(400).send("No valid email found on your GitHub account.");
-            }
-
+            
             const email = primaryEmailObj.email;
             const sessionToken = await generateSession(email);
-
             setCookie(res, sessionToken);
 
-            return res.redirect(`/chat.html?email=${encodeURIComponent(email)}&pic=${encodeURIComponent(githubPic)}`);
+            return res.redirect(`/chat.html?email=${encodeURIComponent(email)}&pic=${encodeURIComponent(userData.avatar_url)}`);
         }
-
-        if (req.method !== 'POST') return res.status(405).end();
-
-        if (action === 'google') {
-            const { idToken } = req.body;
-            const ticket = await authClient.verifyIdToken({
-                idToken,
-                audience: process.env.GOOGLE_CLIENT_ID,
-            });
-            const email = ticket.getPayload().email;
-            
-            const sessionToken = await generateSession(email);
-            
-            setCookie(res, sessionToken);
-            return res.status(200).json({ success: true, email });
-        }
-        
-        if (action === 'register') {
-            const { email, password } = req.body;
-            if (!email || !password || password.length < 6) {
-                return res.status(400).json({ error: "Invalid email or password too short (min 6 chars)" });
-            }
-
-            const existing = await redis.get(`user_auth:${email}`);
-            if (existing) return res.status(400).json({ error: "User already exists. Please log in." });
-            
-            const salt = crypto.randomBytes(16).toString('hex');
-            const hash = crypto.scryptSync(password, salt, 64).toString('hex');
-            
-            await redis.set(`user_auth:${email}`, `${salt}:${hash}`);
-            
-            const sessionToken = await generateSession(email);
-            
-            setCookie(res, sessionToken);
-            return res.status(200).json({ success: true, email });
-        }
-
-        if (action === 'login') {
-            const { email, password } = req.body;
-            
-            const stored = await redis.get(`user_auth:${email}`);
-            if (!stored) return res.status(400).json({ error: "Invalid credentials" });
-            
-            const [salt, key] = stored.split(':');
-            const hashedBuffer = crypto.scryptSync(password, salt, 64);
-            
-            if (key !== hashedBuffer.toString('hex')) {
-                return res.status(400).json({ error: "Invalid credentials" });
+        if (req.method === 'POST') {
+            if (action === 'google') {
+                const { idToken } = req.body;
+                const ticket = await authClient.verifyIdToken({ idToken, audience: process.env.GOOGLE_CLIENT_ID });
+                const email = ticket.getPayload().email;
+                const sessionToken = await generateSession(email);
+                setCookie(res, sessionToken);
+                return res.status(200).json({ success: true, email });
             }
             
-            const sessionToken = await generateSession(email);
-            
-            setCookie(res, sessionToken);
-            return res.status(200).json({ success: true, email });
+            if (action === 'register') {
+                const { email, password } = req.body;
+                if (!email || !password || password.length < 6) return res.status(400).json({ error: "Invalid input" });
+
+                const existing = await redis.get(`user_auth:${email}`);
+                if (existing) return res.status(400).json({ error: "User already exists." });
+                
+                const salt = crypto.randomBytes(16).toString('hex');
+                const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+                await redis.set(`user_auth:${email}`, `${salt}:${hash}`);
+                
+                const sessionToken = await generateSession(email);
+                setCookie(res, sessionToken);
+                return res.status(200).json({ success: true, email });
+            }
+
+            if (action === 'login') {
+                const { email, password } = req.body;
+                const stored = await redis.get(`user_auth:${email}`);
+                if (!stored) return res.status(400).json({ error: "Invalid credentials" });
+                
+                const [salt, key] = stored.split(':');
+                const hashedBuffer = crypto.scryptSync(password, salt, 64);
+                if (key !== hashedBuffer.toString('hex')) return res.status(400).json({ error: "Invalid credentials" });
+                
+                const sessionToken = await generateSession(email);
+                setCookie(res, sessionToken);
+                return res.status(200).json({ success: true, email });
+            }
         }
 
         res.status(400).json({ error: "Unknown action" });
