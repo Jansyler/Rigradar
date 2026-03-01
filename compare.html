@@ -183,25 +183,14 @@
     <script src="auth.js"></script>
     <script src="market.js"></script>
     <script>
-        let currentWinnerName = "";
+let currentWinnerName = "";
 
-        async function loadLayout() {
-            try {
-                const hRes = await fetch('header.html');
-                if(hRes.ok) document.getElementById('header-placeholder').innerHTML = await hRes.text();
-                
-                const fRes = await fetch('footer.html');
-                if(fRes.ok) document.getElementById('footer-placeholder').innerHTML = await fRes.text();
-                
-                if (typeof window.initAuth === 'function') {
-                    window.initAuth();
-                }
-                
-                renderHistory();
-
-            } catch(e) { console.error("Layout load error", e); }
-        }
-        document.addEventListener('DOMContentLoaded', loadLayout);
+        document.addEventListener('DOMContentLoaded', () => {
+            if(typeof loadLayout === 'function') {
+                loadLayout();
+            }
+            renderHistory();
+        });
 
         async function startBattle() {
             const hw1 = document.getElementById('hw1').value.trim();
